@@ -484,7 +484,13 @@
       try {
         const doc = await db.collection("prices").doc("menu").get();
         if (doc.exists) {
-          prices = { ...defaultPrices, ...doc.data() };
+          const remote = doc.data();
+          // Only apply remote prices for keys that exist in the current menu
+          const merged = { ...defaultPrices };
+          for (const key of Object.keys(defaultPrices)) {
+            if (remote[key] !== undefined) merged[key] = remote[key];
+          }
+          prices = merged;
         }
       } catch (e) {
         console.error("Error loading prices:", e);
