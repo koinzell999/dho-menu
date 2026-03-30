@@ -79,6 +79,7 @@
         totalLabel: "Total",
         checkout: "Checkout",
         categories: {
+          popular:"⭐ Popular",
           waffles:"🧇 Waffles",
           crepes:"🥞 Crepes",
           icecream:"🍨 Ice Cream",
@@ -193,7 +194,8 @@
           mnt10:{name:"Fruit & Chocolate Montos (L)",desc:""},
           drk1:{name:"Lemon & Mint",desc:""},
           drk2:{name:"Blue Drink",desc:""},
-          drk3:{name:"Red Sprite",desc:""}
+          drk3:{name:"Red Sprite",desc:""},
+          pop1:{name:"Cream & Honey Salad",desc:"",image:"cream-honey-salad.png"}
         }
       },
       tr: {
@@ -204,6 +206,7 @@
         totalLabel: "Toplam",
         checkout: "Ödeme",
         categories: {
+          popular:"⭐ Popüler",
           waffles:"🧇 Waffle'lar",
           crepes:"🥞 Krepler",
           icecream:"🍨 Dondurmalar",
@@ -318,7 +321,8 @@
           mnt10:{name:"Meyveli Çikolatalı Montos (L)",desc:""},
           drk1:{name:"Limon Nane",desc:""},
           drk2:{name:"Mavi İçecek",desc:""},
-          drk3:{name:"Kırmızı Sprite",desc:""}
+          drk3:{name:"Kırmızı Sprite",desc:""},
+          pop1:{name:"Kaymaklı Ballı Salata",desc:"",image:"cream-honey-salad.png"}
         }
       },
       ar: {
@@ -329,6 +333,7 @@
         totalLabel: "المجموع",
         checkout: "الدفع",
         categories: {
+          popular:"⭐ الأكثر طلباً",
           waffles:"🧇 وافل",
           crepes:"🥞 كريب",
           icecream:"🍨 بوظة",
@@ -443,7 +448,8 @@
           mnt10:{name:"مونتوس فواكه وشوكولاتة (كبير)",desc:""},
           drk1:{name:"ليمون ونعناع",desc:""},
           drk2:{name:"المشروب الأزرق",desc:""},
-          drk3:{name:"سبرايت أحمر",desc:""}
+          drk3:{name:"سبرايت أحمر",desc:""},
+          pop1:{name:"سلطة بالقشطة والعسل",desc:"",image:"cream-honey-salad.png"}
         }
       }
     };
@@ -474,7 +480,8 @@
       cak1:350, cak2:350, cak3:325, cak4:325, cak5:325, cak6:325, cak7:325, cak8:325,
       sal1:325, sal2:325, sal3:325, sal4:325, sal5:325, sal6:375, sal7:375, sal8:375, sal9:375, sal10:400,
       mnt1:250, mnt2:250, mnt3:250, mnt4:250, mnt5:300, mnt6:300, mnt7:300, mnt8:300, mnt9:300, mnt10:350,
-      drk1:175, drk2:175, drk3:175
+      drk1:175, drk2:175, drk3:175,
+      pop1:325
     };
 
     let prices = { ...defaultPrices };
@@ -500,6 +507,7 @@
 
     /* ====== Menu structure ====== */
     const menuStructure = [
+      { key:'popular', items:['pop1'] },
       { key:'waffles', items:['waf1','waf2','waf3','waf4','waf5','waf6','waf7','waf8','waf9'] },
       { key:'crepes', items:['crp1','crp2','crp3','crp4','crp5','crp6','crp7','crp8'] },
       { key:'icecream', items:['ice1','ice2','ice3','ice4','ice5'] },
@@ -519,7 +527,7 @@
     const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
     const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
     let state = { lang: detectedLang, order: [] };
-    const openSections = new Set(['waffles']);
+    const openSections = new Set(['popular']);
 
     /* ====== Helpers ====== */
     function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
