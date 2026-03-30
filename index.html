@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Menu — DHO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .menu-item { transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; -webkit-tap-highlight-color: transparent; }
+    .menu-item:hover, .menu-item:active { transform: scale(1.02); background: rgba(255,255,255,0.04); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+    .menu-item:active { transform: scale(0.98); }
+    .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
+    .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
+    .menu-item img.item-thumb { transition: transform 0.15s ease; cursor: zoom-in; }
+    .menu-item:hover img.item-thumb { transform: scale(1.08); }
+    #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; cursor:zoom-out; animation: fadeIn 0.2s ease; }
+    #lightbox.active { display:flex; }
+    #lightbox img { max-width:90vw; max-height:80vh; border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); animation: zoomIn 0.25s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes zoomIn { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="m-0 h-full font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-3 sm:p-6 flex justify-center items-start">
+  <!-- Language switcher — top-right -->
+  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center bg-[#0b2b4a]/80 backdrop-blur rounded-lg px-1.5 py-1 border border-white/[0.06]" role="toolbar" aria-label="Language switcher">
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px] text-[#cbd5e1] hover:text-white" data-lang="en">EN</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px] text-[#cbd5e1] hover:text-white" data-lang="tr">TR</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px] text-[#cbd5e1] hover:text-white" data-lang="ar">ع</button>
+    <a href="admin.html" class="text-[10px] text-[#cbd5e1]/60 ml-1">Admin</a>
+  </div>
+
+  <div class="w-full max-w-[980px] bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-5 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03]" id="app">
+    <header class="flex flex-col items-center gap-3 mb-[18px] max-[880px]:gap-2">
+      <!-- Logo + Brand -->
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-20 h-20 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.35)]" aria-hidden="true">
+          <img src="logo.png" alt="DHO Logo" id="logoImg" class="w-full h-full object-cover block" />
+        </div>
+        <div class="leading-none text-center">
+          <h1 id="brandName" class="m-0 text-2xl tracking-[0.2px] font-bold">DHO</h1>
+        </div>
+      </div>
+    </header>
+
+    <!-- Category Navigation -->
+    <nav id="catNav" class="flex flex-wrap justify-center gap-2 mb-4" role="navigation" aria-label="Menu categories"></nav>
+
+    <main class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-[18px]">
+      <section class="p-3 rounded-xl bg-white/[0.03] min-h-[320px]" id="menu"></section>
+
+      <aside class="p-[14px] rounded-xl bg-gradient-to-b from-white/[0.015] to-white/[0.01] border border-white/[0.02] lg:min-h-[320px]" id="aside">
+        <h3 id="orderTitle" class="mt-0 text-[#ffd24a]">Order Summary</h3>
+        <p class="text-sm text-[#cbd5e1] mb-3" id="orderNote">Tap items to add them to the order.</p>
+        <div id="orderList" class="min-h-[120px] text-[#cbd5e1]"></div>
+        <div class="mt-[18px] flex justify-between items-center gap-3">
+          <div class="text-[#cbd5e1]"><strong id="totalLabel" class="font-bold">Total</strong><div id="totalPrice">₺0</div></div>
+          <button class="bg-[#ffd24a] text-[#072033] border-none py-[10px] px-[14px] rounded-[10px] font-bold cursor-pointer" id="checkoutBtn">Checkout</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Lightbox overlay -->
+  <div id="lightbox" onclick="this.classList.remove('active')">
+    <img id="lightboxImg" src="" alt="" />
+  </div>
+
+  <script>
+    /* ====== Translations ====== */
+    const translations = {
+      en: {
+        brand: "DHO",
+        tagline: "Waffle · Crêpe · Ice Cream · Cocktails · Cakes",
+        orderTitle: "Order Summary",
+        orderNote: "Tap items to add them to the order.",
+        totalLabel: "Total",
+        checkout: "Checkout",
+        categories: {
+          waffles:"🧇 Waffles",
+          crepes:"🥞 Crepes",
+          icecream:"🍨 Ice Cream",
+          juices:"🧃 Juices",
+          milkshakes:"🥤 Milkshakes",
+          cocktails:"🍹 Cocktails",
+          specialcocktails:"👑 Special Cocktails",
+          frozen:"🍧 Frozen",
+          dhocakes:"🍰 DHO Cakes",
+          salads:"🥗 Fruit Salads",
+          montos:"🍓 Montos",
+          drinks:"🥤 Drinks"
+        },
+        items: {
+          waf1:{name:"Kit Kat Waffle",desc:""},
+          waf2:{name:"Kinder Waffle",desc:""},
+          waf3:{name:"Oreo Waffle",desc:""},
+          waf4:{name:"Fruit Waffle",desc:""},
+          waf5:{name:"White Chocolate Waffle",desc:""},
+          waf6:{name:"Chocolate Waffle",desc:""},
+          waf7:{name:"Banana & Cream Waffle",desc:""},
+          waf8:{name:"Banana Waffle",desc:""},
+          waf9:{name:"Strawberry Waffle",desc:""},
+          crp1:{name:"Chocolate Crepe",desc:""},
+          crp2:{name:"White Chocolate Crepe",desc:""},
+          crp3:{name:"Fruit Crepe",desc:""},
+          crp4:{name:"Banana Crepe",desc:""},
+          crp5:{name:"Banana & Cream Crepe",desc:""},
+          crp6:{name:"Strawberry Crepe",desc:""},
+          crp7:{name:"Kinder / Oreo / Kit Kat Crepe",desc:""},
+          crp8:{name:"Double Chocolate Crepe",desc:""},
+          ice1:{name:"Fruit Ice Cream",desc:""},
+          ice2:{name:"Chocolate Ice Cream",desc:""},
+          ice3:{name:"Mixed Ice Cream",desc:""},
+          ice4:{name:"Nuts & Honey Ice Cream",desc:""},
+          ice5:{name:"Ice Boost",desc:""},
+          jui1:{name:"Orange Juice (M)",desc:""},
+          jui2:{name:"Strawberry Juice (M)",desc:""},
+          jui3:{name:"Pineapple Juice (M)",desc:""},
+          jui4:{name:"Kiwi Juice (M)",desc:""},
+          jui5:{name:"Orange Juice (L)",desc:""},
+          jui6:{name:"Strawberry Juice (L)",desc:""},
+          jui7:{name:"Pineapple Juice (L)",desc:""},
+          jui8:{name:"Kiwi Juice (L)",desc:""},
+          ms1:{name:"Chocolate Milkshake (M)",desc:""},
+          ms2:{name:"Vanilla Milkshake (M)",desc:""},
+          ms3:{name:"Oreo Milkshake (M)",desc:""},
+          ms4:{name:"Snickers Milkshake (M)",desc:""},
+          ms5:{name:"Toffifee Milkshake (M)",desc:""},
+          ms6:{name:"Kit Kat Milkshake (M)",desc:""},
+          ms7:{name:"Chocolate Milkshake (L)",desc:""},
+          ms8:{name:"Vanilla Milkshake (L)",desc:""},
+          ms9:{name:"Oreo Milkshake (L)",desc:""},
+          ms10:{name:"Snickers Milkshake (L)",desc:""},
+          ms11:{name:"Toffifee Milkshake (L)",desc:""},
+          ms12:{name:"Kit Kat Milkshake (L)",desc:""},
+          ckt1:{name:"Fruit Cocktail (M)",desc:""},
+          ckt2:{name:"Banana with Milk (M)",desc:""},
+          ckt3:{name:"Banana & Chocolate (M)",desc:""},
+          ckt4:{name:"Banana & Dates (M)",desc:""},
+          ckt5:{name:"Banana, Dates & Chocolate (M)",desc:""},
+          ckt6:{name:"Fruits with Milk & Chocolate (M)",desc:""},
+          ckt7:{name:"Heartbreaker (M)",desc:""},
+          ckt8:{name:"Fruit Cocktail (L)",desc:""},
+          ckt9:{name:"Banana with Milk (L)",desc:""},
+          ckt10:{name:"Banana & Chocolate (L)",desc:""},
+          ckt11:{name:"Banana & Dates (L)",desc:""},
+          ckt12:{name:"Banana, Dates & Chocolate (L)",desc:""},
+          ckt13:{name:"Fruits with Milk & Chocolate (L)",desc:""},
+          ckt14:{name:"Heartbreaker (L)",desc:""},
+          spc1:{name:"Fruits Emperor (M)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc2:{name:"Banana Emperor (M)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc3:{name:"Banana & Fruits Emperor (M)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc4:{name:"Fruits & Chocolate Emperor (M)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc5:{name:"Banana & Chocolate Emperor (M)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc6:{name:"Fruits Emperor (L)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc7:{name:"Banana Emperor (L)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc8:{name:"Banana & Fruits Emperor (L)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc9:{name:"Fruits & Chocolate Emperor (L)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          spc10:{name:"Banana & Chocolate Emperor (L)",desc:"Cream, Nuts, Honey, Whipped Cream"},
+          frz1:{name:"Fruit Frozen",desc:""},
+          frz2:{name:"Chocolate Frozen",desc:""},
+          frz3:{name:"Banana Frozen",desc:""},
+          frz4:{name:"Strawberry Frozen",desc:""},
+          cak1:{name:"Chocolate Cake",desc:""},
+          cak2:{name:"White Chocolate Cake",desc:""},
+          cak3:{name:"Fruit Cake",desc:""},
+          cak4:{name:"Banana Cake",desc:""},
+          cak5:{name:"Strawberry Cake",desc:""},
+          cak6:{name:"Kinder Cake",desc:""},
+          cak7:{name:"Oreo Cake",desc:""},
+          cak8:{name:"Kit Kat Cake",desc:""},
+          sal1:{name:"Fruit Salad (M)",desc:""},
+          sal2:{name:"Fruit Salad with Chocolate (M)",desc:""},
+          sal3:{name:"Fruit Salad with White Chocolate (M)",desc:""},
+          sal4:{name:"Fruit Salad with Banana (M)",desc:""},
+          sal5:{name:"Fruit Salad with Banana & Chocolate (M)",desc:""},
+          sal6:{name:"Fruit Salad (L)",desc:""},
+          sal7:{name:"Fruit Salad with Chocolate (L)",desc:""},
+          sal8:{name:"Fruit Salad with White Chocolate (L)",desc:""},
+          sal9:{name:"Fruit Salad with Banana (L)",desc:""},
+          sal10:{name:"Fruit Salad with Banana & Chocolate (L)",desc:""},
+          mnt1:{name:"Fruit Montos (M)",desc:""},
+          mnt2:{name:"Chocolate Montos (M)",desc:""},
+          mnt3:{name:"Banana Montos (M)",desc:""},
+          mnt4:{name:"Strawberry Montos (M)",desc:""},
+          mnt5:{name:"Fruit & Chocolate Montos (M)",desc:""},
+          mnt6:{name:"Fruit Montos (L)",desc:""},
+          mnt7:{name:"Chocolate Montos (L)",desc:""},
+          mnt8:{name:"Banana Montos (L)",desc:""},
+          mnt9:{name:"Strawberry Montos (L)",desc:""},
+          mnt10:{name:"Fruit & Chocolate Montos (L)",desc:""},
+          drk1:{name:"Lemon & Mint",desc:""},
+          drk2:{name:"Blue Drink",desc:""},
+          drk3:{name:"Red Sprite",desc:""}
+        }
+      },
+      tr: {
+        brand: "DHO",
+        tagline: "Waffle · Krep · Dondurma · Kokteyller · Kekler",
+        orderTitle: "Sipariş Özeti",
+        orderNote: "Öğe eklemek için dokunun.",
+        totalLabel: "Toplam",
+        checkout: "Ödeme",
+        categories: {
+          waffles:"🧇 Waffle'lar",
+          crepes:"🥞 Krepler",
+          icecream:"🍨 Dondurmalar",
+          juices:"🧃 Meyve Suları",
+          milkshakes:"🥤 Milkshake'ler",
+          cocktails:"🍹 Kokteyller",
+          specialcocktails:"👑 Özel Kokteyller",
+          frozen:"🍧 Frozen",
+          dhocakes:"🍰 DHO Kekler",
+          salads:"🥗 Meyve Salataları",
+          montos:"🍓 Montos",
+          drinks:"🥤 İçecekler"
+        },
+        items: {
+          waf1:{name:"Kit Kat Waffle",desc:""},
+          waf2:{name:"Kinder Waffle",desc:""},
+          waf3:{name:"Oreo Waffle",desc:""},
+          waf4:{name:"Meyveli Waffle",desc:""},
+          waf5:{name:"Beyaz Çikolatalı Waffle",desc:""},
+          waf6:{name:"Çikolatalı Waffle",desc:""},
+          waf7:{name:"Muzlu Kaymaklı Waffle",desc:""},
+          waf8:{name:"Muzlu Waffle",desc:""},
+          waf9:{name:"Çilekli Waffle",desc:""},
+          crp1:{name:"Çikolatalı Krep",desc:""},
+          crp2:{name:"Beyaz Çikolatalı Krep",desc:""},
+          crp3:{name:"Meyveli Krep",desc:""},
+          crp4:{name:"Muzlu Krep",desc:""},
+          crp5:{name:"Muzlu Kaymaklı Krep",desc:""},
+          crp6:{name:"Çilekli Krep",desc:""},
+          crp7:{name:"Kinder / Oreo / Kit Kat Krep",desc:""},
+          crp8:{name:"Çift Çikolatalı Krep",desc:""},
+          ice1:{name:"Meyveli Dondurma",desc:""},
+          ice2:{name:"Çikolatalı Dondurma",desc:""},
+          ice3:{name:"Karışık Dondurma",desc:""},
+          ice4:{name:"Fıstıklı Ballı Dondurma",desc:""},
+          ice5:{name:"Ice Boost",desc:""},
+          jui1:{name:"Portakal Suyu (M)",desc:""},
+          jui2:{name:"Çilek Suyu (M)",desc:""},
+          jui3:{name:"Ananas Suyu (M)",desc:""},
+          jui4:{name:"Kivi Suyu (M)",desc:""},
+          jui5:{name:"Portakal Suyu (L)",desc:""},
+          jui6:{name:"Çilek Suyu (L)",desc:""},
+          jui7:{name:"Ananas Suyu (L)",desc:""},
+          jui8:{name:"Kivi Suyu (L)",desc:""},
+          ms1:{name:"Çikolatalı Milkshake (M)",desc:""},
+          ms2:{name:"Vanilyalı Milkshake (M)",desc:""},
+          ms3:{name:"Oreo Milkshake (M)",desc:""},
+          ms4:{name:"Snickers Milkshake (M)",desc:""},
+          ms5:{name:"Toffifee Milkshake (M)",desc:""},
+          ms6:{name:"Kit Kat Milkshake (M)",desc:""},
+          ms7:{name:"Çikolatalı Milkshake (L)",desc:""},
+          ms8:{name:"Vanilyalı Milkshake (L)",desc:""},
+          ms9:{name:"Oreo Milkshake (L)",desc:""},
+          ms10:{name:"Snickers Milkshake (L)",desc:""},
+          ms11:{name:"Toffifee Milkshake (L)",desc:""},
+          ms12:{name:"Kit Kat Milkshake (L)",desc:""},
+          ckt1:{name:"Meyveli Kokteyl (M)",desc:""},
+          ckt2:{name:"Muzlu Süt (M)",desc:""},
+          ckt3:{name:"Muzlu Çikolatalı (M)",desc:""},
+          ckt4:{name:"Muzlu Hurmalı (M)",desc:""},
+          ckt5:{name:"Muzlu Hurmalı Çikolatalı (M)",desc:""},
+          ckt6:{name:"Meyveli Sütlü Çikolatalı (M)",desc:""},
+          ckt7:{name:"Kalp Kıran (M)",desc:""},
+          ckt8:{name:"Meyveli Kokteyl (L)",desc:""},
+          ckt9:{name:"Muzlu Süt (L)",desc:""},
+          ckt10:{name:"Muzlu Çikolatalı (L)",desc:""},
+          ckt11:{name:"Muzlu Hurmalı (L)",desc:""},
+          ckt12:{name:"Muzlu Hurmalı Çikolatalı (L)",desc:""},
+          ckt13:{name:"Meyveli Sütlü Çikolatalı (L)",desc:""},
+          ckt14:{name:"Kalp Kıran (L)",desc:""},
+          spc1:{name:"Meyveli İmparator (M)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc2:{name:"Muzlu İmparator (M)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc3:{name:"Muzlu Meyveli İmparator (M)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc4:{name:"Meyveli Çikolatalı İmparator (M)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc5:{name:"Muzlu Çikolatalı İmparator (M)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc6:{name:"Meyveli İmparator (L)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc7:{name:"Muzlu İmparator (L)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc8:{name:"Muzlu Meyveli İmparator (L)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc9:{name:"Meyveli Çikolatalı İmparator (L)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          spc10:{name:"Muzlu Çikolatalı İmparator (L)",desc:"Krema, Fıstık, Bal, Krem Şanti"},
+          frz1:{name:"Meyveli Frozen",desc:""},
+          frz2:{name:"Çikolatalı Frozen",desc:""},
+          frz3:{name:"Muzlu Frozen",desc:""},
+          frz4:{name:"Çilekli Frozen",desc:""},
+          cak1:{name:"Çikolatalı Kek",desc:""},
+          cak2:{name:"Beyaz Çikolatalı Kek",desc:""},
+          cak3:{name:"Meyveli Kek",desc:""},
+          cak4:{name:"Muzlu Kek",desc:""},
+          cak5:{name:"Çilekli Kek",desc:""},
+          cak6:{name:"Kinder Kek",desc:""},
+          cak7:{name:"Oreo Kek",desc:""},
+          cak8:{name:"Kit Kat Kek",desc:""},
+          sal1:{name:"Meyve Salatası (M)",desc:""},
+          sal2:{name:"Çikolatalı Meyve Salatası (M)",desc:""},
+          sal3:{name:"Beyaz Çikolatalı Meyve Salatası (M)",desc:""},
+          sal4:{name:"Muzlu Meyve Salatası (M)",desc:""},
+          sal5:{name:"Muzlu Çikolatalı Meyve Salatası (M)",desc:""},
+          sal6:{name:"Meyve Salatası (L)",desc:""},
+          sal7:{name:"Çikolatalı Meyve Salatası (L)",desc:""},
+          sal8:{name:"Beyaz Çikolatalı Meyve Salatası (L)",desc:""},
+          sal9:{name:"Muzlu Meyve Salatası (L)",desc:""},
+          sal10:{name:"Muzlu Çikolatalı Meyve Salatası (L)",desc:""},
+          mnt1:{name:"Meyveli Montos (M)",desc:""},
+          mnt2:{name:"Çikolatalı Montos (M)",desc:""},
+          mnt3:{name:"Muzlu Montos (M)",desc:""},
+          mnt4:{name:"Çilekli Montos (M)",desc:""},
+          mnt5:{name:"Meyveli Çikolatalı Montos (M)",desc:""},
+          mnt6:{name:"Meyveli Montos (L)",desc:""},
+          mnt7:{name:"Çikolatalı Montos (L)",desc:""},
+          mnt8:{name:"Muzlu Montos (L)",desc:""},
+          mnt9:{name:"Çilekli Montos (L)",desc:""},
+          mnt10:{name:"Meyveli Çikolatalı Montos (L)",desc:""},
+          drk1:{name:"Limon Nane",desc:""},
+          drk2:{name:"Mavi İçecek",desc:""},
+          drk3:{name:"Kırmızı Sprite",desc:""}
+        }
+      },
+      ar: {
+        brand: "DHO",
+        tagline: "وافل · كريب · بوظة · كوكتيلات · كيك",
+        orderTitle: "ملخص الطلب",
+        orderNote: "اضغط على العناصر لإضافتها إلى الطلب.",
+        totalLabel: "المجموع",
+        checkout: "الدفع",
+        categories: {
+          waffles:"🧇 وافل",
+          crepes:"🥞 كريب",
+          icecream:"🍨 بوظة",
+          juices:"🧃 عصائر",
+          milkshakes:"🥤 ميلك شيك",
+          cocktails:"🍹 كوكتيلات",
+          specialcocktails:"👑 كوكتيلات خاصة",
+          frozen:"🍧 فروزن",
+          dhocakes:"🍰 كيك DHO",
+          salads:"🥗 سلطات فواكه",
+          montos:"🍓 مونتوس",
+          drinks:"🥤 مشروبات"
+        },
+        items: {
+          waf1:{name:"وافل كت كات",desc:""},
+          waf2:{name:"وافل كندر",desc:""},
+          waf3:{name:"وافل أوريو",desc:""},
+          waf4:{name:"وافل فواكه",desc:""},
+          waf5:{name:"وافل شوكولاتة بيضاء",desc:""},
+          waf6:{name:"وافل شوكولاتة",desc:""},
+          waf7:{name:"وافل موز بالقشطة",desc:""},
+          waf8:{name:"وافل موز",desc:""},
+          waf9:{name:"وافل فراولة",desc:""},
+          crp1:{name:"كريب شوكولاتة",desc:""},
+          crp2:{name:"كريب شوكولاتة بيضاء",desc:""},
+          crp3:{name:"كريب فواكه",desc:""},
+          crp4:{name:"كريب موز",desc:""},
+          crp5:{name:"كريب موز بالقشطة",desc:""},
+          crp6:{name:"كريب فراولة",desc:""},
+          crp7:{name:"كريب كندر / أوريو / كت كات",desc:""},
+          crp8:{name:"كريب شوكولاتة مزدوجة",desc:""},
+          ice1:{name:"بوظة فواكه",desc:""},
+          ice2:{name:"بوظة شوكولاتة",desc:""},
+          ice3:{name:"بوظة مشكّلة",desc:""},
+          ice4:{name:"بوظة مكسرات وعسل",desc:""},
+          ice5:{name:"آيس بوست",desc:""},
+          jui1:{name:"عصير برتقال (وسط)",desc:""},
+          jui2:{name:"عصير فراولة (وسط)",desc:""},
+          jui3:{name:"عصير أناناس (وسط)",desc:""},
+          jui4:{name:"عصير كيوي (وسط)",desc:""},
+          jui5:{name:"عصير برتقال (كبير)",desc:""},
+          jui6:{name:"عصير فراولة (كبير)",desc:""},
+          jui7:{name:"عصير أناناس (كبير)",desc:""},
+          jui8:{name:"عصير كيوي (كبير)",desc:""},
+          ms1:{name:"ميلك شيك شوكولاتة (وسط)",desc:""},
+          ms2:{name:"ميلك شيك فانيليا (وسط)",desc:""},
+          ms3:{name:"ميلك شيك أوريو (وسط)",desc:""},
+          ms4:{name:"ميلك شيك سنيكرز (وسط)",desc:""},
+          ms5:{name:"ميلك شيك توفيفي (وسط)",desc:""},
+          ms6:{name:"ميلك شيك كت كات (وسط)",desc:""},
+          ms7:{name:"ميلك شيك شوكولاتة (كبير)",desc:""},
+          ms8:{name:"ميلك شيك فانيليا (كبير)",desc:""},
+          ms9:{name:"ميلك شيك أوريو (كبير)",desc:""},
+          ms10:{name:"ميلك شيك سنيكرز (كبير)",desc:""},
+          ms11:{name:"ميلك شيك توفيفي (كبير)",desc:""},
+          ms12:{name:"ميلك شيك كت كات (كبير)",desc:""},
+          ckt1:{name:"كوكتيل فواكه (وسط)",desc:""},
+          ckt2:{name:"موز بالحليب (وسط)",desc:""},
+          ckt3:{name:"موز وشوكولاتة (وسط)",desc:""},
+          ckt4:{name:"موز وتمر (وسط)",desc:""},
+          ckt5:{name:"موز وتمر وشوكولاتة (وسط)",desc:""},
+          ckt6:{name:"فواكه بالحليب والشوكولاتة (وسط)",desc:""},
+          ckt7:{name:"كاسر القلوب (وسط)",desc:""},
+          ckt8:{name:"كوكتيل فواكه (كبير)",desc:""},
+          ckt9:{name:"موز بالحليب (كبير)",desc:""},
+          ckt10:{name:"موز وشوكولاتة (كبير)",desc:""},
+          ckt11:{name:"موز وتمر (كبير)",desc:""},
+          ckt12:{name:"موز وتمر وشوكولاتة (كبير)",desc:""},
+          ckt13:{name:"فواكه بالحليب والشوكولاتة (كبير)",desc:""},
+          ckt14:{name:"كاسر القلوب (كبير)",desc:""},
+          spc1:{name:"إمبراطور فواكه (وسط)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc2:{name:"إمبراطور موز (وسط)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc3:{name:"إمبراطور موز وفواكه (وسط)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc4:{name:"إمبراطور فواكه وشوكولاتة (وسط)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc5:{name:"إمبراطور موز وشوكولاتة (وسط)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc6:{name:"إمبراطور فواكه (كبير)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc7:{name:"إمبراطور موز (كبير)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc8:{name:"إمبراطور موز وفواكه (كبير)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc9:{name:"إمبراطور فواكه وشوكولاتة (كبير)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          spc10:{name:"إمبراطور موز وشوكولاتة (كبير)",desc:"قشطة، مكسرات، عسل، كريمة مخفوقة"},
+          frz1:{name:"فروزن فواكه",desc:""},
+          frz2:{name:"فروزن شوكولاتة",desc:""},
+          frz3:{name:"فروزن موز",desc:""},
+          frz4:{name:"فروزن فراولة",desc:""},
+          cak1:{name:"كيك شوكولاتة",desc:""},
+          cak2:{name:"كيك شوكولاتة بيضاء",desc:""},
+          cak3:{name:"كيك فواكه",desc:""},
+          cak4:{name:"كيك موز",desc:""},
+          cak5:{name:"كيك فراولة",desc:""},
+          cak6:{name:"كيك كندر",desc:""},
+          cak7:{name:"كيك أوريو",desc:""},
+          cak8:{name:"كيك كت كات",desc:""},
+          sal1:{name:"سلطة فواكه (وسط)",desc:""},
+          sal2:{name:"سلطة فواكه بالشوكولاتة (وسط)",desc:""},
+          sal3:{name:"سلطة فواكه بالشوكولاتة البيضاء (وسط)",desc:""},
+          sal4:{name:"سلطة فواكه بالموز (وسط)",desc:""},
+          sal5:{name:"سلطة فواكه بالموز والشوكولاتة (وسط)",desc:""},
+          sal6:{name:"سلطة فواكه (كبير)",desc:""},
+          sal7:{name:"سلطة فواكه بالشوكولاتة (كبير)",desc:""},
+          sal8:{name:"سلطة فواكه بالشوكولاتة البيضاء (كبير)",desc:""},
+          sal9:{name:"سلطة فواكه بالموز (كبير)",desc:""},
+          sal10:{name:"سلطة فواكه بالموز والشوكولاتة (كبير)",desc:""},
+          mnt1:{name:"مونتوس فواكه (وسط)",desc:""},
+          mnt2:{name:"مونتوس شوكولاتة (وسط)",desc:""},
+          mnt3:{name:"مونتوس موز (وسط)",desc:""},
+          mnt4:{name:"مونتوس فراولة (وسط)",desc:""},
+          mnt5:{name:"مونتوس فواكه وشوكولاتة (وسط)",desc:""},
+          mnt6:{name:"مونتوس فواكه (كبير)",desc:""},
+          mnt7:{name:"مونتوس شوكولاتة (كبير)",desc:""},
+          mnt8:{name:"مونتوس موز (كبير)",desc:""},
+          mnt9:{name:"مونتوس فراولة (كبير)",desc:""},
+          mnt10:{name:"مونتوس فواكه وشوكولاتة (كبير)",desc:""},
+          drk1:{name:"ليمون ونعناع",desc:""},
+          drk2:{name:"المشروب الأزرق",desc:""},
+          drk3:{name:"سبرايت أحمر",desc:""}
+        }
+      }
+    };
+
+    /* ====== Firebase Config ====== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_7ilyQud2-zrMcT4v_JGBKHGTgzXucaE",
+      authDomain: "dho-menu.firebaseapp.com",
+      projectId: "dho-menu",
+      storageBucket: "dho-menu.firebasestorage.app",
+      messagingSenderId: "759293016064",
+      appId: "1:759293016064:web:f0620da51e23d1ecf680e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ====== Default Prices ====== */
+    const defaultPrices = {
+      waf1:350, waf2:350, waf3:375, waf4:325, waf5:325, waf6:325, waf7:325, waf8:325, waf9:325,
+      crp1:300, crp2:325, crp3:350, crp4:375, crp5:325, crp6:325, crp7:375, crp8:400,
+      ice1:300, ice2:325, ice3:325, ice4:325, ice5:325,
+      jui1:125, jui2:125, jui3:125, jui4:125, jui5:175, jui6:175, jui7:175, jui8:175,
+      ms1:175, ms2:175, ms3:175, ms4:175, ms5:175, ms6:175, ms7:200, ms8:200, ms9:200, ms10:200, ms11:200, ms12:200,
+      ckt1:175, ckt2:175, ckt3:175, ckt4:175, ckt5:175, ckt6:185, ckt7:185,
+      ckt8:200, ckt9:200, ckt10:200, ckt11:200, ckt12:200, ckt13:225, ckt14:225,
+      spc1:250, spc2:250, spc3:250, spc4:250, spc5:250, spc6:300, spc7:300, spc8:300, spc9:300, spc10:300,
+      frz1:260, frz2:290, frz3:290, frz4:260,
+      cak1:350, cak2:350, cak3:325, cak4:325, cak5:325, cak6:325, cak7:325, cak8:325,
+      sal1:325, sal2:325, sal3:325, sal4:325, sal5:325, sal6:375, sal7:375, sal8:375, sal9:375, sal10:400,
+      mnt1:250, mnt2:250, mnt3:250, mnt4:250, mnt5:300, mnt6:300, mnt7:300, mnt8:300, mnt9:300, mnt10:350,
+      drk1:175, drk2:175, drk3:175
+    };
+
+    let prices = { ...defaultPrices };
+
+    /* ====== Load Prices from Firestore ====== */
+    async function loadPrices() {
+      try {
+        const doc = await db.collection("prices").doc("menu").get();
+        if (doc.exists) {
+          prices = { ...defaultPrices, ...doc.data() };
+        }
+      } catch (e) {
+        console.error("Error loading prices:", e);
+      }
+      render();
+    }
+
+    /* ====== Menu structure ====== */
+    const menuStructure = [
+      { key:'waffles', items:['waf1','waf2','waf3','waf4','waf5','waf6','waf7','waf8','waf9'] },
+      { key:'crepes', items:['crp1','crp2','crp3','crp4','crp5','crp6','crp7','crp8'] },
+      { key:'icecream', items:['ice1','ice2','ice3','ice4','ice5'] },
+      { key:'juices', items:['jui1','jui2','jui3','jui4','jui5','jui6','jui7','jui8'] },
+      { key:'milkshakes', items:['ms1','ms2','ms3','ms4','ms5','ms6','ms7','ms8','ms9','ms10','ms11','ms12'] },
+      { key:'cocktails', items:['ckt1','ckt2','ckt3','ckt4','ckt5','ckt6','ckt7','ckt8','ckt9','ckt10','ckt11','ckt12','ckt13','ckt14'] },
+      { key:'specialcocktails', items:['spc1','spc2','spc3','spc4','spc5','spc6','spc7','spc8','spc9','spc10'] },
+      { key:'frozen', items:['frz1','frz2','frz3','frz4'] },
+      { key:'dhocakes', items:['cak1','cak2','cak3','cak4','cak5','cak6','cak7','cak8'] },
+      { key:'salads', items:['sal1','sal2','sal3','sal4','sal5','sal6','sal7','sal8','sal9','sal10'] },
+      { key:'montos', items:['mnt1','mnt2','mnt3','mnt4','mnt5','mnt6','mnt7','mnt8','mnt9','mnt10'] },
+      { key:'drinks', items:['drk1','drk2','drk3'] }
+    ];
+
+    /* ====== App state ====== */
+    const supportedLangs = ['en','tr','ar'];
+    const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
+    const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
+    let state = { lang: detectedLang, order: [] };
+    const openSections = new Set(['waffles']);
+
+    /* ====== Helpers ====== */
+    function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
+
+    function render(){
+      const t = translations[state.lang];
+      document.documentElement.lang = state.lang;
+      document.documentElement.dir = (state.lang === 'ar') ? 'rtl' : 'ltr';
+
+      document.getElementById('brandName').textContent = t.brand;
+      document.getElementById('orderTitle').textContent = t.orderTitle;
+      document.getElementById('orderNote').textContent = t.orderNote;
+      document.getElementById('totalLabel').textContent = t.totalLabel;
+      document.getElementById('checkoutBtn').textContent = t.checkout;
+
+      document.querySelectorAll('[data-lang]').forEach(btn=>{
+        const isActive = btn.dataset.lang === state.lang;
+        if(isActive){
+          btn.classList.add('bg-[#ffd24a]','text-[#072033]');
+          btn.classList.remove('text-[#cbd5e1]');
+        } else {
+          btn.classList.add('text-[#cbd5e1]');
+          btn.classList.remove('bg-[#ffd24a]','text-[#072033]');
+        }
+      });
+
+      const menuEl = document.getElementById('menu');
+      menuEl.innerHTML = '';
+      menuStructure.forEach(cat=>{
+        const catDiv = document.createElement('div');
+        catDiv.className = 'mb-[6px] rounded-xl overflow-hidden border border-white/[0.04]';
+        catDiv.id = 'cat-' + cat.key;
+
+        const isOpen = openSections.has(cat.key);
+
+        const h2 = document.createElement('h2');
+        h2.textContent = t.categories[cat.key];
+        h2.className = 'm-0 text-base text-[#ffd24a] flex items-center justify-between gap-[10px] p-3 cursor-pointer select-none bg-white/[0.03] hover:bg-white/[0.05] transition-colors';
+        const arrow = document.createElement('span');
+        arrow.textContent = isOpen ? '▾' : '▸';
+        arrow.className = 'text-sm transition-transform';
+        h2.appendChild(arrow);
+        catDiv.appendChild(h2);
+
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'transition-all duration-300 ease-in-out overflow-hidden';
+        itemsContainer.style.maxHeight = isOpen ? '2000px' : '0';
+        itemsContainer.style.opacity = isOpen ? '1' : '0';
+
+        h2.addEventListener('click', ()=>{
+          if(openSections.has(cat.key)){
+            openSections.delete(cat.key);
+            itemsContainer.style.maxHeight = '0';
+            itemsContainer.style.opacity = '0';
+            arrow.textContent = '▸';
+          } else {
+            openSections.add(cat.key);
+            itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 'px';
+            itemsContainer.style.opacity = '1';
+            arrow.textContent = '▾';
+          }
+        });
+
+        cat.items.forEach(itemKey=>{
+          const itemData = t.items[itemKey];
+          if(!itemData) return;
+          itemData.price = prices[itemKey];
+          const itemEl = document.createElement('div');
+          itemEl.className = 'menu-item flex justify-between gap-3 p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
+          itemEl.tabIndex = 0;
+          itemEl.setAttribute('role','button');
+          itemEl.addEventListener('click', ()=> addToOrder(itemKey));
+          itemEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') addToOrder(itemKey) });
+
+          const safeImgName = itemData.image ? itemData.image.replace(/'/g, "\\'") : '';
+          const imageHTML = itemData.image
+            ? `<img src="${itemData.image}" alt="${itemData.name}" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
+            : `<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-white/[0.03] to-white/[0.01] flex items-center justify-center text-[#cbd5e1] text-xs shrink-0"></div>`;
+
+          const descHTML = itemData.desc ? `<div class="text-[#cbd5e1] text-sm">${itemData.desc}</div>` : '';
+
+          itemEl.innerHTML = `
+            <div class="flex gap-3 items-center">
+              ${imageHTML}
+              <div>
+                <div class="font-bold item-name">${itemData.name}</div>
+                ${descHTML}
+              </div>
+            </div>
+            <div class="font-extrabold text-[#f7f7f7] shrink-0">${formatPrice(itemData.price)}</div>
+          `;
+          itemsContainer.appendChild(itemEl);
+        });
+
+        catDiv.appendChild(itemsContainer);
+        menuEl.appendChild(catDiv);
+      });
+
+      renderOrder();
+
+      /* Build category nav buttons */
+      const navBtns = [
+        { key:'waffles', en:'Waffles', tr:'Waffle', ar:'وافل' },
+        { key:'crepes', en:'Crêpes', tr:'Krep', ar:'كريب' },
+        { key:'icecream', en:'Ice Cream', tr:'Dondurma', ar:'بوظة' },
+        { key:'milkshakes', en:'Milkshakes', tr:'Milkshake', ar:'ميلك شيك' },
+        { key:'cocktails', en:'Cocktails', tr:'Kokteyller', ar:'كوكتيل' },
+        { key:'dhocakes', en:'Cakes', tr:'Kekler', ar:'كيك' },
+        { key:'salads', en:'Salads', tr:'Salatalar', ar:'سلطات' },
+        { key:'drinks', en:'Drinks', tr:'İçecekler', ar:'مشروبات' }
+      ];
+      const navEl = document.getElementById('catNav');
+      navEl.innerHTML = '';
+      navBtns.forEach(nb => {
+        const btn = document.createElement('button');
+        btn.textContent = nb[state.lang];
+        btn.className = 'bg-[#ffd24a]/10 border border-[#ffd24a]/30 text-[#ffd24a] py-2 px-4 rounded-full cursor-pointer font-semibold text-sm hover:bg-[#ffd24a] hover:text-[#072033] transition-colors duration-150';
+        btn.addEventListener('click', () => scrollToCategory(nb.key));
+        navEl.appendChild(btn);
+      });
+      /* Collapse All button */
+      const collapseBtn = document.createElement('button');
+      const collapseLabels = { en: 'Collapse All', tr: 'Tümünü Kapat', ar: 'طي الكل' };
+      collapseBtn.textContent = collapseLabels[state.lang];
+      collapseBtn.className = 'bg-white/[0.05] border border-white/[0.1] text-[#cbd5e1] py-2 px-4 rounded-full cursor-pointer font-semibold text-xs hover:bg-white/[0.1] hover:text-white transition-colors duration-150';
+      collapseBtn.addEventListener('click', () => {
+        openSections.clear();
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      navEl.appendChild(collapseBtn);
+    }
+
+    function scrollToCategory(key) {
+      /* Open the section if closed */
+      if (!openSections.has(key)) {
+        const catDiv = document.getElementById('cat-' + key);
+        if (!catDiv) return;
+        const h2 = catDiv.querySelector('h2');
+        if (h2) h2.click();
+      }
+      /* Scroll into view */
+      setTimeout(() => {
+        const el = document.getElementById('cat-' + key);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+
+    function addToOrder(itemKey){
+      const t = translations[state.lang];
+      const item = t.items[itemKey];
+      state.order.push({ key: itemKey, name: item.name, price: prices[itemKey] });
+      renderOrder();
+    }
+
+    function renderOrder(){
+      const list = document.getElementById('orderList');
+      list.innerHTML = '';
+      if(state.order.length === 0){
+        list.innerHTML = `<div class="text-[#cbd5e1]">${(state.lang==='ar') ? 'لا توجد عناصر' : (state.lang==='tr' ? 'Henüz öğe yok' : 'No items yet')}</div>`;
+      } else {
+        state.order.forEach((it)=>{
+          const row = document.createElement('div');
+          row.className = 'flex justify-between mb-2';
+          row.innerHTML = `<div class="font-bold">${it.name}</div><div class="text-[#cbd5e1]">${formatPrice(it.price)}</div>`;
+          list.appendChild(row);
+        });
+      }
+      const total = state.order.reduce((s,i)=>s+i.price,0);
+      document.getElementById('totalPrice').textContent = formatPrice(total);
+    }
+
+    /* ====== Language switcher ====== */
+    document.querySelectorAll('[data-lang]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.lang = btn.dataset.lang;
+        render();
+      });
+    });
+
+    /* ====== Checkout button ====== */
+    document.getElementById('checkoutBtn').addEventListener('click', ()=>{
+      if(state.order.length === 0){
+        alert((state.lang==='tr') ? 'Lütfen önce bir öğe ekleyin.' : (state.lang==='ar') ? 'يرجى إضافة عنصر أولاً.' : 'Please add an item first.');
+        return;
+      }
+      alert((state.lang==='tr') ? 'Siparişiniz alındı (demo).' : (state.lang==='ar') ? 'تم استلام طلبك (تجريبي).' : 'Your order has been received (demo).');
+      state.order = [];
+      renderOrder();
+    });
+
+    /* ====== Initial render ====== */
+    loadPrices();
+  </script>
+
+  <!-- WhatsApp floating button -->
+  <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
+     class="fixed top-2 left-2 z-50 flex items-center gap-1.5 bg-[#25D366] rounded-xl px-3 py-1.5 shadow-[0_4px_14px_rgba(0,0,0,0.4)] hover:scale-105 transition-transform duration-200 no-underline">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-5 h-5 fill-white shrink-0">
+      <path d="M16.004 2.002c-7.732 0-14.002 6.27-14.002 14.002 0 2.468.657 4.876 1.904 6.988L2 30l7.207-1.87A13.94 13.94 0 0 0 16.004 30c7.732 0 14.002-6.27 14.002-14.002S23.736 2.002 16.004 2.002zm0 25.6a11.56 11.56 0 0 1-5.9-1.616l-.424-.252-4.274 1.108 1.14-4.156-.276-.44a11.56 11.56 0 0 1-1.77-6.244c0-6.392 5.204-11.596 11.604-11.596 6.392 0 11.596 5.204 11.596 11.596S22.396 27.602 16.004 27.602zm6.36-8.676c-.348-.176-2.064-1.02-2.384-1.136-.32-.116-.552-.176-.784.176s-.9 1.136-1.104 1.368c-.204.232-.404.26-.752.088-.348-.176-1.472-.544-2.804-1.732-1.036-.924-1.736-2.064-1.94-2.412-.204-.348-.02-.536.152-.712.156-.156.348-.404.52-.608.176-.204.232-.348.348-.58.116-.232.06-.436-.028-.608-.088-.176-.784-1.892-1.076-2.588-.284-.68-.572-.588-.784-.6-.204-.008-.436-.012-.668-.012s-.608.088-.928.436c-.32.348-1.22 1.192-1.22 2.908s1.248 3.376 1.424 3.608c.176.232 2.46 3.752 5.96 5.264.832.36 1.484.576 1.992.736.836.264 1.596.228 2.2.14.672-.1 2.064-.844 2.356-1.66.288-.816.288-1.516.2-1.66-.088-.148-.32-.232-.668-.408z"/>
+    </svg>
+    <span class="text-white font-semibold text-xs">WhatsApp</span>
+  </a>
+</body>
+</html>

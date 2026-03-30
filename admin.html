@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Panel — DHO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="m-0 min-h-screen font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-3 sm:p-6 overflow-x-hidden box-border">
+  <div class="w-full max-w-[600px] mx-auto bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-3 sm:p-5 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03] box-border">
+    <header class="flex gap-3 items-center justify-between mb-[18px] flex-wrap">
+      <div class="flex gap-[14px] items-center">
+        <div class="w-12 h-12 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.35)]">
+          <span class="text-[#072033] font-bold">A</span>
+        </div>
+        <div class="leading-none">
+          <h1 class="m-0 text-xl tracking-[0.2px]">DHO Admin</h1>
+          <p class="m-0 text-[#cbd5e1] text-sm">Control Panel</p>
+        </div>
+      </div>
+      <a href="index.html" class="text-xs text-[#cbd5e1] underline shrink-0">Back to Menu</a>
+    </header>
+
+    <div id="loginSection" class="p-4 sm:p-6 rounded-xl bg-white/[0.03]">
+      <h2 class="text-lg text-[#ffd24a] mb-4">Admin Login</h2>
+      <form id="loginForm">
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Username</label>
+          <input type="email" id="username" class="w-full p-3 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-base" autocomplete="email" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Password</label>
+          <input type="password" id="password" class="w-full p-3 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-base" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="bg-[#ffd24a] text-[#072033] py-3 px-6 rounded font-bold cursor-pointer w-full sm:w-auto text-base">Login</button>
+      </form>
+      <p id="loginError" class="text-red-400 mt-2 hidden">Invalid credentials</p>
+    </div>
+
+    <div id="adminSection" class="hidden p-4 sm:p-6 rounded-xl bg-white/[0.03]">
+      <h2 class="text-lg text-[#ffd24a] mb-4">Update Prices</h2>
+      <form id="priceForm">
+        <div id="priceInputs" class="space-y-4"></div>
+        <button type="submit" class="bg-[#ffd24a] text-[#072033] py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base">Save Prices</button>
+      </form>
+      <p id="saveMessage" class="text-green-400 mt-2 hidden">Prices updated successfully!</p>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_7ilyQud2-zrMcT4v_JGBKHGTgzXucaE",
+      authDomain: "dho-menu.firebaseapp.com",
+      projectId: "dho-menu",
+      storageBucket: "dho-menu.firebasestorage.app",
+      messagingSenderId: "759293016064",
+      appId: "1:759293016064:web:f0620da51e23d1ecf680e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <script>
+    const defaultPrices = {
+      waf1:350, waf2:350, waf3:375, waf4:325, waf5:325, waf6:325, waf7:325, waf8:325, waf9:325,
+      crp1:300, crp2:325, crp3:350, crp4:375, crp5:325, crp6:325, crp7:375, crp8:400,
+      ice1:300, ice2:325, ice3:325, ice4:325, ice5:325,
+      jui1:125, jui2:125, jui3:125, jui4:125, jui5:175, jui6:175, jui7:175, jui8:175,
+      ms1:175, ms2:175, ms3:175, ms4:175, ms5:175, ms6:175, ms7:200, ms8:200, ms9:200, ms10:200, ms11:200, ms12:200,
+      ckt1:175, ckt2:175, ckt3:175, ckt4:175, ckt5:175, ckt6:185, ckt7:185,
+      ckt8:200, ckt9:200, ckt10:200, ckt11:200, ckt12:200, ckt13:225, ckt14:225,
+      spc1:250, spc2:250, spc3:250, spc4:250, spc5:250, spc6:300, spc7:300, spc8:300, spc9:300, spc10:300,
+      frz1:260, frz2:290, frz3:290, frz4:260,
+      cak1:350, cak2:350, cak3:325, cak4:325, cak5:325, cak6:325, cak7:325, cak8:325,
+      sal1:325, sal2:325, sal3:325, sal4:325, sal5:325, sal6:375, sal7:375, sal8:375, sal9:375, sal10:400,
+      mnt1:250, mnt2:250, mnt3:250, mnt4:250, mnt5:300, mnt6:300, mnt7:300, mnt8:300, mnt9:300, mnt10:350,
+      drk1:175, drk2:175, drk3:175
+    };
+
+    const itemNames = {
+      waf1:"Kit Kat Waffle", waf2:"Kinder Waffle", waf3:"Oreo Waffle", waf4:"Meyveli Waffle",
+      waf5:"Beyaz Çikolatalı Waffle", waf6:"Çikolatalı Waffle", waf7:"Muzlu Kaymaklı Waffle",
+      waf8:"Muzlu Waffle", waf9:"Çilekli Waffle",
+      crp1:"Çikolatalı Krep", crp2:"Beyaz Çikolatalı Krep", crp3:"Meyveli Krep", crp4:"Muzlu Krep",
+      crp5:"Muzlu Kaymaklı Krep", crp6:"Çilekli Krep", crp7:"Kinder / Oreo / Kit Kat Krep", crp8:"Çift Çikolatalı Krep",
+      ice1:"Meyveli Dondurma", ice2:"Çikolatalı Dondurma", ice3:"Karışık Dondurma",
+      ice4:"Fıstıklı Ballı Dondurma", ice5:"Ice Boost",
+      jui1:"Portakal Suyu (M)", jui2:"Çilek Suyu (M)", jui3:"Ananas Suyu (M)", jui4:"Kivi Suyu (M)",
+      jui5:"Portakal Suyu (L)", jui6:"Çilek Suyu (L)", jui7:"Ananas Suyu (L)", jui8:"Kivi Suyu (L)",
+      ms1:"Çikolatalı Milkshake (M)", ms2:"Vanilyalı Milkshake (M)", ms3:"Oreo Milkshake (M)",
+      ms4:"Snickers Milkshake (M)", ms5:"Toffifee Milkshake (M)", ms6:"Kit Kat Milkshake (M)",
+      ms7:"Çikolatalı Milkshake (L)", ms8:"Vanilyalı Milkshake (L)", ms9:"Oreo Milkshake (L)",
+      ms10:"Snickers Milkshake (L)", ms11:"Toffifee Milkshake (L)", ms12:"Kit Kat Milkshake (L)",
+      ckt1:"Meyveli Kokteyl (M)", ckt2:"Muzlu Süt (M)", ckt3:"Muzlu Çikolatalı (M)",
+      ckt4:"Muzlu Hurmalı (M)", ckt5:"Muzlu Hurmalı Çikolatalı (M)",
+      ckt6:"Meyveli Sütlü Çikolatalı (M)", ckt7:"Kalp Kıran (M)",
+      ckt8:"Meyveli Kokteyl (L)", ckt9:"Muzlu Süt (L)", ckt10:"Muzlu Çikolatalı (L)",
+      ckt11:"Muzlu Hurmalı (L)", ckt12:"Muzlu Hurmalı Çikolatalı (L)",
+      ckt13:"Meyveli Sütlü Çikolatalı (L)", ckt14:"Kalp Kıran (L)",
+      spc1:"Meyveli İmparator (M)", spc2:"Muzlu İmparator (M)", spc3:"Muzlu Meyveli İmparator (M)",
+      spc4:"Meyveli Çikolatalı İmparator (M)", spc5:"Muzlu Çikolatalı İmparator (M)",
+      spc6:"Meyveli İmparator (L)", spc7:"Muzlu İmparator (L)", spc8:"Muzlu Meyveli İmparator (L)",
+      spc9:"Meyveli Çikolatalı İmparator (L)", spc10:"Muzlu Çikolatalı İmparator (L)",
+      frz1:"Meyveli Frozen", frz2:"Çikolatalı Frozen", frz3:"Muzlu Frozen", frz4:"Çilekli Frozen",
+      cak1:"Çikolatalı Kek", cak2:"Beyaz Çikolatalı Kek", cak3:"Meyveli Kek", cak4:"Muzlu Kek",
+      cak5:"Çilekli Kek", cak6:"Kinder Kek", cak7:"Oreo Kek", cak8:"Kit Kat Kek",
+      sal1:"Meyve Salatası (M)", sal2:"Çikolatalı Meyve Salatası (M)", sal3:"Beyaz Çikolatalı Meyve Salatası (M)",
+      sal4:"Muzlu Meyve Salatası (M)", sal5:"Muzlu Çikolatalı Meyve Salatası (M)",
+      sal6:"Meyve Salatası (L)", sal7:"Çikolatalı Meyve Salatası (L)", sal8:"Beyaz Çikolatalı Meyve Salatası (L)",
+      sal9:"Muzlu Meyve Salatası (L)", sal10:"Muzlu Çikolatalı Meyve Salatası (L)",
+      mnt1:"Meyveli Montos (M)", mnt2:"Çikolatalı Montos (M)", mnt3:"Muzlu Montos (M)",
+      mnt4:"Çilekli Montos (M)", mnt5:"Meyveli Çikolatalı Montos (M)",
+      mnt6:"Meyveli Montos (L)", mnt7:"Çikolatalı Montos (L)", mnt8:"Muzlu Montos (L)",
+      mnt9:"Çilekli Montos (L)", mnt10:"Meyveli Çikolatalı Montos (L)",
+      drk1:"Limon Nane", drk2:"Mavi İçecek", drk3:"Kırmızı Sprite"
+    };
+
+    const menuCategories = [
+      {name:"🧇 Waffle'lar", items:['waf1','waf2','waf3','waf4','waf5','waf6','waf7','waf8','waf9']},
+      {name:"🥞 Krepler", items:['crp1','crp2','crp3','crp4','crp5','crp6','crp7','crp8']},
+      {name:"🍨 Dondurmalar", items:['ice1','ice2','ice3','ice4','ice5']},
+      {name:"🧃 Meyve Suları", items:['jui1','jui2','jui3','jui4','jui5','jui6','jui7','jui8']},
+      {name:"🥤 Milkshake'ler", items:['ms1','ms2','ms3','ms4','ms5','ms6','ms7','ms8','ms9','ms10','ms11','ms12']},
+      {name:"🍹 Kokteyller", items:['ckt1','ckt2','ckt3','ckt4','ckt5','ckt6','ckt7','ckt8','ckt9','ckt10','ckt11','ckt12','ckt13','ckt14']},
+      {name:"👑 Özel Kokteyller", items:['spc1','spc2','spc3','spc4','spc5','spc6','spc7','spc8','spc9','spc10']},
+      {name:"🍧 Frozen", items:['frz1','frz2','frz3','frz4']},
+      {name:"🍰 DHO Kekler", items:['cak1','cak2','cak3','cak4','cak5','cak6','cak7','cak8']},
+      {name:"🥗 Meyve Salataları", items:['sal1','sal2','sal3','sal4','sal5','sal6','sal7','sal8','sal9','sal10']},
+      {name:"🍓 Montos", items:['mnt1','mnt2','mnt3','mnt4','mnt5','mnt6','mnt7','mnt8','mnt9','mnt10']},
+      {name:"🥤 İçecekler", items:['drk1','drk2','drk3']}
+    ];
+
+    let prices = { ...defaultPrices };
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(username, password)
+        .then(() => {
+          document.getElementById('loginSection').classList.add('hidden');
+          document.getElementById('adminSection').classList.remove('hidden');
+          loadPrices();
+        })
+        .catch(() => {
+          document.getElementById('loginError').classList.remove('hidden');
+        });
+    });
+
+    async function loadPrices() {
+      try {
+        const doc = await db.collection("prices").doc("menu").get();
+        if (doc.exists) {
+          prices = { ...defaultPrices, ...doc.data() };
+        }
+      } catch (err) {
+        console.error("Failed to load prices:", err);
+      }
+      renderPriceForm();
+    }
+
+    function renderPriceForm() {
+      const container = document.getElementById('priceInputs');
+      container.innerHTML = '';
+      menuCategories.forEach(cat => {
+        const header = document.createElement('h3');
+        header.className = 'text-[#ffd24a] text-base mt-4 mb-2 border-b border-white/[0.1] pb-1';
+        header.textContent = cat.name;
+        container.appendChild(header);
+
+        cat.items.forEach(key => {
+          const div = document.createElement('div');
+          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3';
+          div.innerHTML = `
+            <label class="font-bold text-sm">${itemNames[key]}</label>
+            <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-center text-base" min="0" inputmode="numeric" required>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    // Save
+    document.getElementById('priceForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const newPrices = {};
+      for (let [key, value] of formData.entries()) {
+        newPrices[key] = parseInt(value);
+      }
+      prices = newPrices;
+      db.collection("prices").doc("menu").set(newPrices)
+        .then(() => {
+          document.getElementById('saveMessage').textContent = 'Prices updated successfully!';
+          document.getElementById('saveMessage').className = 'text-green-400 mt-2';
+          setTimeout(() => document.getElementById('saveMessage').classList.add('hidden'), 3000);
+        })
+        .catch((err) => {
+          console.error("Save failed:", err);
+          document.getElementById('saveMessage').textContent = 'Error: ' + err.message;
+          document.getElementById('saveMessage').className = 'text-red-400 mt-2';
+        });
+    });
+  </script>
+</body>
+</html>

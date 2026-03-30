@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QR Code — DHO Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 font-sans bg-white flex justify-center items-center min-h-screen">
+  <div class="text-center p-10">
+    <h1 class="text-3xl font-bold text-[#072033] mb-2">DHO Menu</h1>
+    <p class="text-[#555] mb-6">Scan to view our menu</p>
+    <img
+      src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fdho-menu.web.app"
+      alt="QR Code for DHO Menu"
+      class="mx-auto border-4 border-[#ffd24a] rounded-xl shadow-lg"
+      width="300"
+      height="300"
+    />
+    <p class="mt-4 text-sm text-[#888]">https://dho-menu.web.app</p>
+    <button onclick="window.print()" class="mt-6 bg-[#ffd24a] text-[#072033] py-2 px-6 rounded-lg font-bold cursor-pointer text-sm">Print QR Code</button>
+  </div>
+</body>
+</html>
