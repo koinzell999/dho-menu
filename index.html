@@ -11,8 +11,9 @@
     .menu-item:active { transform: scale(0.98); }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
-    .menu-item img.item-thumb { transition: transform 0.15s ease; cursor: zoom-in; }
+    .menu-item img.item-thumb { transition: transform 0.15s ease; cursor: zoom-in; max-width: 100%; height: auto; }
     .menu-item:hover img.item-thumb { transform: scale(1.08); }
+    img { max-width: 100%; height: auto; }
     #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; cursor:zoom-out; animation: fadeIn 0.2s ease; }
     #lightbox.active { display:flex; }
     #lightbox img { max-width:90vw; max-height:80vh; border-radius:12px; box-shadow:0 8px 40px rgba(0,0,0,0.6); animation: zoomIn 0.25s ease; }
@@ -23,7 +24,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="m-0 h-full font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-3 sm:p-6 flex justify-center items-start">
+<body class="m-0 h-full font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-2 sm:p-6 flex justify-center items-start">
   <!-- Language switcher — top-right -->
   <div class="fixed top-2 right-2 z-50 flex gap-1 items-center bg-[#0b2b4a]/80 backdrop-blur rounded-lg px-1.5 py-1 border border-white/[0.06]" role="toolbar" aria-label="Language switcher">
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px] text-[#cbd5e1] hover:text-white" data-lang="en">EN</button>
@@ -32,8 +33,8 @@
     <a href="admin.html" class="text-[10px] text-[#cbd5e1]/60 ml-1">Admin</a>
   </div>
 
-  <div class="w-full max-w-[980px] bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-5 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03]" id="app">
-    <header class="flex flex-col items-center gap-3 mb-[18px] max-[880px]:gap-2">
+  <div class="w-full max-w-[980px] bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-3 sm:p-5 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03]" id="app">
+    <header class="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-[18px] max-[880px]:gap-2">
       <!-- Logo + Brand -->
       <div class="flex flex-col items-center gap-2">
         <div class="w-20 h-20 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.35)]" aria-hidden="true">
@@ -48,8 +49,8 @@
     <!-- Category Navigation -->
     <nav id="catNav" class="flex flex-wrap justify-center gap-2 mb-4" role="navigation" aria-label="Menu categories"></nav>
 
-    <main class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-[18px]">
-      <section class="p-3 rounded-xl bg-white/[0.03] min-h-[320px]" id="menu"></section>
+    <main class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-3 sm:gap-[18px]">
+      <section class="p-2 sm:p-3 rounded-xl bg-white/[0.03] min-h-[320px]" id="menu"></section>
 
       <aside class="p-[14px] rounded-xl bg-gradient-to-b from-white/[0.015] to-white/[0.01] border border-white/[0.02] lg:min-h-[320px]" id="aside">
         <h3 id="orderTitle" class="mt-0 text-[#ffd24a]">Order Summary</h3>
@@ -596,7 +597,7 @@
           if(!itemData) return;
           itemData.price = prices[itemKey];
           const itemEl = document.createElement('div');
-          itemEl.className = 'menu-item flex justify-between gap-3 p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
+          itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
           itemEl.tabIndex = 0;
           itemEl.setAttribute('role','button');
           itemEl.addEventListener('click', ()=> addToOrder(itemKey));
