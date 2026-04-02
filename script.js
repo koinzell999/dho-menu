@@ -1,0 +1,21 @@
+const tabs = document.querySelectorAll('.tab-btn');
+const sections = document.querySelectorAll('.section');
+
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.category;
+
+    // Update active tab
+    tabs.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Show/hide sections
+    sections.forEach(sec => {
+      if (target === 'all' || sec.dataset.category === target) {
+        sec.classList.remove('hidden');
+      } else {
+        sec.classList.add('hidden');
+      }
+    });
+  });
+});
