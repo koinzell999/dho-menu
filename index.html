@@ -816,6 +816,31 @@
     loadPrices();
   </script>
 
+  <!-- Footer -->
+  <footer class="w-full max-w-[980px] mx-auto mt-6 mb-2 text-center text-[#cbd5e1]/60 text-xs space-y-2 px-3">
+    <nav class="flex flex-wrap justify-center gap-3">
+      <a href="index.html" class="text-[#ffd24a]">Home</a>
+      <span class="opacity-30">|</span>
+      <a href="about.html" class="hover:text-[#ffd24a] transition-colors">About Us</a>
+      <span class="opacity-30">|</span>
+      <a href="privacy.html" class="hover:text-[#ffd24a] transition-colors">Privacy Policy</a>
+      <span class="opacity-30">|</span>
+      <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:text-[#ffd24a] transition-colors">Contact</a>
+    </nav>
+    <p>&copy; 2026 DHO. All rights reserved.</p>
+  </footer>
+
+  <!-- No-cookies info banner -->
+  <div id="cookieBanner" class="fixed bottom-0 left-0 right-0 z-[9998] bg-[#0b2b4a]/95 backdrop-blur-sm border-t border-white/[0.06] px-4 py-3 text-center text-xs text-[#cbd5e1] transition-transform duration-300" style="transform: translateY(0);">
+    🍪 This site does <strong class="text-[#f7f7f7]">not</strong> use cookies or tracking. Your privacy is fully respected.
+    <button onclick="document.getElementById('cookieBanner').style.transform='translateY(100%)'; localStorage.setItem('dho_banner_dismissed','1');" class="ml-2 text-[#ffd24a] font-bold hover:underline cursor-pointer bg-transparent border-none text-xs">Got it</button>
+  </div>
+  <script>
+    if (localStorage.getItem('dho_banner_dismissed') === '1') {
+      document.getElementById('cookieBanner').style.transform = 'translateY(100%)';
+    }
+  </script>
+
   <!-- WhatsApp floating button -->
   <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
      class="fixed top-2 left-2 z-50 flex items-center gap-1.5 bg-[#25D366] rounded-xl px-3 py-1.5 shadow-[0_4px_14px_rgba(0,0,0,0.4)] hover:scale-105 transition-transform duration-200 no-underline">
