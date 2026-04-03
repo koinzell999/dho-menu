@@ -22,15 +22,20 @@ body {
   min-height: 100vh;
 }
 
+/* ─── Sticky Header + Tabs ──────────────────────────────── */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+}
+
 /* ─── Header ───────────────────────────────────────────────── */
 header {
   background: linear-gradient(135deg, #fff7ed 0%, #fde9c0 100%);
   border-bottom: 2px solid var(--border);
   text-align: center;
   padding: 2rem 1rem 1.4rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 header .logo {

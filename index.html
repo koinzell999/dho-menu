@@ -8,26 +8,28 @@
 </head>
 <body>
 
-  <!-- ── Header ─────────────────────────────────────────────── -->
-  <header>
-    <div class="logo">🥞 DHO</div>
-    <p class="tagline">Pancakes · Waffles · Milkshakes · Pastry</p>
-  </header>
+  <!-- ── Header + Tabs (sticky together) ──────────────────── -->
+  <div class="sticky-header">
+    <header>
+      <div class="logo">🥞 DHO</div>
+      <p class="tagline">Pancakes · Waffles · Milkshakes · Pastry</p>
+    </header>
 
-  <!-- ── Category Tabs ──────────────────────────────────────── -->
-  <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-category="all">All</button>
-    <button class="tab-btn" data-category="pancakes">Pancakes</button>
-    <button class="tab-btn" data-category="waffles">Waffles</button>
-    <button class="tab-btn" data-category="milkshakes">Milkshakes</button>
-    <button class="tab-btn" data-category="pastry">Pastry</button>
-  </nav>
+    <!-- ── Category Tabs ──────────────────────────────────────── -->
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-category="all">All</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="pancakes">Pancakes</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="waffles">Waffles</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="milkshakes">Milkshakes</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-category="pastry">Pastry</button>
+    </nav>
+  </div>
 
   <!-- ── Menu ───────────────────────────────────────────────── -->
   <main>
 
     <!-- Pancakes -->
-    <section class="section" data-category="pancakes">
+    <section class="section" role="tabpanel" data-category="pancakes" aria-hidden="false">
       <h2 class="section-title">🥞 Pancakes</h2>
       <div class="item-grid">
 
@@ -89,7 +91,7 @@
     </section>
 
     <!-- Waffles -->
-    <section class="section" data-category="waffles">
+    <section class="section" role="tabpanel" data-category="waffles" aria-hidden="false">
       <h2 class="section-title">🧇 Waffles</h2>
       <div class="item-grid">
 
@@ -121,7 +123,7 @@
         </div>
 
         <div class="item-card">
-          <div class="item-emoji">🫒</div>
+          <div class="item-emoji">🍌</div>
           <div class="item-body">
             <div class="item-name">Nutella &amp; Banana</div>
             <div class="item-desc">Generous Nutella spread, sliced banana, toasted hazelnuts</div>
@@ -151,7 +153,7 @@
     </section>
 
     <!-- Milkshakes -->
-    <section class="section" data-category="milkshakes">
+    <section class="section" role="tabpanel" data-category="milkshakes" aria-hidden="false">
       <h2 class="section-title">🥤 Milkshakes</h2>
       <div class="item-grid">
 
@@ -213,7 +215,7 @@
     </section>
 
     <!-- Pastry -->
-    <section class="section" data-category="pastry">
+    <section class="section" role="tabpanel" data-category="pastry" aria-hidden="false">
       <h2 class="section-title">🥐 Pastry</h2>
       <div class="item-grid">
 
