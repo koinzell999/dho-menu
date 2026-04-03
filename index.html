@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="daylight">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DHo Menu</title>
+  <link rel="stylesheet" href="css/theme-daylight.css" />
+  <style>
+    /* Base styles that consume the daylight theme tokens */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--color-bg-header);
+      padding: 1rem 1.5rem;
+      box-shadow: var(--shadow-header);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+      color: var(--color-text-primary);
+    }
+
+    main {
+      max-width: 720px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin: 1.5rem 0 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.35rem;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .menu-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .menu-card h3 {
+      font-size: 1rem;
+      color: var(--color-text-primary);
+    }
+
+    .menu-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      margin: 0.3rem 0 0.6rem;
+    }
+
+    .menu-card .price {
+      font-weight: 600;
+      color: var(--color-accent);
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+      color: var(--color-badge-text);
+    }
+
+    .badge-new  { background: var(--color-badge-new); }
+    .badge-hot  { background: var(--color-badge-hot); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>☀️ DHo Menu</h1>
+  </header>
+
+  <main>
+    <p class="section-title">Pancakes</p>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <h3>Classic Buttermilk <span class="badge badge-hot">Hot</span></h3>
+        <p>Fluffy stack with maple syrup &amp; butter</p>
+        <span class="price">$7.50</span>
+      </div>
+      <div class="menu-card">
+        <h3>Blueberry Dream <span class="badge badge-new">New</span></h3>
+        <p>Bursting with fresh blueberries</p>
+        <span class="price">$8.50</span>
+      </div>
+    </div>
+
+    <p class="section-title">Waffles</p>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <h3>Belgian Classic</h3>
+        <p>Deep-pocket waffle with whipped cream</p>
+        <span class="price">$8.00</span>
+      </div>
+      <div class="menu-card">
+        <h3>Cinnamon Crunch <span class="badge badge-new">New</span></h3>
+        <p>Warm cinnamon with caramel drizzle</p>
+        <span class="price">$9.00</span>
+      </div>
+    </div>
+
+    <p class="section-title">Milkshakes</p>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <h3>Vanilla Malt</h3>
+        <p>Creamy classic with a malted twist</p>
+        <span class="price">$5.50</span>
+      </div>
+      <div class="menu-card">
+        <h3>Strawberry Fields <span class="badge badge-hot">Hot</span></h3>
+        <p>Real strawberries blended to perfection</p>
+        <span class="price">$6.00</span>
+      </div>
+    </div>
+
+    <p class="section-title">Pastries</p>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <h3>Butter Croissant</h3>
+        <p>Flaky, golden, freshly baked</p>
+        <span class="price">$3.50</span>
+      </div>
+      <div class="menu-card">
+        <h3>Almond Danish <span class="badge badge-new">New</span></h3>
+        <p>Sweet almond filling in a crisp pastry</p>
+        <span class="price">$4.00</span>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
