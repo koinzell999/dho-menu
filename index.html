@@ -219,6 +219,35 @@
   </div>
 
   <script>
+    /* ====== Item Images ====== */
+    const itemImages = {
+      pop1:'images/pop1.jpg',
+      waf1:'images/waf1.jpg',waf2:'images/waf2.jpg',waf3:'images/waf3.jpg',waf4:'images/waf4.jpg',
+      waf5:'images/waf5.jpg',waf6:'images/waf6.jpg',waf7:'images/waf7.jpg',waf8:'images/waf8.jpg',waf9:'images/waf9.jpg',
+      crp1:'images/crp1.jpg',crp2:'images/crp2.jpg',crp3:'images/crp3.jpg',crp4:'images/crp4.jpg',
+      crp5:'images/crp5.jpg',crp6:'images/crp6.jpg',crp7:'images/crp7.jpg',crp8:'images/crp8.jpg',
+      ice1:'images/ice1.jpg',ice2:'images/ice2.jpg',ice3:'images/ice3.jpg',ice4:'images/ice4.jpg',ice5:'images/ice5.jpg',
+      jui1:'images/jui1.jpg',jui2:'images/jui2.jpg',jui3:'images/jui3.jpg',jui4:'images/jui4.jpg',
+      jui5:'images/jui5.jpg',jui6:'images/jui6.jpg',jui7:'images/jui7.jpg',jui8:'images/jui8.jpg',
+      ms1:'images/ms1.jpg',ms2:'images/ms2.jpg',ms3:'images/ms3.jpg',ms4:'images/ms4.jpg',
+      ms5:'images/ms5.jpg',ms6:'images/ms6.jpg',ms7:'images/ms7.jpg',ms8:'images/ms8.jpg',
+      ms9:'images/ms9.jpg',ms10:'images/ms10.jpg',ms11:'images/ms11.jpg',ms12:'images/ms12.jpg',
+      ckt1:'images/ckt1.jpg',ckt2:'images/ckt2.jpg',ckt3:'images/ckt3.jpg',ckt4:'images/ckt4.jpg',
+      ckt5:'images/ckt5.jpg',ckt6:'images/ckt6.jpg',ckt7:'images/ckt7.jpg',ckt8:'images/ckt8.jpg',
+      ckt9:'images/ckt9.jpg',ckt10:'images/ckt10.jpg',ckt11:'images/ckt11.jpg',ckt12:'images/ckt12.jpg',
+      ckt13:'images/ckt13.jpg',ckt14:'images/ckt14.jpg',
+      spc1:'images/spc1.jpg',spc2:'images/spc2.jpg',spc3:'images/spc3.jpg',spc4:'images/spc4.jpg',spc5:'images/spc5.jpg',
+      spc6:'images/spc6.jpg',spc7:'images/spc7.jpg',spc8:'images/spc8.jpg',spc9:'images/spc9.jpg',spc10:'images/spc10.jpg',
+      frz1:'images/frz1.jpg',frz2:'images/frz2.jpg',frz3:'images/frz3.jpg',frz4:'images/frz4.jpg',
+      cak1:'images/cak1.jpg',cak2:'images/cak2.jpg',cak3:'images/cak3.jpg',cak4:'images/cak4.jpg',
+      cak5:'images/cak5.jpg',cak6:'images/cak6.jpg',cak7:'images/cak7.jpg',cak8:'images/cak8.jpg',
+      sal1:'images/sal1.jpg',sal2:'images/sal2.jpg',sal3:'images/sal3.jpg',sal4:'images/sal4.jpg',sal5:'images/sal5.jpg',
+      sal6:'images/sal6.jpg',sal7:'images/sal7.jpg',sal8:'images/sal8.jpg',sal9:'images/sal9.jpg',sal10:'images/sal10.jpg',
+      mnt1:'images/mnt1.jpg',mnt2:'images/mnt2.jpg',mnt3:'images/mnt3.jpg',mnt4:'images/mnt4.jpg',mnt5:'images/mnt5.jpg',
+      mnt6:'images/mnt6.jpg',mnt7:'images/mnt7.jpg',mnt8:'images/mnt8.jpg',mnt9:'images/mnt9.jpg',mnt10:'images/mnt10.jpg',
+      drk1:'images/drk1.jpg',drk2:'images/drk2.jpg',drk3:'images/drk3.jpg'
+    };
+
     /* ====== Translations ====== */
     const translations = {
       en: {
@@ -748,6 +777,7 @@
           const itemData = t.items[itemKey];
           if(!itemData) return;
           itemData.price = prices[itemKey];
+          if(itemImages[itemKey]) itemData.image = itemImages[itemKey];
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
           itemEl.tabIndex = 0;
