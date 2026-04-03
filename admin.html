@@ -5,62 +5,102 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin Panel — DHO</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Theme: apply instantly before paint -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('dho_theme');
+      if(t === 'light') document.documentElement.classList.add('light-mode');
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-from: #0b2b4a; --bg-to: #072033; --text-primary: #f7f7f7; --text-secondary: #cbd5e1;
+      --accent: #ffd24a; --accent-dark: #072033; --surface: rgba(255,255,255,0.02); --surface-end: rgba(255,255,255,0.01);
+      --surface-card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.03); --border-light: rgba(255,255,255,0.06);
+      --shadow: rgba(2,6,23,0.6); --toolbar-bg: rgba(11,43,74,0.8); --logo-shadow: rgba(0,0,0,0.35);
+    }
+    .light-mode {
+      --bg-from: #f0f2f5; --bg-to: #e8ecf1; --text-primary: #1a2332; --text-secondary: #4a5568;
+      --accent: #d4a017; --accent-dark: #ffffff; --surface: rgba(0,0,0,0.02); --surface-end: rgba(0,0,0,0.01);
+      --surface-card: rgba(0,0,0,0.03); --border: rgba(0,0,0,0.06); --border-light: rgba(0,0,0,0.1);
+      --shadow: rgba(0,0,0,0.12); --toolbar-bg: rgba(240,242,245,0.9); --logo-shadow: rgba(0,0,0,0.15);
+    }
+    body, footer { transition: background 0.25s ease, color 0.25s ease; }
+    html { overflow-x: hidden; }
+    body { background: linear-gradient(to bottom, var(--bg-from), var(--bg-to)) !important; color: var(--text-primary) !important; }
+  </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
-<body class="m-0 min-h-screen font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-3 sm:p-6 overflow-x-hidden box-border">
-  <div class="w-full max-w-[600px] mx-auto bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-3 sm:p-5 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03] box-border">
+<body class="m-0 min-h-screen font-sans antialiased p-3 sm:p-6 overflow-x-hidden box-border" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); color:var(--text-primary);">
+
+  <!-- Theme toggle — top-right -->
+  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
+    <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
+  </div>
+
+  <div class="w-full max-w-[600px] mx-auto rounded-xl p-3 sm:p-5 box-border" style="background:linear-gradient(to bottom, var(--surface), var(--surface-end)); box-shadow:0 8px 30px var(--shadow); border:1px solid var(--border);">
     <header class="flex gap-3 items-center justify-between mb-[18px] flex-wrap">
       <div class="flex gap-[14px] items-center">
-        <div class="w-12 h-12 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.35)]">
-          <span class="text-[#072033] font-bold">A</span>
+        <div class="w-12 h-12 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden" style="box-shadow:0 6px 18px var(--logo-shadow);">
+          <span style="color:var(--accent-dark);" class="font-bold">A</span>
         </div>
         <div class="leading-none">
           <h1 class="m-0 text-xl tracking-[0.2px]">DHO Admin</h1>
-          <p class="m-0 text-[#cbd5e1] text-sm">Control Panel</p>
+          <p class="m-0 text-sm" style="color:var(--text-secondary);">Control Panel</p>
         </div>
       </div>
-      <a href="index.html" class="text-xs text-[#cbd5e1] underline shrink-0">Back to Menu</a>
+      <a href="index.html" class="text-xs underline shrink-0" style="color:var(--text-secondary);">Back to Menu</a>
     </header>
 
-    <div id="loginSection" class="p-4 sm:p-6 rounded-xl bg-white/[0.03]">
-      <h2 class="text-lg text-[#ffd24a] mb-4">Admin Login</h2>
+    <div id="loginSection" class="p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
+      <h2 class="text-lg mb-4" style="color:var(--accent);">Admin Login</h2>
       <form id="loginForm">
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Username</label>
-          <input type="email" id="username" class="w-full p-3 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-base" autocomplete="email" required>
+          <input type="email" id="username" class="w-full p-3 rounded text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="email" required>
         </div>
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Password</label>
-          <input type="password" id="password" class="w-full p-3 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-base" autocomplete="current-password" required>
+          <input type="password" id="password" class="w-full p-3 rounded text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="current-password" required>
         </div>
-        <button type="submit" class="bg-[#ffd24a] text-[#072033] py-3 px-6 rounded font-bold cursor-pointer w-full sm:w-auto text-base">Login</button>
+        <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Login</button>
       </form>
       <p id="loginError" class="text-red-400 mt-2 hidden">Invalid credentials</p>
     </div>
 
-    <div id="adminSection" class="hidden p-4 sm:p-6 rounded-xl bg-white/[0.03]">
-      <h2 class="text-lg text-[#ffd24a] mb-4">Update Prices</h2>
+    <div id="adminSection" class="hidden p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
+      <h2 class="text-lg mb-4" style="color:var(--accent);">Update Prices</h2>
       <form id="priceForm">
         <div id="priceInputs" class="space-y-4"></div>
-        <button type="submit" class="bg-[#ffd24a] text-[#072033] py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base">Save Prices</button>
+        <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Prices</button>
       </form>
       <p id="saveMessage" class="text-green-400 mt-2 hidden">Prices updated successfully!</p>
     </div>
   </div>
 
   <!-- Footer -->
-  <footer class="w-full max-w-[600px] mx-auto mt-6 mb-2 text-center text-[#cbd5e1]/60 text-xs space-y-2">
+  <footer class="w-full max-w-[600px] mx-auto mt-6 mb-2 text-center text-xs space-y-2" style="color:var(--text-secondary); opacity:0.6;">
     <nav class="flex flex-wrap justify-center gap-3">
-      <a href="index.html" class="hover:text-[#ffd24a] transition-colors">Home</a>
+      <a href="index.html" class="hover:underline" style="color:var(--text-secondary);">Home</a>
       <span class="opacity-30">|</span>
-      <a href="about.html" class="hover:text-[#ffd24a] transition-colors">About Us</a>
+      <a href="about.html" class="hover:underline" style="color:var(--text-secondary);">About Us</a>
       <span class="opacity-30">|</span>
-      <a href="privacy.html" class="hover:text-[#ffd24a] transition-colors">Privacy Policy</a>
+      <a href="privacy.html" class="hover:underline" style="color:var(--text-secondary);">Privacy Policy</a>
     </nav>
     <p>&copy; 2026 DHO. All rights reserved.</p>
   </footer>
+
+  <!-- Theme toggle logic -->
+  <script>
+    (function(){
+      var btn = document.getElementById('themeToggle'), root = document.documentElement;
+      function apply(light){ if(light){root.classList.add('light-mode');btn.textContent='☀️';btn.title='Switch to dark mode';}else{root.classList.remove('light-mode');btn.textContent='🌙';btn.title='Switch to light mode';} }
+      apply(root.classList.contains('light-mode'));
+      btn.addEventListener('click',function(){ var g=!root.classList.contains('light-mode'); localStorage.setItem('dho_theme',g?'light':'dark'); apply(g); });
+    })();
+  </script>
 
   <script>
     const firebaseConfig = {
@@ -181,7 +221,8 @@
       container.innerHTML = '';
       menuCategories.forEach(cat => {
         const header = document.createElement('h3');
-        header.className = 'text-[#ffd24a] text-base mt-4 mb-2 border-b border-white/[0.1] pb-1';
+        header.className = 'text-base mt-4 mb-2 pb-1';
+        header.style.cssText = 'color:var(--accent); border-bottom:1px solid var(--border-light);';
         header.textContent = cat.name;
         container.appendChild(header);
 
@@ -190,7 +231,7 @@
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3';
           div.innerHTML = `
             <label class="font-bold text-sm">${itemNames[key]}</label>
-            <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded bg-white/[0.05] border border-white/[0.1] text-[#f7f7f7] text-center text-base" min="0" inputmode="numeric" required>
+            <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
           `;
           container.appendChild(div);
         });

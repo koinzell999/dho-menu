@@ -5,9 +5,29 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>About Us — DHO</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Theme: apply instantly before paint -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('dho_theme');
+      if(t === 'light') document.documentElement.classList.add('light-mode');
+    })();
+  </script>
   <style>
+    :root {
+      --bg-from: #0b2b4a; --bg-to: #072033; --text-primary: #f7f7f7; --text-secondary: #cbd5e1;
+      --accent: #ffd24a; --accent-dark: #072033; --surface: rgba(255,255,255,0.02); --surface-end: rgba(255,255,255,0.01);
+      --surface-card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.03); --border-light: rgba(255,255,255,0.06);
+      --shadow: rgba(2,6,23,0.6); --toolbar-bg: rgba(11,43,74,0.8); --logo-shadow: rgba(0,0,0,0.35);
+    }
+    .light-mode {
+      --bg-from: #f0f2f5; --bg-to: #e8ecf1; --text-primary: #1a2332; --text-secondary: #4a5568;
+      --accent: #d4a017; --accent-dark: #ffffff; --surface: rgba(0,0,0,0.02); --surface-end: rgba(0,0,0,0.01);
+      --surface-card: rgba(0,0,0,0.03); --border: rgba(0,0,0,0.06); --border-light: rgba(0,0,0,0.1);
+      --shadow: rgba(0,0,0,0.12); --toolbar-bg: rgba(240,242,245,0.9); --logo-shadow: rgba(0,0,0,0.15);
+    }
+    body, .page-card, footer { transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
     html { overflow-x: hidden; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-    body { overflow-x: hidden; }
+    body { overflow-x: hidden; background: linear-gradient(to bottom, var(--bg-from), var(--bg-to)) !important; color: var(--text-primary) !important; }
     img { max-width: 100%; height: auto; display: block; }
     @media (max-width: 360px) {
       body { padding: 4px !important; }
@@ -16,33 +36,38 @@
     }
   </style>
 </head>
-<body class="m-0 min-h-screen font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-3 sm:p-6 flex flex-col items-center">
+<body class="m-0 min-h-screen font-sans antialiased p-3 sm:p-6 flex flex-col items-center" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); color:var(--text-primary);">
 
-  <div class="page-card w-full max-w-[720px] bg-gradient-to-b from-white/[0.02] to-white/[0.01] rounded-xl p-4 sm:p-8 shadow-[0_8px_30px_rgba(2,6,23,0.6)] border border-white/[0.03]">
+  <!-- Theme toggle — top-right -->
+  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
+    <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
+  </div>
+
+  <div class="page-card w-full max-w-[720px] rounded-xl p-4 sm:p-8" style="background:linear-gradient(to bottom, var(--surface), var(--surface-end)); box-shadow:0 8px 30px var(--shadow); border:1px solid var(--border);">
 
     <!-- Header -->
     <div class="flex flex-col items-center gap-3 mb-8">
       <a href="index.html">
-        <div class="w-20 h-20 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden shadow-[0_6px_18px_rgba(0,0,0,0.35)]">
+        <div class="w-20 h-20 rounded-full bg-[#ffd24a] flex items-center justify-center shrink-0 overflow-hidden" style="box-shadow:0 6px 18px var(--logo-shadow);">
           <img src="logo.png" alt="DHO Logo" class="w-full h-full object-cover block" />
         </div>
       </a>
-      <h1 class="m-0 text-2xl font-bold tracking-[0.2px] text-[#ffd24a]" style="text-shadow: 0 2px 8px rgba(255,210,74,0.15);">About DHO</h1>
+      <h1 class="m-0 text-2xl font-bold tracking-[0.2px]" style="color:var(--accent); text-shadow: 0 2px 8px rgba(255,210,74,0.15);">About DHO</h1>
     </div>
 
     <!-- Content -->
-    <div class="space-y-5 text-[#cbd5e1] leading-relaxed text-sm sm:text-base">
+    <div class="space-y-5 leading-relaxed text-sm sm:text-base" style="color:var(--text-secondary);">
       <p>
-        <strong class="text-[#f7f7f7]">DHO</strong> is a dessert and drinks destination crafted for those who appreciate quality flavors and a welcoming atmosphere. From our signature waffles and crepes to handcrafted cocktails and fresh fruit salads, every item on our menu is made with care.
+        <strong style="color:var(--text-primary);">DHO</strong> is a dessert and drinks destination crafted for those who appreciate quality flavors and a welcoming atmosphere. From our signature waffles and crepes to handcrafted cocktails and fresh fruit salads, every item on our menu is made with care.
       </p>
 
-      <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-        <h2 class="text-base font-bold text-[#ffd24a] mb-2">Our Story</h2>
+      <div class="p-4 rounded-xl" style="background:var(--surface-card); border:1px solid var(--border);">
+        <h2 class="text-base font-bold mb-2" style="color:var(--accent);">Our Story</h2>
         <p>Born from a passion for bringing people together over great food, DHO started as a small corner shop and has grown into a beloved neighborhood spot. We believe desserts should be an experience — not just a treat.</p>
       </div>
 
-      <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-        <h2 class="text-base font-bold text-[#ffd24a] mb-2">What We Offer</h2>
+      <div class="p-4 rounded-xl" style="background:var(--surface-card); border:1px solid var(--border);">
+        <h2 class="text-base font-bold mb-2" style="color:var(--accent);">What We Offer</h2>
         <ul class="list-none p-0 m-0 space-y-2">
           <li>🧇 Freshly made waffles with premium toppings</li>
           <li>🥞 Soft crepes with rich fillings</li>
@@ -52,30 +77,40 @@
         </ul>
       </div>
 
-      <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-        <h2 class="text-base font-bold text-[#ffd24a] mb-2">Visit Us</h2>
+      <div class="p-4 rounded-xl" style="background:var(--surface-card); border:1px solid var(--border);">
+        <h2 class="text-base font-bold mb-2" style="color:var(--accent);">Visit Us</h2>
         <p>We'd love to see you! Come by and enjoy the DHO experience in person.</p>
         <p class="mt-2">
-          <strong class="text-[#f7f7f7]">Phone:</strong> <a href="tel:+905377177719" class="text-[#ffd24a] hover:underline">+90 537 717 7719</a><br/>
-          <strong class="text-[#f7f7f7]">WhatsApp:</strong> <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="text-[#ffd24a] hover:underline">Message us</a>
+          <strong style="color:var(--text-primary);">Phone:</strong> <a href="tel:+905377177719" class="hover:underline" style="color:var(--accent);">+90 537 717 7719</a><br/>
+          <strong style="color:var(--text-primary);">WhatsApp:</strong> <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:var(--accent);">Message us</a>
         </p>
       </div>
     </div>
   </div>
 
   <!-- Footer -->
-  <footer class="w-full max-w-[720px] mt-6 mb-2 text-center text-[#cbd5e1]/60 text-xs space-y-2">
+  <footer class="w-full max-w-[720px] mt-6 mb-2 text-center text-xs space-y-2" style="color:var(--text-secondary); opacity:0.6;">
     <nav class="flex flex-wrap justify-center gap-3">
-      <a href="index.html" class="hover:text-[#ffd24a] transition-colors">Home</a>
+      <a href="index.html" class="hover:underline" style="color:var(--text-secondary);">Home</a>
       <span class="opacity-30">|</span>
-      <a href="about.html" class="text-[#ffd24a]">About Us</a>
+      <a href="about.html" style="color:var(--accent);">About Us</a>
       <span class="opacity-30">|</span>
-      <a href="privacy.html" class="hover:text-[#ffd24a] transition-colors">Privacy Policy</a>
+      <a href="privacy.html" class="hover:underline" style="color:var(--text-secondary);">Privacy Policy</a>
       <span class="opacity-30">|</span>
-      <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:text-[#ffd24a] transition-colors">Contact</a>
+      <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:var(--text-secondary);">Contact</a>
     </nav>
     <p>&copy; 2026 DHO. All rights reserved.</p>
   </footer>
+
+  <!-- Theme toggle logic -->
+  <script>
+    (function(){
+      var btn = document.getElementById('themeToggle'), root = document.documentElement;
+      function apply(light){ if(light){root.classList.add('light-mode');btn.textContent='☀️';btn.title='Switch to dark mode';}else{root.classList.remove('light-mode');btn.textContent='🌙';btn.title='Switch to light mode';} }
+      apply(root.classList.contains('light-mode'));
+      btn.addEventListener('click',function(){ var g=!root.classList.contains('light-mode'); localStorage.setItem('dho_theme',g?'light':'dark'); apply(g); });
+    })();
+  </script>
 
 </body>
 </html>
