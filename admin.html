@@ -72,6 +72,11 @@
 
     <div id="adminSection" class="hidden p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
       <h2 class="text-lg mb-4" style="color:var(--accent);">Update Prices</h2>
+      <div class="mb-4 relative">
+        <input type="text" id="priceSearch" placeholder="Search item…" class="w-full p-2 pl-8 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="off">
+        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
+        <button type="button" id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--text-secondary); background:none; border:none; cursor:pointer;">✕</button>
+      </div>
       <form id="priceForm">
         <div id="priceInputs" class="space-y-4"></div>
         <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Prices</button>
@@ -223,14 +228,16 @@
       container.innerHTML = '';
       menuCategories.forEach(cat => {
         const header = document.createElement('h3');
-        header.className = 'text-base mt-4 mb-2 pb-1';
+        header.className = 'text-base mt-4 mb-2 pb-1 cat-header';
         header.style.cssText = 'color:var(--accent); border-bottom:1px solid var(--border-light);';
         header.textContent = cat.name;
         container.appendChild(header);
 
         cat.items.forEach(key => {
           const div = document.createElement('div');
-          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3';
+          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row';
+          div.dataset.name = itemNames[key].toLowerCase();
+          div.dataset.key = key;
           div.innerHTML = `
             <label class="font-bold text-sm">${itemNames[key]}</label>
             <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
@@ -239,6 +246,40 @@
         });
       });
     }
+
+    function filterPrices(query) {
+      const q = query.trim().toLowerCase();
+      const rows = document.querySelectorAll('.price-row');
+      const headers = document.querySelectorAll('.cat-header');
+      // hide/show rows
+      rows.forEach(row => {
+        const match = !q || row.dataset.name.includes(q) || row.dataset.key.includes(q);
+        row.style.display = match ? '' : 'none';
+      });
+      // hide category headers that have no visible rows
+      headers.forEach(header => {
+        let sibling = header.nextElementSibling;
+        let hasVisible = false;
+        while (sibling && sibling.classList.contains('price-row')) {
+          if (sibling.style.display !== 'none') hasVisible = true;
+          sibling = sibling.nextElementSibling;
+        }
+        header.style.display = hasVisible ? '' : 'none';
+      });
+    }
+
+    document.getElementById('priceSearch').addEventListener('input', function() {
+      const val = this.value;
+      document.getElementById('clearSearch').classList.toggle('hidden', !val);
+      filterPrices(val);
+    });
+    document.getElementById('clearSearch').addEventListener('click', function() {
+      const inp = document.getElementById('priceSearch');
+      inp.value = '';
+      this.classList.add('hidden');
+      filterPrices('');
+      inp.focus();
+    });
 
     // Save
     document.getElementById('priceForm').addEventListener('submit', function(e) {
