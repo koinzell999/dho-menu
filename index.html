@@ -77,7 +77,19 @@
     .menu-item:active { transform: scale(0.98); }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
-    .menu-item .item-ingredients { display: none; font-size: 0.72rem; line-height: 1.45; color: var(--text-secondary); opacity: 0.92; margin-top: 4px; font-style: italic; }
+    .menu-item .item-ingredients {
+      display: none;
+      font-size: 0.72rem;
+      line-height: 1.25;
+      color: var(--text-secondary);
+      opacity: 0.92;
+      margin-top: 4px;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 280px;
+    }
     .menu-item:hover .item-ingredients,
     .menu-item:focus-visible .item-ingredients,
     .menu-item:active .item-ingredients,
@@ -940,7 +952,7 @@
 
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'menu-items-grid transition-all duration-300 ease-in-out';
-        itemsContainer.style.maxHeight = isOpen ? '2000px' : '0';
+        itemsContainer.style.maxHeight = isOpen ? '4000px' : '0';
         itemsContainer.style.opacity = isOpen ? '1' : '0';
         itemsContainer.style.overflow = isOpen ? 'visible' : 'hidden';
 
@@ -953,7 +965,7 @@
             arrow.textContent = '▸';
           } else {
             openSections.add(cat.key);
-            itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 'px';
+            itemsContainer.style.maxHeight = '4000px';
             itemsContainer.style.opacity = '1';
             itemsContainer.style.overflow = 'visible';
             arrow.textContent = '▾';
