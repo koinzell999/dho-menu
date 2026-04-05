@@ -301,19 +301,19 @@
         totalLabel: "Total",
         checkout: "Checkout",
         categories: {
-          popular:"⭐ Popular",
-          waffles:"🧇 Waffles",
-          crepes:"🥞 Crepes",
-          icecream:"🍨 Ice Cream",
-          juices:"🧃 Juices",
-          milkshakes:"🥤 Milkshakes",
-          cocktails:"🍹 Cocktails",
-          specialcocktails:"👑 Special Cocktails",
-          frozen:"🍧 Frozen",
-          dhocakes:"🍰 DHO Cakes",
-          salads:"🥗 Fruit Salads",
-          montos:"🍓 Montos",
-          drinks:"🥤 Drinks"
+          popular:"Popular",
+          waffles:"Waffles",
+          crepes:"Crepes",
+          icecream:"Ice Cream",
+          juices:"Juices",
+          milkshakes:"Milkshakes",
+          cocktails:"Cocktails",
+          specialcocktails:"Special Cocktails",
+          frozen:"Frozen",
+          dhocakes:"DHO Cakes",
+          salads:"Fruit Salads",
+          montos:"Montos",
+          drinks:"Drinks"
         },
         items: {
           waf1:{name:"Kit Kat Waffle",desc:""},
@@ -428,19 +428,19 @@
         totalLabel: "Toplam",
         checkout: "Ödeme",
         categories: {
-          popular:"⭐ Popüler",
-          waffles:"🧇 Waffle'lar",
-          crepes:"🥞 Krepler",
-          icecream:"🍨 Dondurmalar",
-          juices:"🧃 Meyve Suları",
-          milkshakes:"🥤 Milkshake'ler",
-          cocktails:"🍹 Kokteyller",
-          specialcocktails:"👑 Özel Kokteyller",
-          frozen:"🍧 Frozen",
-          dhocakes:"🍰 DHO Kekler",
-          salads:"🥗 Meyve Salataları",
-          montos:"🍓 Montos",
-          drinks:"🥤 İçecekler"
+          popular:"Popüler",
+          waffles:"Waffle'lar",
+          crepes:"Krepler",
+          icecream:"Dondurmalar",
+          juices:"Meyve Suları",
+          milkshakes:"Milkshake'ler",
+          cocktails:"Kokteyller",
+          specialcocktails:"Özel Kokteyller",
+          frozen:"Frozen",
+          dhocakes:"DHO Kekler",
+          salads:"Meyve Salataları",
+          montos:"Montos",
+          drinks:"İçecekler"
         },
         items: {
           waf1:{name:"Kit Kat Waffle",desc:""},
@@ -555,19 +555,19 @@
         totalLabel: "المجموع",
         checkout: "الدفع",
         categories: {
-          popular:"⭐ الأكثر طلباً",
-          waffles:"🧇 وافل",
-          crepes:"🥞 كريب",
-          icecream:"🍨 بوظة",
-          juices:"🧃 عصائر",
-          milkshakes:"🥤 ميلك شيك",
-          cocktails:"🍹 كوكتيلات",
-          specialcocktails:"👑 كوكتيلات خاصة",
-          frozen:"🍧 فروزن",
-          dhocakes:"🍰 كيك DHO",
-          salads:"🥗 سلطات فواكه",
-          montos:"🍓 مونتوس",
-          drinks:"🥤 مشروبات"
+          popular:"الأكثر طلباً",
+          waffles:"وافل",
+          crepes:"كريب",
+          icecream:"بوظة",
+          juices:"عصائر",
+          milkshakes:"ميلك شيك",
+          cocktails:"كوكتيلات",
+          specialcocktails:"كوكتيلات خاصة",
+          frozen:"فروزن",
+          dhocakes:"كيك DHO",
+          salads:"سلطات فواكه",
+          montos:"مونتوس",
+          drinks:"مشروبات"
         },
         items: {
           waf1:{name:"وافل كت كات",desc:""},
@@ -751,6 +751,24 @@
     let state = { lang: detectedLang, order: [] };
     const openSections = new Set(['popular']);
 
+    /* ====== Category Icons (line-art SVG) ====== */
+    const S = (d) => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+    const catIcons = {
+      popular:        S('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'),
+      waffles:        S('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+      crepes:         S('<ellipse cx="12" cy="7" rx="9" ry="3"/><ellipse cx="12" cy="13" rx="9" ry="3"/><ellipse cx="12" cy="19" rx="9" ry="3"/>'),
+      icecream:       S('<path d="M7 11a5 5 0 0 1 10 0"/><path d="M5 11h14l-2 9H7z"/>'),
+      juices:         S('<path d="M6 3h12l-2 18H8z"/><line x1="10" y1="7" x2="16" y2="4"/>'),
+      milkshakes:     S('<path d="M6.5 9h11l-2 12H8.5z"/><path d="M6.2 9C6.2 6.2 8.8 4 12 4s5.8 2.2 5.8 5"/><line x1="14" y1="4" x2="14" y2="21"/>'),
+      cocktails:      S('<path d="M3 4h18L12 16z"/><line x1="12" y1="16" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>'),
+      specialcocktails: S('<path d="M2 20h20"/><path d="M4 20v-9l4 4 4-11 4 11 4-4v9"/>'),
+      frozen:         S('<line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="20" y1="5" x2="4" y2="19"/><line x1="4" y1="5" x2="20" y2="19"/><circle cx="12" cy="12" r="2"/>'),
+      dhocakes:       S('<path d="M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10c0-3 3-5 9-5s9 2 9 5"/><line x1="12" y1="5" x2="12" y2="3"/>'),
+      salads:         S('<path d="M4 12C4 7.6 7.6 4 12 4s8 3.6 8 8"/><path d="M4 12h16l-2 8H6z"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="14" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="18" r="1" fill="currentColor"/>'),
+      montos:         S('<circle cx="9" cy="14" r="5"/><circle cx="15" cy="11" r="5"/><line x1="9" y1="9" x2="9" y2="5"/><line x1="15" y1="6" x2="15" y2="3"/>'),
+      drinks:         S('<path d="M5 2h14l-2 20H7z"/><line x1="9" y1="10" x2="15" y2="10"/>')
+    };
+
     /* ====== Helpers ====== */
     function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
 
@@ -910,7 +928,7 @@
         const isOpen = openSections.has(cat.key);
 
         const h2 = document.createElement('h2');
-        h2.textContent = t.categories[cat.key];
+        h2.innerHTML = `<span class="flex items-center gap-2">${catIcons[cat.key] || ''}<span>${t.categories[cat.key]}</span></span>`;
         h2.className = 'm-0 text-base flex items-center justify-between gap-[10px] p-3 cursor-pointer select-none transition-colors';
         h2.style.color = 'var(--accent)';
         h2.style.background = 'var(--surface-card)';
