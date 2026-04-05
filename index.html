@@ -921,7 +921,7 @@
       menuEl.innerHTML = '';
       menuStructure.forEach(cat=>{
         const catDiv = document.createElement('div');
-        catDiv.className = 'mb-[6px] rounded-xl overflow-hidden';
+        catDiv.className = 'mb-[6px] rounded-xl';
         catDiv.style.border = '1px solid var(--border)';
         catDiv.id = 'cat-' + cat.key;
 
@@ -939,20 +939,23 @@
         catDiv.appendChild(h2);
 
         const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'menu-items-grid transition-all duration-300 ease-in-out overflow-hidden';
+        itemsContainer.className = 'menu-items-grid transition-all duration-300 ease-in-out';
         itemsContainer.style.maxHeight = isOpen ? '2000px' : '0';
         itemsContainer.style.opacity = isOpen ? '1' : '0';
+        itemsContainer.style.overflow = isOpen ? 'visible' : 'hidden';
 
         h2.addEventListener('click', ()=>{
           if(openSections.has(cat.key)){
             openSections.delete(cat.key);
             itemsContainer.style.maxHeight = '0';
             itemsContainer.style.opacity = '0';
+            itemsContainer.style.overflow = 'hidden';
             arrow.textContent = '▸';
           } else {
             openSections.add(cat.key);
             itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 'px';
             itemsContainer.style.opacity = '1';
+            itemsContainer.style.overflow = 'visible';
             arrow.textContent = '▾';
           }
         });
