@@ -68,13 +68,13 @@
 
     /* === Menu item interactions === */
     .menu-item {
-      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
       -webkit-tap-highlight-color: transparent;
       border-bottom: 1px solid rgba(255,255,255,0.02);
     }
     .menu-item:last-child { border-bottom: none; }
-    .menu-item:hover, .menu-item:active { transform: scale(1.02); background: rgba(255,255,255,0.04); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
-    .menu-item:active { transform: scale(0.98); }
+    .menu-item:hover, .menu-item:active { transform: none; background: rgba(255,255,255,0.04); box-shadow: 0 2px 12px rgba(0,0,0,0.22); }
+    .menu-item:active { transform: none; }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
     .menu-item .item-ingredients {
@@ -138,18 +138,18 @@
     /* === Desktop: sticky order sidebar === */
     @media (min-width: 1024px) {
       #aside { position: sticky; top: 16px; align-self: start; }
-      /* 2-column menu item grid inside each category */
+      /* Keep desktop list flow identical to tablet/phone for stable hover behavior */
       .menu-items-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        display: block;
+        gap: 0;
       }
       .menu-items-grid .menu-item {
-        border-bottom: none;
-        border: 1px solid var(--item-border);
-        border-radius: 10px;
-        background: var(--surface-card);
+        border: none;
+        border-bottom: 1px solid var(--item-border);
+        border-radius: 0;
+        background: transparent;
       }
+      .menu-items-grid .menu-item:last-child { border-bottom: none; }
       /* Tighter header on desktop */
       #app > header { margin-bottom: 10px; }
       #app > header .w-20 { width: 56px !important; height: 56px !important; }
@@ -205,8 +205,8 @@
     @media (min-width: 1440px) {
       #app { max-width: 1200px !important; }
       .menu-items-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px;
+        display: block !important;
+        gap: 0;
       }
     }
 
@@ -217,8 +217,8 @@
       .menu-item img.item-thumb { width: 80px; height: 60px; }
       #catNav button { font-size: 1rem !important; padding: 10px 20px !important; }
       .menu-items-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 10px;
+        display: block !important;
+        gap: 0;
       }
     }
   </style>
