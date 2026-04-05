@@ -77,6 +77,10 @@
     .menu-item:active { transform: scale(0.98); }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
+    .menu-item .item-ingredients { display: none; font-size: 0.72rem; line-height: 1.25; color: var(--text-secondary); opacity: 0.92; margin-top: 3px; }
+    .menu-item:hover .item-ingredients,
+    .menu-item:focus-visible .item-ingredients,
+    .menu-item:active .item-ingredients { display: block; }
 
     /* === Image normalization === */
     .menu-item img.item-thumb {
@@ -735,6 +739,56 @@
     /* ====== Helpers ====== */
     function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
 
+    function normalizeForMatch(text) {
+      return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Basic ingredient hints are generalized culinary references for quick browsing.
+    function getIngredientHint(itemKey, itemName, catKey) {
+      const n = normalizeForMatch(itemName);
+      const byCategory = {
+        popular: ['fresh fruit mix', 'cream', 'honey'],
+        waffles: ['flour', 'milk', 'eggs', 'butter', 'sugar'],
+        crepes: ['flour', 'milk', 'eggs', 'butter'],
+        icecream: ['milk', 'cream', 'sugar'],
+        juices: ['fresh fruit', 'ice'],
+        milkshakes: ['milk', 'ice cream', 'sugar'],
+        cocktails: ['fruit mix', 'milk', 'ice'],
+        specialcocktails: ['fruit', 'cream', 'honey', 'nuts'],
+        frozen: ['fruit puree', 'ice', 'sugar syrup'],
+        dhocakes: ['flour', 'eggs', 'sugar', 'butter'],
+        salads: ['fresh fruit', 'banana', 'sauce or cream'],
+        montos: ['fresh fruit', 'ice cream', 'sweet sauce'],
+        drinks: ['soda or syrup', 'ice', 'citrus']
+      };
+
+      const extras = [];
+      if (n.includes('chocolate') || n.includes('cikolata')) extras.push('chocolate sauce');
+      if (n.includes('white chocolate') || n.includes('beyaz')) extras.push('white chocolate');
+      if (n.includes('oreo')) extras.push('oreo crumbs');
+      if (n.includes('kit kat')) extras.push('kit kat pieces');
+      if (n.includes('kinder')) extras.push('kinder pieces');
+      if (n.includes('snickers')) extras.push('snickers pieces');
+      if (n.includes('toffifee')) extras.push('toffifee pieces');
+      if (n.includes('fruit') || n.includes('meyve')) extras.push('seasonal fruits');
+      if (n.includes('banana') || n.includes('muz')) extras.push('banana');
+      if (n.includes('strawberry') || n.includes('cilek')) extras.push('strawberry');
+      if (n.includes('kiwi') || n.includes('kivi')) extras.push('kiwi');
+      if (n.includes('orange') || n.includes('portakal')) extras.push('orange');
+      if (n.includes('pineapple') || n.includes('ananas')) extras.push('pineapple');
+      if (n.includes('mint') || n.includes('nane')) extras.push('mint');
+      if (n.includes('honey') || n.includes('bal')) extras.push('honey');
+      if (n.includes('nuts') || n.includes('fistik')) extras.push('crushed nuts');
+      if (n.includes('vanilla') || n.includes('vanilya')) extras.push('vanilla');
+      if (n.includes('dates') || n.includes('hurma')) extras.push('dates');
+
+      // Keep unique extras and avoid overlong labels.
+      const uniqueExtras = [...new Set(extras)].slice(0, 4);
+      const base = byCategory[catKey] || ['core recipe ingredients'];
+      const parts = [...base, ...uniqueExtras];
+      return 'Basic ingredients: ' + parts.join(', ');
+    }
+
     function render(){
       const t = translations[state.lang];
       document.documentElement.lang = state.lang;
@@ -802,6 +856,7 @@
           if(!itemData) return;
           itemData.price = prices[itemKey];
           if(itemImages[itemKey]) itemData.image = itemImages[itemKey];
+          const ingredientHint = getIngredientHint(itemKey, itemData.name, cat.key);
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
           itemEl.tabIndex = 0;
@@ -822,6 +877,7 @@
               <div>
                 <div class="font-bold item-name">${itemData.name}</div>
                 ${descHTML}
+                <div class="item-ingredients">${ingredientHint}</div>
               </div>
             </div>
             <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(itemData.price)}</div>
