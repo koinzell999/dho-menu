@@ -1125,17 +1125,6 @@
     <p>&copy; 2026 DHO. All rights reserved.</p>
   </footer>
 
-  <!-- No-cookies info banner -->
-  <div id="cookieBanner" class="fixed bottom-0 left-0 right-0 z-[9998] backdrop-blur-sm px-4 py-3 text-center text-xs transition-transform duration-300" style="background:var(--banner-bg); border-top:1px solid var(--border-light); color:var(--text-secondary); transform: translateY(0);">
-    🍪 This site does <strong style="color:var(--text-primary);">not</strong> use cookies or tracking. Your privacy is fully respected.
-    <button onclick="document.getElementById('cookieBanner').style.transform='translateY(100%)'; localStorage.setItem('dho_banner_dismissed','1');" class="ml-2 font-bold hover:underline cursor-pointer bg-transparent border-none text-xs" style="color:var(--accent);">Got it</button>
-  </div>
-  <script>
-    if (localStorage.getItem('dho_banner_dismissed') === '1') {
-      document.getElementById('cookieBanner').style.transform = 'translateY(100%)';
-    }
-  </script>
-
   <!-- Theme toggle logic -->
   <script>
     (function(){
