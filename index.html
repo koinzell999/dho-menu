@@ -77,10 +77,25 @@
     .menu-item:active { transform: scale(0.98); }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
-    .menu-item .item-ingredients { display: none; font-size: 0.72rem; line-height: 1.25; color: var(--text-secondary); opacity: 0.92; margin-top: 3px; }
+    .menu-item .item-ingredients { display: none; font-size: 0.72rem; line-height: 1.45; color: var(--text-secondary); opacity: 0.92; margin-top: 4px; font-style: italic; }
     .menu-item:hover .item-ingredients,
     .menu-item:focus-visible .item-ingredients,
-    .menu-item:active .item-ingredients { display: block; }
+    .menu-item:active .item-ingredients,
+    .menu-item.show-ingredients .item-ingredients { display: block; }
+
+    /* Info toggle button */
+    .ing-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      font-size: 10px; font-style: normal; line-height: 1; font-weight: 700;
+      cursor: pointer; vertical-align: middle; margin-left: 4px;
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+      color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      transition: background 0.15s, transform 0.15s;
+      flex-shrink: 0; user-select: none;
+    }
+    .ing-btn:hover { background: color-mix(in srgb, var(--accent) 35%, transparent); transform: scale(1.15); }
+    .menu-item.show-ingredients .ing-btn { background: var(--accent); color: var(--accent-dark); }
 
     /* === Image normalization === */
     .menu-item img.item-thumb {
@@ -743,51 +758,124 @@
       return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
-    // Basic ingredient hints are generalized culinary references for quick browsing.
-    function getIngredientHint(itemKey, itemName, catKey) {
-      const n = normalizeForMatch(itemName);
-      const byCategory = {
-        popular: ['fresh fruit mix', 'cream', 'honey'],
-        waffles: ['flour', 'milk', 'eggs', 'butter', 'sugar'],
-        crepes: ['flour', 'milk', 'eggs', 'butter'],
-        icecream: ['milk', 'cream', 'sugar'],
-        juices: ['fresh fruit', 'ice'],
-        milkshakes: ['milk', 'ice cream', 'sugar'],
-        cocktails: ['fruit mix', 'milk', 'ice'],
-        specialcocktails: ['fruit', 'cream', 'honey', 'nuts'],
-        frozen: ['fruit puree', 'ice', 'sugar syrup'],
-        dhocakes: ['flour', 'eggs', 'sugar', 'butter'],
-        salads: ['fresh fruit', 'banana', 'sauce or cream'],
-        montos: ['fresh fruit', 'ice cream', 'sweet sauce'],
-        drinks: ['soda or syrup', 'ice', 'citrus']
-      };
-
-      const extras = [];
-      if (n.includes('chocolate') || n.includes('cikolata')) extras.push('chocolate sauce');
-      if (n.includes('white chocolate') || n.includes('beyaz')) extras.push('white chocolate');
-      if (n.includes('oreo')) extras.push('oreo crumbs');
-      if (n.includes('kit kat')) extras.push('kit kat pieces');
-      if (n.includes('kinder')) extras.push('kinder pieces');
-      if (n.includes('snickers')) extras.push('snickers pieces');
-      if (n.includes('toffifee')) extras.push('toffifee pieces');
-      if (n.includes('fruit') || n.includes('meyve')) extras.push('seasonal fruits');
-      if (n.includes('banana') || n.includes('muz')) extras.push('banana');
-      if (n.includes('strawberry') || n.includes('cilek')) extras.push('strawberry');
-      if (n.includes('kiwi') || n.includes('kivi')) extras.push('kiwi');
-      if (n.includes('orange') || n.includes('portakal')) extras.push('orange');
-      if (n.includes('pineapple') || n.includes('ananas')) extras.push('pineapple');
-      if (n.includes('mint') || n.includes('nane')) extras.push('mint');
-      if (n.includes('honey') || n.includes('bal')) extras.push('honey');
-      if (n.includes('nuts') || n.includes('fistik')) extras.push('crushed nuts');
-      if (n.includes('vanilla') || n.includes('vanilya')) extras.push('vanilla');
-      if (n.includes('dates') || n.includes('hurma')) extras.push('dates');
-
-      // Keep unique extras and avoid overlong labels.
-      const uniqueExtras = [...new Set(extras)].slice(0, 4);
-      const base = byCategory[catKey] || ['core recipe ingredients'];
-      const parts = [...base, ...uniqueExtras];
-      return 'Basic ingredients: ' + parts.join(', ');
-    }
+    /* ====== Real Ingredients per Item ====== */
+    const itemIngredients = {
+      // Popular
+      pop1: "mixed seasonal fruits, kaymak (clotted cream), honey, crushed walnuts",
+      // Waffles
+      waf1: "waffle batter, Kit Kat pieces, milk chocolate sauce, whipped cream, powdered sugar",
+      waf2: "waffle batter, Kinder Bueno, hazelnut cream, milk chocolate, powdered sugar",
+      waf3: "waffle batter, Oreo cookie crumbs, cream cheese, chocolate sauce, whipped cream",
+      waf4: "waffle batter, strawberry, kiwi, banana, powdered sugar, whipped cream",
+      waf5: "waffle batter, white chocolate sauce, whipped cream, powdered sugar",
+      waf6: "waffle batter, dark chocolate sauce, whipped cream, powdered sugar",
+      waf7: "waffle batter, banana, kaymak (clotted cream), honey, powdered sugar",
+      waf8: "waffle batter, banana slices, chocolate sauce, powdered sugar",
+      waf9: "waffle batter, fresh strawberries, strawberry sauce, whipped cream",
+      // Crepes
+      crp1: "crepe batter (flour, eggs, milk, butter), dark chocolate sauce, whipped cream",
+      crp2: "crepe batter (flour, eggs, milk, butter), white chocolate sauce, whipped cream",
+      crp3: "crepe batter, mixed fresh fruits (strawberry, kiwi, banana), powdered sugar",
+      crp4: "crepe batter, banana slices, chocolate sauce, powdered sugar",
+      crp5: "crepe batter, banana, kaymak (clotted cream), honey, powdered sugar",
+      crp6: "crepe batter, fresh strawberries, strawberry sauce, whipped cream",
+      crp7: "crepe batter, choice of Kinder Bueno / Oreo crumbs / Kit Kat pieces, chocolate sauce",
+      crp8: "crepe batter, dark chocolate sauce, white chocolate drizzle, cocoa powder, whipped cream",
+      // Ice Cream
+      ice1: "mixed fruit sorbets (mango, strawberry, kiwi), fresh seasonal fruits, wafer",
+      ice2: "chocolate ice cream, dark chocolate sauce, chocolate chips, whipped cream",
+      ice3: "3 scoops assorted ice cream flavors (vanilla, chocolate, strawberry), wafer, syrup",
+      ice4: "vanilla ice cream, crushed pistachios, honey drizzle",
+      ice5: "soft-serve vanilla ice cream, granola, caramel syrup, crisp toppings",
+      // Juices
+      jui1: "freshly squeezed oranges, ice",
+      jui2: "fresh strawberries, ice, pinch of sugar",
+      jui3: "fresh pineapple, ice, pinch of sugar",
+      jui4: "fresh kiwi, apple juice, ice",
+      jui5: "freshly squeezed oranges, ice",
+      jui6: "fresh strawberries, ice, pinch of sugar",
+      jui7: "fresh pineapple, ice, pinch of sugar",
+      jui8: "fresh kiwi, apple juice, ice",
+      // Milkshakes
+      ms1:  "whole milk, chocolate ice cream, dark chocolate sauce, whipped cream",
+      ms2:  "whole milk, vanilla ice cream, vanilla extract, whipped cream",
+      ms3:  "whole milk, vanilla ice cream, Oreo cookie crumbs, whipped cream",
+      ms4:  "whole milk, vanilla ice cream, Snickers bar, caramel sauce, whipped cream",
+      ms5:  "whole milk, vanilla ice cream, Toffifee chocolates, hazelnut cream, whipped cream",
+      ms6:  "whole milk, vanilla ice cream, Kit Kat pieces, milk chocolate sauce, whipped cream",
+      ms7:  "whole milk, chocolate ice cream, dark chocolate sauce, whipped cream",
+      ms8:  "whole milk, vanilla ice cream, vanilla extract, whipped cream",
+      ms9:  "whole milk, vanilla ice cream, Oreo cookie crumbs, whipped cream",
+      ms10: "whole milk, vanilla ice cream, Snickers bar, caramel sauce, whipped cream",
+      ms11: "whole milk, vanilla ice cream, Toffifee chocolates, hazelnut cream, whipped cream",
+      ms12: "whole milk, vanilla ice cream, Kit Kat pieces, milk chocolate sauce, whipped cream",
+      // Cocktails
+      ckt1:  "mixed tropical fruits (mango, banana, strawberry, pineapple), milk, ice cream, sugar",
+      ckt2:  "banana, whole milk, honey, vanilla extract",
+      ckt3:  "banana, whole milk, chocolate sauce, vanilla ice cream",
+      ckt4:  "banana, medjool dates, whole milk, honey",
+      ckt5:  "banana, medjool dates, whole milk, dark chocolate sauce, vanilla ice cream",
+      ckt6:  "mixed tropical fruits, whole milk, chocolate sauce, vanilla ice cream",
+      ckt7:  "strawberry, mango, passion fruit, milk, vanilla ice cream, pink syrup",
+      ckt8:  "mixed tropical fruits (mango, banana, strawberry, pineapple), milk, ice cream, sugar",
+      ckt9:  "banana, whole milk, honey, vanilla extract",
+      ckt10: "banana, whole milk, chocolate sauce, vanilla ice cream",
+      ckt11: "banana, medjool dates, whole milk, honey",
+      ckt12: "banana, medjool dates, whole milk, dark chocolate sauce, vanilla ice cream",
+      ckt13: "mixed tropical fruits, whole milk, chocolate sauce, vanilla ice cream",
+      ckt14: "strawberry, mango, passion fruit, milk, vanilla ice cream, pink syrup",
+      // Special Cocktails
+      spc1:  "mixed tropical fruits, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc2:  "banana, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc3:  "banana, mixed tropical fruits, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc4:  "mixed tropical fruits, milk, dark chocolate sauce, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc5:  "banana, milk, dark chocolate sauce, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc6:  "mixed tropical fruits, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc7:  "banana, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc8:  "banana, mixed tropical fruits, milk, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc9:  "mixed tropical fruits, milk, dark chocolate sauce, kaymak (cream), crushed walnuts, honey, whipped cream",
+      spc10: "banana, milk, dark chocolate sauce, kaymak (cream), crushed walnuts, honey, whipped cream",
+      // Frozen
+      frz1: "blended mixed tropical fruits, sugar syrup, crushed ice",
+      frz2: "whole milk, dark chocolate sauce, chocolate ice cream, crushed ice",
+      frz3: "banana, whole milk, honey, crushed ice",
+      frz4: "fresh strawberries, strawberry syrup, sugar, crushed ice",
+      // DHO Cakes
+      cak1: "flour, eggs, sugar, butter, cocoa powder, dark chocolate ganache, fresh cream",
+      cak2: "flour, eggs, sugar, butter, white chocolate, vanilla cream, powdered sugar",
+      cak3: "flour, eggs, sugar, butter, whipped cream, seasonal fresh fruits",
+      cak4: "flour, eggs, sugar, butter, banana, caramel cream, crushed walnuts",
+      cak5: "flour, eggs, sugar, butter, fresh strawberries, strawberry cream, powdered sugar",
+      cak6: "flour, eggs, sugar, butter, Kinder Bueno, hazelnut cream, milk chocolate",
+      cak7: "flour, eggs, sugar, butter, Oreo cookies, cream cheese frosting, dark chocolate",
+      cak8: "flour, eggs, sugar, butter, Kit Kat bars, dark chocolate ganache, caramel",
+      // Fruit Salads
+      sal1:  "banana, strawberry, kiwi, apple, orange, pomegranate seeds",
+      sal2:  "banana, strawberry, kiwi, apple, dark chocolate sauce",
+      sal3:  "banana, strawberry, kiwi, apple, white chocolate sauce",
+      sal4:  "banana, strawberry, kiwi, apple, extra banana, caramel drizzle",
+      sal5:  "banana, strawberry, kiwi, apple, dark chocolate sauce, extra banana",
+      sal6:  "banana, strawberry, kiwi, apple, orange, pomegranate seeds",
+      sal7:  "banana, strawberry, kiwi, apple, dark chocolate sauce",
+      sal8:  "banana, strawberry, kiwi, apple, white chocolate sauce",
+      sal9:  "banana, strawberry, kiwi, apple, extra banana, caramel drizzle",
+      sal10: "banana, strawberry, kiwi, apple, dark chocolate sauce, extra banana",
+      // Montos
+      mnt1:  "seasonal mixed fruits, vanilla ice cream, biscuit base, whipped cream",
+      mnt2:  "vanilla ice cream, biscuit base, dark chocolate sauce, cocoa powder, whipped cream",
+      mnt3:  "banana, vanilla ice cream, biscuit base, caramel sauce, whipped cream",
+      mnt4:  "fresh strawberries, vanilla ice cream, biscuit base, strawberry sauce",
+      mnt5:  "mixed fruits, vanilla ice cream, biscuit base, dark chocolate sauce, whipped cream",
+      mnt6:  "seasonal mixed fruits, vanilla ice cream, biscuit base, whipped cream",
+      mnt7:  "vanilla ice cream, biscuit base, dark chocolate sauce, cocoa powder, whipped cream",
+      mnt8:  "banana, vanilla ice cream, biscuit base, caramel sauce, whipped cream",
+      mnt9:  "fresh strawberries, vanilla ice cream, biscuit base, strawberry sauce",
+      mnt10: "mixed fruits, vanilla ice cream, biscuit base, dark chocolate sauce, whipped cream",
+      // Drinks
+      drk1: "fresh lemon juice, fresh mint leaves, sugar syrup, sparkling water, ice",
+      drk2: "blue syrup (grenadine + blue curaçao flavor), lemon juice, Sprite, ice",
+      drk3: "grenadine syrup, Sprite, fresh lemon juice, ice"
+    };
 
     function render(){
       const t = translations[state.lang];
@@ -856,7 +944,7 @@
           if(!itemData) return;
           itemData.price = prices[itemKey];
           if(itemImages[itemKey]) itemData.image = itemImages[itemKey];
-          const ingredientHint = getIngredientHint(itemKey, itemData.name, cat.key);
+          const ing = itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
           itemEl.tabIndex = 0;
@@ -870,14 +958,16 @@
             : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs shrink-0" style="background:var(--surface-card); color:var(--text-secondary)"></div>`;
 
           const descHTML = itemData.desc ? `<div class="text-sm" style="color:var(--text-secondary)">${itemData.desc}</div>` : '';
+          const ingToggleHTML = ing ? `<button class="ing-btn" title="Show ingredients" onclick="event.stopPropagation();this.closest('.menu-item').classList.toggle('show-ingredients');this.setAttribute('aria-expanded', this.closest('.menu-item').classList.contains('show-ingredients'))" aria-label="Toggle ingredients" aria-expanded="false">ⓘ</button>` : '';
+          const ingHTML = ing ? `<div class="item-ingredients">🧂 ${ing}</div>` : '';
 
           itemEl.innerHTML = `
-            <div class="flex gap-3 items-center">
+            <div class="flex gap-3 items-center min-w-0">
               ${imageHTML}
-              <div>
-                <div class="font-bold item-name">${itemData.name}</div>
+              <div class="min-w-0">
+                <div class="font-bold item-name flex items-center gap-1 flex-wrap">${itemData.name}${ingToggleHTML}</div>
                 ${descHTML}
-                <div class="item-ingredients">${ingredientHint}</div>
+                ${ingHTML}
               </div>
             </div>
             <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(itemData.price)}</div>
