@@ -198,15 +198,25 @@
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
+      document.getElementById('loginError').classList.add('hidden');
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       auth.signInWithEmailAndPassword(username, password)
-        .then(() => {
+        .then((userCredential) => {
+          const user = userCredential.user;
+          const email = user.email || '';
+          if (!email.endsWith('@dho.com') || !user.emailVerified) {
+            auth.signOut();
+            document.getElementById('loginError').textContent = 'Access denied: admin account required.';
+            document.getElementById('loginError').classList.remove('hidden');
+            return;
+          }
           document.getElementById('loginSection').classList.add('hidden');
           document.getElementById('adminSection').classList.remove('hidden');
           loadPrices();
         })
         .catch(() => {
+          document.getElementById('loginError').textContent = 'Invalid credentials';
           document.getElementById('loginError').classList.remove('hidden');
         });
     });
