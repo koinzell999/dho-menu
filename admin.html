@@ -205,7 +205,7 @@
         .then((userCredential) => {
           const user = userCredential.user;
           const email = user.email || '';
-          if (!email.endsWith('@dho.com') || !user.emailVerified) {
+          if (!email.endsWith('@dho.com')) {
             auth.signOut();
             document.getElementById('loginError').textContent = 'Access denied: admin account required.';
             document.getElementById('loginError').classList.remove('hidden');

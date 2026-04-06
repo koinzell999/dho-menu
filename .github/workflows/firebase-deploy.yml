@@ -1,0 +1,25 @@
+name: Deploy to Firebase
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Firebase
+        # Requires a FIREBASE_SERVICE_ACCOUNT secret in the repo Settings → Secrets → Actions.
+        # Generate one in the Firebase Console under Project Settings → Service accounts,
+        # then add the JSON content as the FIREBASE_SERVICE_ACCOUNT secret.
+        uses: w9jds/firebase-action@v14.0.0
+        with:
+          args: deploy --only hosting,firestore:rules
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
