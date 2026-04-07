@@ -1018,6 +1018,7 @@
           const ing = itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
+          if (state.lang === 'ar') itemEl.style.direction = 'ltr';
           itemEl.tabIndex = 0;
           itemEl.setAttribute('role','button');
           itemEl.addEventListener('click', ()=> addToOrder(itemKey));
