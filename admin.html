@@ -63,6 +63,20 @@
     }
 
     .cat-rows.hidden { display: none; }
+
+    .img-tools { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .img-btn {
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .img-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .img-preview { width: 56px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-light); }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -115,6 +129,7 @@
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
         <button type="button" id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--text-secondary); background:none; border:none; cursor:pointer;">✕</button>
       </div>
+      <p class="text-xs mb-2" style="color:var(--text-secondary); opacity:0.8;">Images: use Upload (device) or URL (internet) per item.</p>
       <div class="mb-3 flex items-center justify-end">
         <label for="hiddenOnlyToggle" class="text-xs font-semibold cursor-pointer" style="color:var(--text-secondary);">
           <input type="checkbox" id="hiddenOnlyToggle" class="align-middle mr-1" /> Hidden items only
@@ -253,6 +268,7 @@
 
     let prices = { ...defaultPrices };
     let hiddenItems = {};
+    let imageOverrides = {};
     let collapsedCats = {};
     let idleTimer = null;
     const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
@@ -344,11 +360,42 @@
         }
         if (settingsDoc.exists) {
           hiddenItems = settingsDoc.data().hiddenItems || {};
+          imageOverrides = settingsDoc.data().imageOverrides || {};
         }
       } catch (err) {
         console.error("Failed to load prices:", err);
       }
       renderPriceForm();
+    }
+
+    function getDefaultImageForKey(key){
+      return `images/${key}.jpg`;
+    }
+
+    async function persistMenuSettings() {
+      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides }, { merge: true });
+    }
+
+    function resizeImageFile(file, maxWidth = 720, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
     }
 
     function renderPriceForm() {
@@ -379,16 +426,29 @@
 
         cat.items.forEach(key => {
           const isHidden = !!hiddenItems[key];
+          const hasCustomImage = !!imageOverrides[key];
+          const imgSrc = imageOverrides[key] || getDefaultImageForKey(key);
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
           div.dataset.name = itemNames[key].toLowerCase();
           div.dataset.key = key;
           div.dataset.hidden = isHidden ? '1' : '0';
           div.innerHTML = `
-            <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
-            <div class="flex w-full sm:w-auto items-center gap-2">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <img src="${imgSrc}" alt="${itemNames[key]}" class="img-preview" />
+              <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
+            </div>
+            <div class="w-full sm:w-auto">
+              <div class="flex w-full sm:w-auto items-center gap-2">
               <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
               <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
+              </div>
+              <div class="img-tools">
+                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">Upload</button>
+                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">URL</button>
+                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">Reset</button>
+                <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
+              </div>
             </div>
           `;
           rowsWrap.appendChild(div);
@@ -405,7 +465,7 @@
       else hiddenItems[key] = true;
 
       try {
-        await db.collection("settings").doc("menu").set({ hiddenItems }, { merge: true });
+        await persistMenuSettings();
         renderPriceForm();
         filterPrices(document.getElementById('priceSearch').value || '');
       } catch (err) {
@@ -413,6 +473,57 @@
         else delete hiddenItems[key];
         document.getElementById('saveMessage').textContent = 'Error: ' + err.message;
         document.getElementById('saveMessage').className = 'text-red-400 mt-2';
+      }
+    }
+
+    async function setImageFromFile(key, input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Please choose an image file.');
+        input.value = '';
+        return;
+      }
+      try {
+        imageOverrides[key] = await resizeImageFile(file);
+        await persistMenuSettings();
+        renderPriceForm();
+      } catch (err) {
+        alert('Failed to process image: ' + err.message);
+      } finally {
+        input.value = '';
+      }
+    }
+
+    async function setImageFromUrl(key) {
+      const current = imageOverrides[key] || '';
+      const raw = prompt('Paste image URL (https://...)', current);
+      if (raw === null) return;
+      const url = raw.trim();
+      if (!url) {
+        delete imageOverrides[key];
+      } else if (!/^https?:\/\//i.test(url) && !/^data:image\//i.test(url)) {
+        alert('Please enter a valid image URL.');
+        return;
+      } else {
+        imageOverrides[key] = url;
+      }
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+      } catch (err) {
+        alert('Failed to save image URL: ' + err.message);
+      }
+    }
+
+    async function resetItemImage(key) {
+      if (!imageOverrides[key]) return;
+      delete imageOverrides[key];
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+      } catch (err) {
+        alert('Failed to reset image: ' + err.message);
       }
     }
 

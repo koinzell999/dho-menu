@@ -738,6 +738,7 @@
 
     let prices = { ...defaultPrices };
     let hiddenItems = {};
+    let imageOverrides = {};
 
     /* ====== Load Prices from Firestore ====== */
     async function loadPrices() {
@@ -757,6 +758,7 @@
         }
         if (settingsDoc.exists) {
           hiddenItems = settingsDoc.data().hiddenItems || {};
+          imageOverrides = settingsDoc.data().imageOverrides || {};
         }
       } catch (e) {
         console.error("Error loading prices:", e);
@@ -1004,7 +1006,7 @@
           const itemData = t.items[itemKey];
           if(!itemData) return;
           itemData.price = prices[itemKey];
-          if(itemImages[itemKey]) itemData.image = itemImages[itemKey];
+          const currentImage = imageOverrides[itemKey] || itemImages[itemKey] || '';
           const ing = itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
@@ -1013,9 +1015,9 @@
           itemEl.addEventListener('click', ()=> addToOrder(itemKey));
           itemEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') addToOrder(itemKey) });
 
-          const safeImgName = itemData.image ? itemData.image.replace(/'/g, "\\'") : '';
-          const imageHTML = itemData.image
-            ? `<img src="${itemData.image}" alt="${itemData.name}" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
+          const safeImgName = currentImage ? currentImage.replace(/'/g, "\\'") : '';
+          const imageHTML = currentImage
+            ? `<img src="${currentImage}" alt="${itemData.name}" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
             : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs shrink-0" style="background:var(--surface-card); color:var(--text-secondary)"></div>`;
 
           const descHTML = itemData.desc ? `<div class="text-sm" style="color:var(--text-secondary)">${itemData.desc}</div>` : '';
