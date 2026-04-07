@@ -108,6 +108,11 @@
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
         <button type="button" id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--text-secondary); background:none; border:none; cursor:pointer;">✕</button>
       </div>
+      <div class="mb-3 flex items-center justify-end">
+        <label for="hiddenOnlyToggle" class="text-xs font-semibold cursor-pointer" style="color:var(--text-secondary);">
+          <input type="checkbox" id="hiddenOnlyToggle" class="align-middle mr-1" /> Hidden items only
+        </label>
+      </div>
       <form id="priceForm">
         <div id="priceInputs" class="space-y-4"></div>
         <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Prices</button>
@@ -341,6 +346,7 @@
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
           div.dataset.name = itemNames[key].toLowerCase();
           div.dataset.key = key;
+          div.dataset.hidden = isHidden ? '1' : '0';
           div.innerHTML = `
             <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
             <div class="flex w-full sm:w-auto items-center gap-2">
@@ -351,6 +357,9 @@
           rowsWrap.appendChild(div);
         });
       });
+
+      // Re-apply active filters after redraw.
+      filterPrices(document.getElementById('priceSearch').value || '');
     }
 
     async function toggleItemVisibility(key) {
@@ -361,8 +370,7 @@
       try {
         await db.collection("settings").doc("menu").set({ hiddenItems }, { merge: true });
         renderPriceForm();
-        const q = document.getElementById('priceSearch').value;
-        if (q) filterPrices(q);
+        filterPrices(document.getElementById('priceSearch').value || '');
       } catch (err) {
         if (wasHidden) hiddenItems[key] = true;
         else delete hiddenItems[key];
@@ -373,12 +381,14 @@
 
     function filterPrices(query) {
       const q = query.trim().toLowerCase();
+      const hiddenOnly = document.getElementById('hiddenOnlyToggle').checked;
       const rows = document.querySelectorAll('.price-row');
       const sections = document.querySelectorAll('.cat-section');
       // hide/show rows
       rows.forEach(row => {
-        const match = !q || row.dataset.name.includes(q) || row.dataset.key.includes(q);
-        row.style.display = match ? '' : 'none';
+        const matchText = !q || row.dataset.name.includes(q) || row.dataset.key.includes(q);
+        const matchHidden = !hiddenOnly || row.dataset.hidden === '1';
+        row.style.display = (matchText && matchHidden) ? '' : 'none';
       });
       // hide category blocks that have no visible rows
       sections.forEach(section => {
@@ -407,6 +417,9 @@
       this.classList.add('hidden');
       filterPrices('');
       inp.focus();
+    });
+    document.getElementById('hiddenOnlyToggle').addEventListener('change', function() {
+      filterPrices(document.getElementById('priceSearch').value || '');
     });
 
     // Save
