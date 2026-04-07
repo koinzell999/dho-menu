@@ -393,32 +393,40 @@
       await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides }, { merge: true });
     }
 
-    function resizeImageFileToBlob(file, maxWidth = 720, quality = 0.82) {
+    function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            const scale = Math.min(1, maxWidth / img.width);
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-              if (!blob) {
-                reject(new Error('Image conversion failed.'));
-                return;
-              }
-              resolve(blob);
-            }, 'image/jpeg', quality);
-          };
-          img.onerror = reject;
-          img.src = reader.result;
+        const img = new Image();
+        const srcUrl = URL.createObjectURL(source);
+        img.onload = () => {
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(srcUrl);
+            if (!blob) {
+              reject(new Error('Image conversion failed.'));
+              return;
+            }
+            resolve(blob);
+          }, 'image/jpeg', quality);
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        img.onerror = () => {
+          URL.revokeObjectURL(srcUrl);
+          reject(new Error('Image decode failed.'));
+        };
+        img.src = srcUrl;
       });
+    }
+
+    async function uploadBlobForItem(key, blob) {
+      const path = `menu-images/${key}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+      const ref = storage.ref(path);
+      await ref.put(blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000,immutable' });
+      const url = await ref.getDownloadURL();
+      return { url, path, source: 'storage', updatedAt: Date.now() };
     }
 
     function renderPriceForm() {
@@ -514,13 +522,8 @@
           try { await storage.ref(previous.path).delete(); } catch (_) {}
         }
 
-        const blob = await resizeImageFileToBlob(file);
-        const path = `menu-images/${key}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
-        const ref = storage.ref(path);
-        await ref.put(blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000,immutable' });
-        const url = await ref.getDownloadURL();
-
-        imageOverrides[key] = { url, path, source: 'storage', updatedAt: Date.now() };
+        const blob = await resizeImageSourceToBlob(file);
+        imageOverrides[key] = await uploadBlobForItem(key, blob);
         await persistMenuSettings();
         renderPriceForm();
       } catch (err) {
@@ -537,15 +540,34 @@
       const url = raw.trim();
       if (!url) {
         delete imageOverrides[key];
-      } else if (!/^https?:\/\//i.test(url) && !/^data:image\//i.test(url)) {
+      } else if (!/^https?:\/\//i.test(url)) {
         alert('Please enter a valid image URL.');
         return;
       } else {
         const previous = imageOverrides[key];
-        if (previous && typeof previous === 'object' && previous.path) {
+        let nextOverride = null;
+        try {
+          const res = await fetch(url, { mode: 'cors', referrerPolicy: 'no-referrer' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const contentType = (res.headers.get('content-type') || '').toLowerCase();
+          if (contentType && !contentType.startsWith('image/')) {
+            throw new Error('URL does not point to an image');
+          }
+          const remoteBlob = await res.blob();
+          const optimizedBlob = await resizeImageSourceToBlob(remoteBlob);
+          nextOverride = await uploadBlobForItem(key, optimizedBlob);
+          nextOverride.source = 'storage-from-url';
+          nextOverride.originUrl = url;
+        } catch (err) {
+          // Some hosts block CORS/hotlinking. Keep URL mode as compatibility fallback.
+          nextOverride = { url, source: 'url', updatedAt: Date.now() };
+          alert('Direct URL mode enabled because import failed (' + err.message + ').');
+        }
+
+        if (previous && typeof previous === 'object' && previous.path && (!nextOverride.path || nextOverride.path !== previous.path)) {
           try { await storage.ref(previous.path).delete(); } catch (_) {}
         }
-        imageOverrides[key] = { url, source: 'url', updatedAt: Date.now() };
+        imageOverrides[key] = nextOverride;
       }
       try {
         await persistMenuSettings();
