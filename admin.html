@@ -28,6 +28,37 @@
     body, footer { transition: background 0.25s ease, color 0.25s ease; }
     html { overflow-x: hidden; }
     body { background: linear-gradient(to bottom, var(--bg-from), var(--bg-to)) !important; color: var(--text-primary) !important; }
+
+    #priceInputs {
+      max-height: 58vh;
+      overflow-y: auto;
+      padding-right: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) transparent;
+    }
+    #priceInputs::-webkit-scrollbar { width: 8px; }
+    #priceInputs::-webkit-scrollbar-track { background: transparent; }
+    #priceInputs::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--accent) 45%, transparent);
+      border-radius: 999px;
+    }
+
+    .cat-header-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-light);
+      padding: 8px 0 6px;
+      cursor: pointer;
+    }
+
+    .cat-rows.hidden { display: none; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -98,6 +129,15 @@
     </nav>
     <p>&copy; 2026 DHO. All rights reserved.</p>
   </footer>
+
+  <!-- Back to top button -->
+  <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"
+     class="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-[#ffd24a] text-[#072033] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200 opacity-0 pointer-events-none"
+     style="transition: opacity 0.3s, transform 0.2s;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
 
   <!-- Theme toggle logic -->
   <script>
@@ -194,6 +234,37 @@
     ];
 
     let prices = { ...defaultPrices };
+    let hiddenItems = {};
+    let collapsedCats = {};
+    let idleTimer = null;
+    const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+
+    function resetIdleTimer() {
+      if (idleTimer) clearTimeout(idleTimer);
+      if (!auth.currentUser) return;
+      idleTimer = setTimeout(() => {
+        auth.signOut();
+        alert('Session expired due to inactivity. Please log in again.');
+      }, IDLE_TIMEOUT_MS);
+    }
+
+    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    auth.onAuthStateChanged((user) => {
+      const loginSection = document.getElementById('loginSection');
+      const adminSection = document.getElementById('adminSection');
+      if (user) {
+        loginSection.classList.add('hidden');
+        adminSection.classList.remove('hidden');
+        resetIdleTimer();
+      } else {
+        if (idleTimer) clearTimeout(idleTimer);
+        loginSection.classList.remove('hidden');
+        adminSection.classList.add('hidden');
+      }
+    });
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -211,9 +282,8 @@
             document.getElementById('loginError').classList.remove('hidden');
             return;
           }
-          document.getElementById('loginSection').classList.add('hidden');
-          document.getElementById('adminSection').classList.remove('hidden');
           loadPrices();
+          resetIdleTimer();
         })
         .catch(() => {
           document.getElementById('loginError').textContent = 'Invalid credentials';
@@ -223,9 +293,15 @@
 
     async function loadPrices() {
       try {
-        const doc = await db.collection("prices").doc("menu").get();
-        if (doc.exists) {
-          prices = { ...defaultPrices, ...doc.data() };
+        const [priceDoc, settingsDoc] = await Promise.all([
+          db.collection("prices").doc("menu").get(),
+          db.collection("settings").doc("menu").get()
+        ]);
+        if (priceDoc.exists) {
+          prices = { ...defaultPrices, ...priceDoc.data() };
+        }
+        if (settingsDoc.exists) {
+          hiddenItems = settingsDoc.data().hiddenItems || {};
         }
       } catch (err) {
         console.error("Failed to load prices:", err);
@@ -237,44 +313,86 @@
       const container = document.getElementById('priceInputs');
       container.innerHTML = '';
       menuCategories.forEach(cat => {
-        const header = document.createElement('h3');
-        header.className = 'text-base mt-4 mb-2 pb-1 cat-header';
-        header.style.cssText = 'color:var(--accent); border-bottom:1px solid var(--border-light);';
-        header.textContent = cat.name;
-        container.appendChild(header);
+        const section = document.createElement('div');
+        section.className = 'cat-section mt-2';
+        section.dataset.cat = cat.name;
+
+        const headerBtn = document.createElement('button');
+        headerBtn.type = 'button';
+        headerBtn.className = 'cat-header-btn';
+        headerBtn.innerHTML = `<span>${cat.name}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
+
+        const rowsWrap = document.createElement('div');
+        rowsWrap.className = `cat-rows ${collapsedCats[cat.name] ? 'hidden' : ''}`;
+
+        headerBtn.addEventListener('click', () => {
+          collapsedCats[cat.name] = !collapsedCats[cat.name];
+          rowsWrap.classList.toggle('hidden', collapsedCats[cat.name]);
+          headerBtn.innerHTML = `<span>${cat.name}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
+        });
+
+        section.appendChild(headerBtn);
+        section.appendChild(rowsWrap);
+        container.appendChild(section);
 
         cat.items.forEach(key => {
+          const isHidden = !!hiddenItems[key];
           const div = document.createElement('div');
-          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row';
+          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
           div.dataset.name = itemNames[key].toLowerCase();
           div.dataset.key = key;
           div.innerHTML = `
-            <label class="font-bold text-sm">${itemNames[key]}</label>
-            <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
+            <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
+            <div class="flex w-full sm:w-auto items-center gap-2">
+              <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
+              <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
+            </div>
           `;
-          container.appendChild(div);
+          rowsWrap.appendChild(div);
         });
       });
+    }
+
+    async function toggleItemVisibility(key) {
+      const wasHidden = !!hiddenItems[key];
+      if (wasHidden) delete hiddenItems[key];
+      else hiddenItems[key] = true;
+
+      try {
+        await db.collection("settings").doc("menu").set({ hiddenItems }, { merge: true });
+        renderPriceForm();
+        const q = document.getElementById('priceSearch').value;
+        if (q) filterPrices(q);
+      } catch (err) {
+        if (wasHidden) hiddenItems[key] = true;
+        else delete hiddenItems[key];
+        document.getElementById('saveMessage').textContent = 'Error: ' + err.message;
+        document.getElementById('saveMessage').className = 'text-red-400 mt-2';
+      }
     }
 
     function filterPrices(query) {
       const q = query.trim().toLowerCase();
       const rows = document.querySelectorAll('.price-row');
-      const headers = document.querySelectorAll('.cat-header');
+      const sections = document.querySelectorAll('.cat-section');
       // hide/show rows
       rows.forEach(row => {
         const match = !q || row.dataset.name.includes(q) || row.dataset.key.includes(q);
         row.style.display = match ? '' : 'none';
       });
-      // hide category headers that have no visible rows
-      headers.forEach(header => {
-        let sibling = header.nextElementSibling;
+      // hide category blocks that have no visible rows
+      sections.forEach(section => {
+        const rowsWrap = section.querySelector('.cat-rows');
+        const header = section.querySelector('.cat-header-btn');
         let hasVisible = false;
-        while (sibling && sibling.classList.contains('price-row')) {
-          if (sibling.style.display !== 'none') hasVisible = true;
-          sibling = sibling.nextElementSibling;
+        rowsWrap.querySelectorAll('.price-row').forEach(r => {
+          if (r.style.display !== 'none') hasVisible = true;
+        });
+        section.style.display = hasVisible ? '' : 'none';
+        if (hasVisible && q) {
+          rowsWrap.classList.remove('hidden');
+          header.innerHTML = `<span>${section.dataset.cat}</span><span>▾</span>`;
         }
-        header.style.display = hasVisible ? '' : 'none';
       });
     }
 
@@ -311,6 +429,18 @@
           document.getElementById('saveMessage').textContent = 'Error: ' + err.message;
           document.getElementById('saveMessage').className = 'text-red-400 mt-2';
         });
+    });
+  </script>
+  <script>
+    const backToTopBtn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopBtn.style.opacity = '1';
+        backToTopBtn.style.pointerEvents = 'auto';
+      } else {
+        backToTopBtn.style.opacity = '0';
+        backToTopBtn.style.pointerEvents = 'none';
+      }
     });
   </script>
 </body>

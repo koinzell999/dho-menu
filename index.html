@@ -733,19 +733,26 @@
     };
 
     let prices = { ...defaultPrices };
+    let hiddenItems = {};
 
     /* ====== Load Prices from Firestore ====== */
     async function loadPrices() {
       try {
-        const doc = await db.collection("prices").doc("menu").get();
-        if (doc.exists) {
-          const remote = doc.data();
+        const [priceDoc, settingsDoc] = await Promise.all([
+          db.collection("prices").doc("menu").get(),
+          db.collection("settings").doc("menu").get()
+        ]);
+        if (priceDoc.exists) {
+          const remote = priceDoc.data();
           // Only apply remote prices for keys that exist in the current menu
           const merged = { ...defaultPrices };
           for (const key of Object.keys(defaultPrices)) {
             if (remote[key] !== undefined) merged[key] = remote[key];
           }
           prices = merged;
+        }
+        if (settingsDoc.exists) {
+          hiddenItems = settingsDoc.data().hiddenItems || {};
         }
       } catch (e) {
         console.error("Error loading prices:", e);
@@ -946,6 +953,9 @@
       const menuEl = document.getElementById('menu');
       menuEl.innerHTML = '';
       menuStructure.forEach(cat=>{
+        const visibleItems = cat.items.filter(itemKey => !hiddenItems[itemKey]);
+        if (visibleItems.length === 0) return;
+
         const catDiv = document.createElement('div');
         catDiv.className = 'mb-[6px] rounded-xl';
         catDiv.style.border = '1px solid var(--border)';
@@ -986,7 +996,7 @@
           }
         });
 
-        cat.items.forEach(itemKey=>{
+        visibleItems.forEach(itemKey=>{
           const itemData = t.items[itemKey];
           if(!itemData) return;
           itemData.price = prices[itemKey];
