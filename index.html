@@ -117,10 +117,11 @@
     .menu-item img.item-thumb {
       transition: transform 0.15s ease;
       cursor: zoom-in;
-      width: 64px; height: 48px;
+      width: 64px; height: 48px !important;
       object-fit: cover;
       border-radius: 8px;
       flex-shrink: 0;
+      align-self: center;
     }
     .menu-item:hover img.item-thumb { transform: scale(1.08); }
 
@@ -1016,7 +1017,7 @@
           const currentImage = resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
           const ing = itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
-          itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';
+          itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
           itemEl.tabIndex = 0;
           itemEl.setAttribute('role','button');
           itemEl.addEventListener('click', ()=> addToOrder(itemKey));
@@ -1033,7 +1034,18 @@
           const ingToggleHTML = ing ? `<button class="ing-btn" title="Show ingredients" onclick="event.stopPropagation();this.closest('.menu-item').classList.toggle('show-ingredients');this.setAttribute('aria-expanded', this.closest('.menu-item').classList.contains('show-ingredients'))" aria-label="Toggle ingredients" aria-expanded="false">ⓘ</button>` : '';
           const ingHTML = ing ? `<div class="item-ingredients">🧂 ${ing}</div>` : '';
 
-          itemEl.innerHTML = `
+          const isRTL = state.lang === 'ar';
+          itemEl.innerHTML = isRTL ? `
+            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(itemData.price)}</div>
+            <div class="flex gap-3 items-center min-w-0 flex-row-reverse text-right flex-1">
+              ${imageHTML}
+              <div class="min-w-0">
+                <div class="font-bold item-name flex items-center gap-1 flex-wrap justify-end">${itemData.name}${ingToggleHTML}</div>
+                ${descHTML}
+                ${ingHTML}
+              </div>
+            </div>
+          ` : `
             <div class="flex gap-3 items-center min-w-0">
               ${imageHTML}
               <div class="min-w-0">
