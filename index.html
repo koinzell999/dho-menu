@@ -815,6 +815,13 @@
       return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
+    function resolveImageOverrideUrl(overrideValue) {
+      if (!overrideValue) return '';
+      if (typeof overrideValue === 'string') return overrideValue;
+      if (typeof overrideValue === 'object' && overrideValue.url) return overrideValue.url;
+      return '';
+    }
+
     /* ====== Real Ingredients per Item ====== */
     const itemIngredients = {
       // Popular
@@ -1006,7 +1013,7 @@
           const itemData = t.items[itemKey];
           if(!itemData) return;
           itemData.price = prices[itemKey];
-          const currentImage = imageOverrides[itemKey] || itemImages[itemKey] || '';
+          const currentImage = resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
           const ing = itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer rtl:flex-row-reverse';

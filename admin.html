@@ -81,6 +81,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 </head>
 <body class="m-0 min-h-screen font-sans antialiased p-3 sm:p-6 overflow-x-hidden box-border flex flex-col items-center" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); color:var(--text-primary);">
 
@@ -194,6 +195,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
   </script>
 
   <script>
@@ -372,11 +374,18 @@
       return `images/${key}.jpg`;
     }
 
+    function resolveImageOverrideUrl(overrideValue) {
+      if (!overrideValue) return '';
+      if (typeof overrideValue === 'string') return overrideValue;
+      if (typeof overrideValue === 'object' && overrideValue.url) return overrideValue.url;
+      return '';
+    }
+
     async function persistMenuSettings() {
       await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides }, { merge: true });
     }
 
-    function resizeImageFile(file, maxWidth = 720, quality = 0.82) {
+    function resizeImageFileToBlob(file, maxWidth = 720, quality = 0.82) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -388,7 +397,13 @@
             canvas.height = Math.round(img.height * scale);
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                reject(new Error('Image conversion failed.'));
+                return;
+              }
+              resolve(blob);
+            }, 'image/jpeg', quality);
           };
           img.onerror = reject;
           img.src = reader.result;
@@ -427,7 +442,7 @@
         cat.items.forEach(key => {
           const isHidden = !!hiddenItems[key];
           const hasCustomImage = !!imageOverrides[key];
-          const imgSrc = imageOverrides[key] || getDefaultImageForKey(key);
+          const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key);
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
           div.dataset.name = itemNames[key].toLowerCase();
@@ -485,18 +500,29 @@
         return;
       }
       try {
-        imageOverrides[key] = await resizeImageFile(file);
+        const previous = imageOverrides[key];
+        if (previous && typeof previous === 'object' && previous.path) {
+          try { await storage.ref(previous.path).delete(); } catch (_) {}
+        }
+
+        const blob = await resizeImageFileToBlob(file);
+        const path = `menu-images/${key}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const ref = storage.ref(path);
+        await ref.put(blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000,immutable' });
+        const url = await ref.getDownloadURL();
+
+        imageOverrides[key] = { url, path, source: 'storage', updatedAt: Date.now() };
         await persistMenuSettings();
         renderPriceForm();
       } catch (err) {
-        alert('Failed to process image: ' + err.message);
+        alert('Failed to upload image: ' + err.message);
       } finally {
         input.value = '';
       }
     }
 
     async function setImageFromUrl(key) {
-      const current = imageOverrides[key] || '';
+      const current = resolveImageOverrideUrl(imageOverrides[key]) || '';
       const raw = prompt('Paste image URL (https://...)', current);
       if (raw === null) return;
       const url = raw.trim();
@@ -506,7 +532,11 @@
         alert('Please enter a valid image URL.');
         return;
       } else {
-        imageOverrides[key] = url;
+        const previous = imageOverrides[key];
+        if (previous && typeof previous === 'object' && previous.path) {
+          try { await storage.ref(previous.path).delete(); } catch (_) {}
+        }
+        imageOverrides[key] = { url, source: 'url', updatedAt: Date.now() };
       }
       try {
         await persistMenuSettings();
@@ -518,6 +548,10 @@
 
     async function resetItemImage(key) {
       if (!imageOverrides[key]) return;
+      const previous = imageOverrides[key];
+      if (previous && typeof previous === 'object' && previous.path) {
+        try { await storage.ref(previous.path).delete(); } catch (_) {}
+      }
       delete imageOverrides[key];
       try {
         await persistMenuSettings();
