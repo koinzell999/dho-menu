@@ -429,6 +429,15 @@
       return { url, path, source: 'storage', updatedAt: Date.now() };
     }
 
+    function blobToDataURL(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
     function renderPriceForm() {
       const container = document.getElementById('priceInputs');
       container.innerHTML = '';
@@ -523,7 +532,14 @@
         }
 
         const blob = await resizeImageSourceToBlob(file);
-        imageOverrides[key] = await uploadBlobForItem(key, blob);
+        try {
+          imageOverrides[key] = await uploadBlobForItem(key, blob);
+        } catch (storageErr) {
+          // Storage may not be enabled yet on this Firebase project.
+          const inlineUrl = await blobToDataURL(blob);
+          imageOverrides[key] = { url: inlineUrl, source: 'inline-fallback', updatedAt: Date.now() };
+          alert('Storage is not active yet, saved inline fallback for now.');
+        }
         await persistMenuSettings();
         renderPriceForm();
       } catch (err) {
@@ -555,9 +571,15 @@
           }
           const remoteBlob = await res.blob();
           const optimizedBlob = await resizeImageSourceToBlob(remoteBlob);
-          nextOverride = await uploadBlobForItem(key, optimizedBlob);
-          nextOverride.source = 'storage-from-url';
-          nextOverride.originUrl = url;
+          try {
+            nextOverride = await uploadBlobForItem(key, optimizedBlob);
+            nextOverride.source = 'storage-from-url';
+            nextOverride.originUrl = url;
+          } catch (storageErr) {
+            // Storage not active: keep direct URL fallback.
+            nextOverride = { url, source: 'url-fallback-no-storage', updatedAt: Date.now() };
+            alert('Storage is not active yet, using direct URL mode.');
+          }
         } catch (err) {
           // Some hosts block CORS/hotlinking. Keep URL mode as compatibility fallback.
           nextOverride = { url, source: 'url', updatedAt: Date.now() };
