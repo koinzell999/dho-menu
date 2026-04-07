@@ -9,6 +9,10 @@
   <script>
     (function(){
       var t = localStorage.getItem('dho_theme');
+      if(!t){
+        var h = new Date().getHours();
+        t = (h >= 7 && h < 19) ? 'light' : 'dark';
+      }
       if(t === 'light') document.documentElement.classList.add('light-mode');
     })();
   </script>
@@ -1183,11 +1187,17 @@
     (function(){
       const btn = document.getElementById('themeToggle');
       const root = document.documentElement;
+      function getInitialTheme() {
+        const saved = localStorage.getItem('dho_theme');
+        if (saved === 'light' || saved === 'dark') return saved;
+        const h = new Date().getHours();
+        return (h >= 7 && h < 19) ? 'light' : 'dark';
+      }
       function applyTheme(light) {
         if (light) { root.classList.add('light-mode'); btn.textContent = '☀️'; btn.title = 'Switch to dark mode'; }
         else { root.classList.remove('light-mode'); btn.textContent = '🌙'; btn.title = 'Switch to light mode'; }
       }
-      applyTheme(root.classList.contains('light-mode'));
+      applyTheme(getInitialTheme() === 'light');
       btn.addEventListener('click', function(){
         const goLight = !root.classList.contains('light-mode');
         localStorage.setItem('dho_theme', goLight ? 'light' : 'dark');
