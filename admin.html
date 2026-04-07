@@ -196,6 +196,14 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
+
+    // Security policy: each admin visit starts with a fresh login.
+    auth.signOut().catch(() => {});
+
+    // Any attempt to leave the admin page should end the session.
+    window.addEventListener('pagehide', () => {
+      auth.signOut().catch(() => {});
+    });
   </script>
 
   <script>
