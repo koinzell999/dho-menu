@@ -82,7 +82,7 @@
           <p class="m-0 text-sm" style="color:var(--text-secondary);">Control Panel</p>
         </div>
       </div>
-      <a href="index.html" class="text-xs underline shrink-0" style="color:var(--text-secondary);">Back to Menu</a>
+      <a href="index.html" id="backToMenuLink" class="text-xs underline shrink-0" style="color:var(--text-secondary);">Back to Menu</a>
     </header>
 
     <div id="loginSection" class="p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
@@ -311,6 +311,16 @@
 
     document.getElementById('logoutBtn').addEventListener('click', function() {
       auth.signOut();
+    });
+
+    document.getElementById('backToMenuLink').addEventListener('click', async function(e) {
+      e.preventDefault();
+      try {
+        await auth.signOut();
+      } catch (_) {
+        // Continue navigation even if sign-out fails.
+      }
+      window.location.href = 'index.html';
     });
 
     async function loadPrices() {
