@@ -451,6 +451,7 @@
           const isHidden = !!hiddenItems[key];
           const hasCustomImage = !!imageOverrides[key];
           const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key);
+          const fallbackImgSrc = getDefaultImageForKey(key);
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
           div.dataset.name = itemNames[key].toLowerCase();
@@ -458,7 +459,7 @@
           div.dataset.hidden = isHidden ? '1' : '0';
           div.innerHTML = `
             <div class="flex items-center gap-2 w-full sm:w-auto">
-              <img src="${imgSrc}" alt="${itemNames[key]}" class="img-preview" />
+              <img src="${imgSrc}" alt="${itemNames[key]}" class="img-preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallbackImgSrc}';" />
               <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
             </div>
             <div class="w-full sm:w-auto">

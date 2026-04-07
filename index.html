@@ -1023,8 +1023,10 @@
           itemEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') addToOrder(itemKey) });
 
           const safeImgName = currentImage ? currentImage.replace(/'/g, "\\'") : '';
+          const fallbackImage = itemImages[itemKey] || '';
+          const safeFallbackImage = fallbackImage ? fallbackImage.replace(/'/g, "\\'") : '';
           const imageHTML = currentImage
-            ? `<img src="${currentImage}" alt="${itemData.name}" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
+            ? `<img src="${currentImage}" alt="${itemData.name}" referrerpolicy="no-referrer" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onerror="this.onerror=null; this.src='${safeFallbackImage}';" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
             : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs shrink-0" style="background:var(--surface-card); color:var(--text-secondary)"></div>`;
 
           const descHTML = itemData.desc ? `<div class="text-sm" style="color:var(--text-secondary)">${itemData.desc}</div>` : '';
