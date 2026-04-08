@@ -1316,7 +1316,26 @@
       }
       const totalItems = state.order.reduce((s,i) => s + i.qty, 0);
       const total = state.order.reduce((s,i) => s + i.price * i.qty, 0);
-      alert((state.lang==='tr') ? `Siparişiniz alındı (demo). ${totalItems} ürün — ${formatPrice(total)}` : (state.lang==='ar') ? `تم استلام طلبك (تجريبي). ${totalItems} عنصر — ${formatPrice(total)}` : `Order received (demo). ${totalItems} item${totalItems>1?'s':''} — ${formatPrice(total)}`);
+
+      // Build receipt message
+      const headers = { en: '🧾 *DHO Order*', tr: '🧾 *DHO Sipariş*', ar: '🧾 *طلب DHO*' };
+      const itemLabel = { en: 'Items', tr: 'Ürünler', ar: 'العناصر' };
+      const totalLabel = { en: 'Total', tr: 'Toplam', ar: 'المجموع' };
+      const thanksLabel = { en: 'Thank you! 🙏', tr: 'Teşekkürler! 🙏', ar: 'شكراً لكم! 🙏' };
+
+      let msg = headers[state.lang] + '\n';
+      msg += '━━━━━━━━━━━━━━━\n';
+      state.order.forEach(item => {
+        const line = `• ${item.name} × ${item.qty} — ${formatPrice(item.price * item.qty)}`;
+        msg += line + '\n';
+      });
+      msg += '━━━━━━━━━━━━━━━\n';
+      msg += `*${totalLabel[state.lang]}:* ${formatPrice(total)} (${totalItems} ${itemLabel[state.lang]})\n\n`;
+      msg += thanksLabel[state.lang];
+
+      const encoded = encodeURIComponent(msg);
+      window.open(`https://wa.me/905377177719?text=${encoded}`, '_blank');
+
       state.order = [];
       renderOrder();
     });
