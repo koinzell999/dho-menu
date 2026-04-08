@@ -204,7 +204,8 @@
       #aside { padding: 10px !important; }
       #aside h3 { font-size: 0.95rem !important; }
       /* Smaller floating buttons */
-      #backToTop { width: 36px !important; height: 36px !important; }
+      #backToTop, #collapseAllBtn { width: 36px !important; height: 36px !important; }
+      #collapseAllBtn { bottom: 60px !important; }
     }
 
     /* === ≥1440px — Large desktops === */
@@ -1136,18 +1137,7 @@
         btn.addEventListener('click', () => scrollToCategory(nb.key));
         navEl.appendChild(btn);
       });
-      /* Collapse All button */
-      const collapseBtn = document.createElement('button');
-      const collapseLabels = { en: 'Collapse All', tr: 'Tümünü Kapat', ar: 'طي الكل' };
-      collapseBtn.textContent = collapseLabels[state.lang];
-      collapseBtn.className = 'py-2 px-4 rounded-full cursor-pointer font-semibold text-xs transition-colors duration-150';
-      collapseBtn.style.cssText = 'background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-secondary);';
-      collapseBtn.addEventListener('click', () => {
-        openSections.clear();
-        render();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-      navEl.appendChild(collapseBtn);
+
     }
 
     function scrollToCategory(key) {
@@ -1289,9 +1279,19 @@
     <span class="text-white font-semibold text-xs">WhatsApp</span>
   </a>
 
+  <!-- Collapse All button -->
+  <button id="collapseAllBtn" aria-label="Collapse all sections"
+     class="fixed z-50 w-10 h-10 rounded-full bg-[#ffd24a] text-[#072033] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center cursor-pointer hover:scale-110 opacity-0 pointer-events-none"
+     style="bottom: 68px; left: 16px; transition: opacity 0.3s, transform 0.2s;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+      <polyline points="7 15 12 10 17 15"></polyline>
+      <polyline points="7 9 12 4 17 9"></polyline>
+    </svg>
+  </button>
+
   <!-- Back to top button -->
   <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"
-     class="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-[#ffd24a] text-[#072033] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-200 opacity-0 pointer-events-none"
+     class="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-[#ffd24a] text-[#072033] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center cursor-pointer hover:scale-110 opacity-0 pointer-events-none"
      style="transition: opacity 0.3s, transform 0.2s;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
       <polyline points="18 15 12 9 6 15"></polyline>
@@ -1299,15 +1299,27 @@
   </button>
   <script>
     const backToTopBtn = document.getElementById('backToTop');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 300) {
-        backToTopBtn.style.opacity = '1';
-        backToTopBtn.style.pointerEvents = 'auto';
-      } else {
-        backToTopBtn.style.opacity = '0';
-        backToTopBtn.style.pointerEvents = 'none';
-      }
+    const collapseAllBtn = document.getElementById('collapseAllBtn');
+
+    collapseAllBtn.addEventListener('click', () => {
+      openSections.clear();
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    function updateFloatingButtons() {
+      const scrolled = window.scrollY > 300;
+      const hasOpen = openSections.size > 0;
+      // Back to top: show when scrolled
+      backToTopBtn.style.opacity = scrolled ? '1' : '0';
+      backToTopBtn.style.pointerEvents = scrolled ? 'auto' : 'none';
+      // Collapse all: show when scrolled AND sections are open
+      const showCollapse = scrolled && hasOpen;
+      collapseAllBtn.style.opacity = showCollapse ? '1' : '0';
+      collapseAllBtn.style.pointerEvents = showCollapse ? 'auto' : 'none';
+    }
+
+    window.addEventListener('scroll', updateFloatingButtons);
   </script>
 </body>
 </html>
