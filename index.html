@@ -114,6 +114,18 @@
     .ing-btn:hover { background: color-mix(in srgb, var(--accent) 35%, transparent); transform: scale(1.15); }
     .menu-item.show-ingredients .ing-btn { background: var(--accent); color: var(--accent-dark); }
 
+    /* === Size toggle buttons === */
+    .size-toggle { display:inline-flex; gap:2px; margin-left:6px; flex-shrink:0; vertical-align:middle; }
+    .size-btn {
+      padding: 1px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      background: transparent; color: var(--text-secondary); transition: all 0.15s;
+    }
+    .size-btn.active {
+      background: var(--accent); color: var(--accent-dark); border-color: var(--accent);
+    }
+    .size-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
     /* === Image normalization === */
     .menu-item img.item-thumb {
       transition: transform 0.15s ease;
@@ -767,14 +779,24 @@
         const doc = await db.collection("clicks").doc(weekKey).get();
         if (doc.exists) {
           const data = doc.data();
-          // All item keys from every category (except popular itself)
+          // Build reverse map: L key → M key
+          const lToM = {};
+          Object.entries(sizePairs).forEach(([m, l]) => { lToM[l] = m; });
+          // All M-only item keys from every category (except popular itself)
           const allItemKeys = new Set();
           menuStructure.forEach(cat => {
             if (cat.key !== 'popular') cat.items.forEach(k => allItemKeys.add(k));
           });
+          // Merge L clicks into their M counterpart
+          const merged = {};
+          Object.entries(data).forEach(([k, v]) => {
+            const mKey = lToM[k] || k;
+            if (!allItemKeys.has(mKey)) return;
+            merged[mKey] = (merged[mKey] || 0) + v;
+          });
           // Sort by click count descending, take top 6
-          const sorted = Object.entries(data)
-            .filter(([k]) => allItemKeys.has(k) && !hiddenItems[k])
+          const sorted = Object.entries(merged)
+            .filter(([k]) => !hiddenItems[k])
             .sort((a, b) => b[1] - a[1])
             .slice(0, 6)
             .map(([k]) => k);
@@ -818,19 +840,36 @@
     }
 
     /* ====== Menu structure ====== */
+    // Size pairs: M key → L key. Items with sizes show a toggle.
+    const sizePairs = {
+      jui1:'jui5', jui2:'jui6', jui3:'jui7', jui4:'jui8',
+      ms1:'ms7', ms2:'ms8', ms3:'ms9', ms4:'ms10', ms5:'ms11', ms6:'ms12',
+      ckt1:'ckt8', ckt2:'ckt9', ckt3:'ckt10', ckt4:'ckt11', ckt5:'ckt12', ckt6:'ckt13', ckt7:'ckt14',
+      spc1:'spc6', spc2:'spc7', spc3:'spc8', spc4:'spc9', spc5:'spc10',
+      sal1:'sal6', sal2:'sal7', sal3:'sal8', sal4:'sal9', sal5:'sal10',
+      mnt1:'mnt6', mnt2:'mnt7', mnt3:'mnt8', mnt4:'mnt9', mnt5:'mnt10'
+    };
+    const sizeLabels = {
+      en: { m: 'M', l: 'L' },
+      tr: { m: 'O', l: 'B' },
+      ar: { m: 'وسط', l: 'كبير' }
+    };
+    // Track selected size per item: key → 'm' or 'l'
+    const selectedSizes = {};
+
     const menuStructure = [
       { key:'popular', items:['pop1'] },
       { key:'waffles', items:['waf1','waf2','waf3','waf4','waf5','waf6','waf7','waf8','waf9'] },
       { key:'crepes', items:['crp1','crp2','crp3','crp4','crp5','crp6','crp7','crp8'] },
       { key:'icecream', items:['ice1','ice2','ice3','ice4','ice5'] },
-      { key:'juices', items:['jui1','jui2','jui3','jui4','jui5','jui6','jui7','jui8'] },
-      { key:'milkshakes', items:['ms1','ms2','ms3','ms4','ms5','ms6','ms7','ms8','ms9','ms10','ms11','ms12'] },
-      { key:'cocktails', items:['ckt1','ckt2','ckt3','ckt4','ckt5','ckt6','ckt7','ckt8','ckt9','ckt10','ckt11','ckt12','ckt13','ckt14'] },
-      { key:'specialcocktails', items:['spc1','spc2','spc3','spc4','spc5','spc6','spc7','spc8','spc9','spc10'] },
+      { key:'juices', items:['jui1','jui2','jui3','jui4'] },
+      { key:'milkshakes', items:['ms1','ms2','ms3','ms4','ms5','ms6'] },
+      { key:'cocktails', items:['ckt1','ckt2','ckt3','ckt4','ckt5','ckt6','ckt7'] },
+      { key:'specialcocktails', items:['spc1','spc2','spc3','spc4','spc5'] },
       { key:'frozen', items:['frz1','frz2','frz3','frz4'] },
       { key:'dhocakes', items:['cak1','cak2','cak3','cak4','cak5','cak6','cak7','cak8'] },
-      { key:'salads', items:['sal1','sal2','sal3','sal4','sal5','sal6','sal7','sal8','sal9','sal10'] },
-      { key:'montos', items:['mnt1','mnt2','mnt3','mnt4','mnt5','mnt6','mnt7','mnt8','mnt9','mnt10'] },
+      { key:'salads', items:['sal1','sal2','sal3','sal4','sal5'] },
+      { key:'montos', items:['mnt1','mnt2','mnt3','mnt4','mnt5'] },
       { key:'drinks', items:['drk1','drk2','drk3'] }
     ];
 
@@ -861,6 +900,10 @@
 
     /* ====== Helpers ====== */
     function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
+    // Strip size suffixes like (M), (L), (وسط), (كبير) from item names
+    function stripSizeFromName(name) {
+      return name.replace(/\s*\((M|L|وسط|كبير)\)\s*$/i, '').trim();
+    }
 
     function normalizeForMatch(text) {
       return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -1064,35 +1107,60 @@
         visibleItems.forEach(itemKey=>{
           const itemData = t.items[itemKey];
           if(!itemData) return;
-          itemData.price = prices[itemKey];
-          const currentImage = resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
-          const ing = itemIngredients[itemKey] || '';
+          const hasSizes = !!sizePairs[itemKey];
+          const curSize = hasSizes ? (selectedSizes[itemKey] || 'm') : null;
+          const activeKey = (hasSizes && curSize === 'l') ? sizePairs[itemKey] : itemKey;
+          const activePrice = prices[activeKey];
+          const displayName = hasSizes ? stripSizeFromName(itemData.name) : itemData.name;
+          const currentImage = resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
+          const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
           if (state.lang === 'ar') itemEl.style.direction = 'ltr';
           itemEl.tabIndex = 0;
           itemEl.setAttribute('role','button');
-          itemEl.addEventListener('click', ()=> addToOrder(itemKey));
-          itemEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') addToOrder(itemKey) });
+          itemEl.addEventListener('click', (e)=> {
+            if (e.target.closest('.size-toggle')) return;
+            const sz = selectedSizes[itemKey] || 'm';
+            const key = (sizePairs[itemKey] && sz === 'l') ? sizePairs[itemKey] : itemKey;
+            addToOrder(key);
+          });
+          itemEl.addEventListener('keypress', (e)=>{
+            if(e.key==='Enter'){
+              const sz = selectedSizes[itemKey] || 'm';
+              const key = (sizePairs[itemKey] && sz === 'l') ? sizePairs[itemKey] : itemKey;
+              addToOrder(key);
+            }
+          });
 
           const safeImgName = currentImage ? currentImage.replace(/'/g, "\\'") : '';
-          const fallbackImage = itemImages[itemKey] || '';
+          const fallbackImage = itemImages[activeKey] || itemImages[itemKey] || '';
           const safeFallbackImage = fallbackImage ? fallbackImage.replace(/'/g, "\\'") : '';
           const imageHTML = currentImage
-            ? `<img src="${currentImage}" alt="${itemData.name}" referrerpolicy="no-referrer" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onerror="this.onerror=null; this.src='${safeFallbackImage}';" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${itemData.name.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
+            ? `<img src="${currentImage}" alt="${displayName}" referrerpolicy="no-referrer" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onerror="this.onerror=null; this.src='${safeFallbackImage}';" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${displayName.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
             : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs shrink-0" style="background:var(--surface-card); color:var(--text-secondary)"></div>`;
 
           const descHTML = itemData.desc ? `<div class="text-sm" style="color:var(--text-secondary)">${itemData.desc}</div>` : '';
           const ingToggleHTML = ing ? `<button class="ing-btn" title="Show ingredients" onclick="event.stopPropagation();this.closest('.menu-item').classList.toggle('show-ingredients');this.setAttribute('aria-expanded', this.closest('.menu-item').classList.contains('show-ingredients'))" aria-label="Toggle ingredients" aria-expanded="false">ⓘ</button>` : '';
           const ingHTML = ing ? `<div class="item-ingredients">🧂 ${ing}</div>` : '';
 
+          // Size toggle HTML
+          let sizeHTML = '';
+          if (hasSizes) {
+            const sl = sizeLabels[state.lang];
+            sizeHTML = `<span class="size-toggle" data-itemkey="${itemKey}">` +
+              `<button type="button" class="size-btn ${curSize === 'm' ? 'active' : ''}" data-size="m">${sl.m}</button>` +
+              `<button type="button" class="size-btn ${curSize === 'l' ? 'active' : ''}" data-size="l">${sl.l}</button>` +
+              `</span>`;
+          }
+
           const isRTL = state.lang === 'ar';
           itemEl.innerHTML = isRTL ? `
-            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(itemData.price)}</div>
+            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
             <div class="flex gap-3 items-center min-w-0 flex-row-reverse text-right flex-1">
               ${imageHTML}
               <div class="min-w-0">
-                <div class="font-bold item-name flex items-center gap-1 flex-wrap justify-end">${itemData.name}${ingToggleHTML}</div>
+                <div class="font-bold item-name flex items-center gap-1 flex-wrap justify-end">${displayName}${sizeHTML}${ingToggleHTML}</div>
                 ${descHTML}
                 ${ingHTML}
               </div>
@@ -1101,13 +1169,25 @@
             <div class="flex gap-3 items-center min-w-0">
               ${imageHTML}
               <div class="min-w-0">
-                <div class="font-bold item-name flex items-center gap-1 flex-wrap">${itemData.name}${ingToggleHTML}</div>
+                <div class="font-bold item-name flex items-center gap-1 flex-wrap">${displayName}${sizeHTML}${ingToggleHTML}</div>
                 ${descHTML}
                 ${ingHTML}
               </div>
             </div>
-            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(itemData.price)}</div>
+            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
           `;
+
+          // Handle size toggle clicks
+          if (hasSizes) {
+            itemEl.querySelectorAll('.size-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedSizes[itemKey] = btn.dataset.size;
+                render();
+              });
+            });
+          }
+
           itemsContainer.appendChild(itemEl);
         });
 
@@ -1159,8 +1239,20 @@
     function addToOrder(itemKey){
       const t = translations[state.lang];
       const item = t.items[itemKey];
+      // Build display name with size label if applicable
+      const lToM = {};
+      Object.entries(sizePairs).forEach(([m, l]) => { lToM[l] = m; });
+      const mKey = lToM[itemKey];
+      const isLarge = !!mKey;
+      const isMedium = !!sizePairs[itemKey];
+      let orderName = item.name;
+      if (isLarge || isMedium) {
+        const sl = sizeLabels[state.lang];
+        const sizeTag = isLarge ? sl.l : sl.m;
+        orderName = stripSizeFromName(item.name) + ' (' + sizeTag + ')';
+      }
       const existing = state.order.find(o => o.key === itemKey);
-      if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:item.name, price:prices[itemKey], qty:1 }); }
+      if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:orderName, price:prices[itemKey], qty:1 }); }
       recordClick(itemKey);
       renderOrder();
     }
