@@ -175,12 +175,11 @@
     /* === ≤480px — Standard phones === */
     @media (max-width: 480px) {
       #catNav {
-        flex-wrap: nowrap !important;
-        overflow-x: auto;
-        justify-content: flex-start !important;
-        padding-bottom: 4px;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 6px !important;
       }
-      #catNav button { white-space: nowrap; flex-shrink: 0; }
+      #catNav button { white-space: nowrap; flex-shrink: 0; font-size: 0.72rem !important; padding: 6px 10px !important; }
       .menu-item img.item-thumb { width: 56px; height: 42px; }
       #lightbox img { max-width: 95vw; max-height: 70vh; border-radius: 8px; }
     }
