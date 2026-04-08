@@ -8,7 +8,8 @@
   <!-- Theme: apply instantly before paint to prevent flash -->
   <script>
     (function(){
-      var t = localStorage.getItem('dho_theme');
+      localStorage.removeItem('dho_theme');
+      var t = sessionStorage.getItem('dho_theme');
       if(!t){
         var h = new Date().getHours();
         t = (h >= 7 && h < 19) ? 'light' : 'dark';
@@ -1261,7 +1262,7 @@
       const btn = document.getElementById('themeToggle');
       const root = document.documentElement;
       function getInitialTheme() {
-        const saved = localStorage.getItem('dho_theme');
+        const saved = sessionStorage.getItem('dho_theme');
         if (saved === 'light' || saved === 'dark') return saved;
         const h = new Date().getHours();
         return (h >= 7 && h < 19) ? 'light' : 'dark';
@@ -1273,7 +1274,7 @@
       applyTheme(getInitialTheme() === 'light');
       btn.addEventListener('click', function(){
         const goLight = !root.classList.contains('light-mode');
-        localStorage.setItem('dho_theme', goLight ? 'light' : 'dark');
+        sessionStorage.setItem('dho_theme', goLight ? 'light' : 'dark');
         applyTheme(goLight);
       });
     })();
