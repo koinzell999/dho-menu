@@ -740,6 +740,48 @@
     let prices = { ...defaultPrices };
     let hiddenItems = {};
     let imageOverrides = {};
+    let weeklyPopularItems = [];
+
+    /* ====== Weekly click tracking ====== */
+    function getWeekKey() {
+      const now = new Date();
+      const jan1 = new Date(now.getFullYear(), 0, 1);
+      const days = Math.floor((now - jan1) / 86400000);
+      const week = Math.ceil((days + jan1.getDay() + 1) / 7);
+      return now.getFullYear() + '-W' + String(week).padStart(2, '0');
+    }
+
+    function recordClick(itemKey) {
+      const weekKey = getWeekKey();
+      db.collection("clicks").doc(weekKey).set(
+        { [itemKey]: firebase.firestore.FieldValue.increment(1) },
+        { merge: true }
+      ).catch(err => console.warn("Click tracking failed:", err));
+    }
+
+    async function loadWeeklyPopular() {
+      try {
+        const weekKey = getWeekKey();
+        const doc = await db.collection("clicks").doc(weekKey).get();
+        if (doc.exists) {
+          const data = doc.data();
+          // All item keys from every category (except popular itself)
+          const allItemKeys = new Set();
+          menuStructure.forEach(cat => {
+            if (cat.key !== 'popular') cat.items.forEach(k => allItemKeys.add(k));
+          });
+          // Sort by click count descending, take top 6
+          const sorted = Object.entries(data)
+            .filter(([k]) => allItemKeys.has(k) && !hiddenItems[k])
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+            .map(([k]) => k);
+          if (sorted.length > 0) weeklyPopularItems = sorted;
+        }
+      } catch (err) {
+        console.warn("Failed to load popular items:", err);
+      }
+    }
 
     /* ====== Load Prices from Firestore ====== */
     async function loadPrices() {
@@ -763,6 +805,12 @@
         }
       } catch (e) {
         console.error("Error loading prices:", e);
+      }
+      await loadWeeklyPopular();
+      // Update popular category with this week's top items (fallback to pop1)
+      const popCat = menuStructure.find(c => c.key === 'popular');
+      if (popCat) {
+        popCat.items = weeklyPopularItems.length > 0 ? weeklyPopularItems : ['pop1'];
       }
       render();
     }
@@ -1121,6 +1169,7 @@
       const item = t.items[itemKey];
       const existing = state.order.find(o => o.key === itemKey);
       if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:item.name, price:prices[itemKey], qty:1 }); }
+      recordClick(itemKey);
       renderOrder();
     }
 
