@@ -1407,10 +1407,9 @@
       // Back to top: show when scrolled
       backToTopBtn.style.opacity = scrolled ? '1' : '0';
       backToTopBtn.style.pointerEvents = scrolled ? 'auto' : 'none';
-      // Collapse all: show when scrolled AND sections are open
-      const showCollapse = scrolled && hasOpen;
-      collapseAllBtn.style.opacity = showCollapse ? '1' : '0';
-      collapseAllBtn.style.pointerEvents = showCollapse ? 'auto' : 'none';
+      // Collapse all: show when any section is open
+      collapseAllBtn.style.opacity = hasOpen ? '1' : '0';
+      collapseAllBtn.style.pointerEvents = hasOpen ? 'auto' : 'none';
       // WhatsApp: show when any section is open
       whatsappBtn.style.opacity = hasOpen ? '1' : '0';
       whatsappBtn.style.pointerEvents = hasOpen ? 'auto' : 'none';
