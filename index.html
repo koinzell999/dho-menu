@@ -1359,14 +1359,14 @@
 
       /* Build category nav buttons */
       const navBtns = [
-        { key:'waffles', en:'Waffles', tr:'Waffle', ar:'وافل' },
-        { key:'crepes', en:'Crêpes', tr:'Krep', ar:'كريب' },
-        { key:'icecream', en:'Ice Cream', tr:'Dondurma', ar:'بوظة' },
-        { key:'milkshakes', en:'Milkshakes', tr:'Milkshake', ar:'ميلك شيك' },
-        { key:'cocktails', en:'Cocktails', tr:'Kokteyller', ar:'كوكتيل' },
-        { key:'dhocakes', en:'Cakes', tr:'Kekler', ar:'كيك' },
-        { key:'salads', en:'Salads', tr:'Salatalar', ar:'سلطات' },
-        { key:'drinks', en:'Drinks', tr:'İçecekler', ar:'مشروبات' }
+        { key:'waffles', en:'Waffles', tr:'Waffle', ar:'وافل', es:'Waffles' },
+        { key:'crepes', en:'Crêpes', tr:'Krep', ar:'كريب', es:'Crepes' },
+        { key:'icecream', en:'Ice Cream', tr:'Dondurma', ar:'بوظة', es:'Helados' },
+        { key:'milkshakes', en:'Milkshakes', tr:'Milkshake', ar:'ميلك شيك', es:'Batidos' },
+        { key:'cocktails', en:'Cocktails', tr:'Kokteyller', ar:'كوكتيل', es:'Cócteles' },
+        { key:'dhocakes', en:'Cakes', tr:'Kekler', ar:'كيك', es:'Pasteles' },
+        { key:'salads', en:'Salads', tr:'Salatalar', ar:'سلطات', es:'Ensaladas' },
+        { key:'drinks', en:'Drinks', tr:'İçecekler', ar:'مشروبات', es:'Bebidas' }
       ];
       const navEl = document.getElementById('catNav');
       navEl.innerHTML = '';
@@ -1533,15 +1533,15 @@
 
     function updateDeliveryModalLabels() {
       const L = state.lang;
-      const titles = { en: 'Delivery Details', tr: 'Teslimat Bilgileri', ar: 'تفاصيل التوصيل' };
-      const names = { en: 'Name', tr: 'İsim', ar: 'الاسم' };
-      const phones = { en: 'Phone', tr: 'Telefon', ar: 'الهاتف' };
-      const addrs = { en: 'Address', tr: 'Adres', ar: 'العنوان' };
-      const pays = { en: 'Payment Method', tr: 'Ödeme Yöntemi', ar: 'طريقة الدفع' };
-      const sends = { en: 'Send Order', tr: 'Siparişi Gönder', ar: 'إرسال الطلب' };
-      const cancels = { en: 'Cancel', tr: 'İptal', ar: 'إلغاء' };
-      const cashL = { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل' };
-      const cardL = { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل' };
+      const titles = { en: 'Delivery Details', tr: 'Teslimat Bilgileri', ar: 'تفاصيل التوصيل', es: 'Detalles de entrega' };
+      const names = { en: 'Name', tr: 'İsim', ar: 'الاسم', es: 'Nombre' };
+      const phones = { en: 'Phone', tr: 'Telefon', ar: 'الهاتف', es: 'Teléfono' };
+      const addrs = { en: 'Address', tr: 'Adres', ar: 'العنوان', es: 'Dirección' };
+      const pays = { en: 'Payment Method', tr: 'Ödeme Yöntemi', ar: 'طريقة الدفع', es: 'Método de pago' };
+      const sends = { en: 'Send Order', tr: 'Siparişi Gönder', ar: 'إرسال الطلب', es: 'Enviar pedido' };
+      const cancels = { en: 'Cancel', tr: 'İptal', ar: 'إلغاء', es: 'Cancelar' };
+      const cashL = { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل', es: 'Pago en efectivo' };
+      const cardL = { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل', es: 'Pago con tarjeta' };
 
       document.getElementById('deliveryTitle').textContent = titles[L];
       document.getElementById('labelName').textContent = names[L];
