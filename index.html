@@ -1220,7 +1220,10 @@
       const menuEl = document.getElementById('menu');
       menuEl.innerHTML = '';
       menuStructure.forEach(cat=>{
-        const visibleItems = cat.items.filter(itemKey => !hiddenItems[itemKey]);
+        // In Spanish mode, ignore hiddenItems (show all items)
+        const visibleItems = (state.lang === 'es')
+          ? cat.items
+          : cat.items.filter(itemKey => !hiddenItems[itemKey]);
         if (visibleItems.length === 0) return;
 
         const catDiv = document.createElement('div');
