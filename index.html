@@ -1034,7 +1034,7 @@
     ];
 
     /* ====== App state ====== */
-    const supportedLangs = ['en','tr','ar'];
+    const supportedLangs = ['en','tr','ar','es'];
     const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
     const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
     let state = { lang: detectedLang, order: [] };
