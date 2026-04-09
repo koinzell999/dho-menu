@@ -1196,7 +1196,8 @@
     };
 
     function render(){
-      const t = translations[state.lang];
+      // Robust fallback: always use English if translation object or key is missing
+      const t = Object.assign({}, translations.en, translations[state.lang] || {});
       document.documentElement.lang = state.lang;
       document.documentElement.dir = (state.lang === 'ar') ? 'rtl' : 'ltr';
 
