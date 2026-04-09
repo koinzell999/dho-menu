@@ -265,7 +265,6 @@
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="en">EN</button>
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="tr">TR</button>
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ar">ع</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="es">ES</button>
     <span style="color:var(--border-light); margin:0 2px;">|</span>
     <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
     <a href="admin.html" class="text-[10px] ml-1" style="color:var(--text-secondary); opacity:0.6;">Admin</a>
@@ -1034,7 +1033,7 @@
     ];
 
     /* ====== App state ====== */
-    const supportedLangs = ['en','tr','ar','es'];
+    const supportedLangs = ['en','tr','ar'];
     const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
     const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
     let state = { lang: detectedLang, order: [] };
