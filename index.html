@@ -1268,7 +1268,9 @@
         });
 
         visibleItems.forEach(itemKey=>{
-          const itemData = t.items[itemKey];
+          let itemData = t.items[itemKey];
+          // Fallback to English if missing in Spanish
+          if (!itemData && state.lang === 'es') itemData = translations.en.items[itemKey];
           if(!itemData) return;
           const hasSizes = !!sizePairs[itemKey];
           const curSize = hasSizes ? (selectedSizes[itemKey] || 'm') : null;
