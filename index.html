@@ -1196,6 +1196,11 @@
     };
 
     function render(){
+            // Debug: log translation object and menu items in Spanish mode
+            if (state.lang === 'es') {
+              console.log('Spanish translation object:', translations.es);
+              console.log('Menu structure:', menuStructure);
+            }
       // Robust fallback: always use English if translation object or key is missing
       const t = Object.assign({}, translations.en, translations[state.lang] || {});
       document.documentElement.lang = state.lang;
@@ -1220,12 +1225,14 @@
 
       const menuEl = document.getElementById('menu');
       menuEl.innerHTML = '';
+      let anyItems = false;
       menuStructure.forEach(cat=>{
         // In Spanish mode, ignore hiddenItems (show all items)
         const visibleItems = (state.lang === 'es')
           ? cat.items
           : cat.items.filter(itemKey => !hiddenItems[itemKey]);
         if (visibleItems.length === 0) return;
+        anyItems = true;
 
         const catDiv = document.createElement('div');
         catDiv.className = 'mb-[6px] rounded-xl';
@@ -1361,6 +1368,11 @@
         menuEl.appendChild(catDiv);
       });
 
+
+      // If no items are shown in Spanish mode, show a visible error message
+      if (state.lang === 'es' && !anyItems) {
+        menuEl.innerHTML = '<div style="color:red;font-weight:bold;padding:2em;text-align:center">Error: No menu items found in Spanish mode.<br>Check translation keys and menu logic.</div>';
+      }
       renderOrder();
 
       /* Build category nav buttons */
