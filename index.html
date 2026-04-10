@@ -1908,8 +1908,7 @@
 
       let msg = headers[L] + '\n';
       if (state.table) {
-        const tblLabel = { en: '🪑 *Table*', tr: '🪑 *Masa*', ar: '🪑 *الطاولة*', es: '🪑 *Mesa*', de: '🪑 *Tisch*', fr: '🪑 *Table*', ru: '🪑 *Стол*' };
-        msg += `${tblLabel[L]} ${state.table}\n`;
+        msg += `🪑🪑🪑 *TABLE ${state.table}* 🪑🪑🪑\n`;
       }
       if (deliveryInfo) {
         const dlvLabel = { en: '🚚 *Delivery*', tr: '🚚 *Teslimat*', ar: '🚚 *توصيل*', es: '🚚 *Entrega*', de: '🚚 *Lieferung*', fr: '🚚 *Livraison*', ru: '🚚 *Доставка*' };
