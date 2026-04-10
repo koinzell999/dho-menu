@@ -3,7 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Menu — DHO</title>
+  <title>DHO Menu – Waffles, Pancakes &amp; Milkshakes in Mersin</title>
+  <meta name="description" content="Best waffles, pancakes, crepes and milkshakes in Mersin. Explore DHO's full menu and order online – waffle, pankek, krep, milkshake Mersin." />
+  <meta name="keywords" content="Mersin waffle, pancakes Mersin, milkshake Mersin, krep Mersin, DHO menu, waffle Mersin, dessert Mersin, pankek Mersin" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://dho-menu.web.app/" />
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+  <!-- Google Search Console – paste your verification token below when ready -->
+  <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_TOKEN_HERE" /> -->
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dho-menu.web.app/" />
+  <meta property="og:title" content="DHO Menu – Waffles, Pancakes &amp; Milkshakes in Mersin" />
+  <meta property="og:description" content="Best waffles, pancakes, crepes and milkshakes in Mersin. Explore DHO's full menu and order online." />
+  <meta property="og:image" content="https://dho-menu.web.app/logo.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DHO Menu – Waffles, Pancakes &amp; Milkshakes in Mersin" />
+  <meta name="twitter:description" content="Best waffles, pancakes, crepes and milkshakes in Mersin." />
+  <meta name="twitter:image" content="https://dho-menu.web.app/logo.png" />
+  <!-- Structured Data (LocalBusiness) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FoodEstablishment",
+    "name": "DHO Menu",
+    "description": "Waffles, pancakes, crepes and milkshakes in Mersin",
+    "url": "https://dho-menu.web.app/",
+    "servesCuisine": ["Waffles", "Pancakes", "Milkshakes", "Crepes"],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Mersin",
+      "addressCountry": "TR"
+    },
+    "menu": "https://dho-menu.web.app/"
+  }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Theme: apply instantly before paint to prevent flash -->
   <script>
@@ -1707,7 +1742,7 @@
           const fallbackImage = itemImages[activeKey] || itemImages[itemKey] || '';
           const safeFallbackImage = fallbackImage ? fallbackImage.replace(/'/g, "\\'") : '';
           const imageHTML = currentImage
-            ? `<img src="${currentImage}" alt="${displayName}" referrerpolicy="no-referrer" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onerror="this.onerror=null; this.src='${safeFallbackImage}';" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${displayName.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
+            ? `<img src="${currentImage}" alt="${displayName} – DHO Mersin" loading="lazy" referrerpolicy="no-referrer" class="item-thumb w-16 h-12 rounded-lg object-cover border border-white/[0.08]" onerror="this.onerror=null; this.src='${safeFallbackImage}';" onclick="event.stopPropagation(); document.getElementById('lightboxImg').src='${safeImgName}'; document.getElementById('lightboxImg').alt='${displayName.replace(/'/g, "\\'") }'; document.getElementById('lightbox').classList.add('active');" />`
             : `<div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs shrink-0" style="background:var(--surface-card); color:var(--text-secondary)"></div>`;
 
           const descHTML = itemData.desc ? `<div class="text-sm" style="color:var(--text-secondary)">${itemData.desc}</div>` : '';
