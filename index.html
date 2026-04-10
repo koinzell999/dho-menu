@@ -265,6 +265,10 @@
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="en">EN</button>
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="tr">TR</button>
     <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ar">ع</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="es">ES</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="de">DE</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="fr">FR</button>
+    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ru">RU</button>
     <span style="color:var(--border-light); margin:0 2px;">|</span>
     <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
     <a href="admin.html" class="text-[10px] ml-1" style="color:var(--text-secondary); opacity:0.6;">Admin</a>
@@ -373,7 +377,7 @@
     const translations = {
             es: {
               brand: "DHO",
-              tagline: "Waffle · Crêpe · Helado · Cócteles · Pasteles",
+              tagline: "Waffle · Crêpe · Helado · Cócteles · Panqueques",
               orderTitle: "Resumen del pedido",
               orderNote: "Toca los artículos para agregarlos al pedido.",
               totalLabel: "Total",
@@ -464,14 +468,14 @@
                 frz2:{name:"Frozen de Chocolate",desc:""},
                 frz3:{name:"Frozen de Plátano",desc:""},
                 frz4:{name:"Frozen de Fresa",desc:""},
-                cak1:{name:"Pastel de Chocolate",desc:""},
-                cak2:{name:"Pastel de Chocolate Blanco",desc:""},
-                cak3:{name:"Pastel de Frutas",desc:""},
-                cak4:{name:"Pastel de Plátano",desc:""},
-                cak5:{name:"Pastel de Fresa",desc:""},
-                cak6:{name:"Pastel Kinder",desc:""},
-                cak7:{name:"Pastel Oreo",desc:""},
-                cak8:{name:"Pastel Kit Kat",desc:""},
+                cak1:{name:"Panqueque de Chocolate",desc:""},
+                cak2:{name:"Panqueque de Chocolate Blanco",desc:""},
+                cak3:{name:"Panqueque de Frutas",desc:""},
+                cak4:{name:"Panqueque de Plátano",desc:""},
+                cak5:{name:"Panqueque de Fresa",desc:""},
+                cak6:{name:"Panqueque Kinder",desc:""},
+                cak7:{name:"Panqueque Oreo",desc:""},
+                cak8:{name:"Panqueque Kit Kat",desc:""},
                 sal1:{name:"Ensalada de Frutas (M)",desc:""},
                 sal2:{name:"Ensalada de Frutas con Chocolate (M)",desc:""},
                 sal3:{name:"Ensalada de Frutas con Chocolate Blanco (M)",desc:""},
@@ -878,6 +882,387 @@
           drk3:{name:"سبرايت أحمر",desc:""},
           pop1:{name:"سلطة بالقشطة والعسل",desc:"",image:"cream-honey-salad.png"}
         }
+      },
+      de: {
+        brand: "DHO",
+        tagline: "Waffle · Crêpe · Eis · Cocktails · Pancakes",
+        orderTitle: "Bestellübersicht",
+        orderNote: "Artikel antippen zum Hinzufügen.",
+        totalLabel: "Gesamt",
+        checkout: "Zur Kasse",
+        categories: {
+          popular:"Beliebt",
+          waffles:"Waffeln",
+          crepes:"Crêpes",
+          icecream:"Eis",
+          juices:"Säfte",
+          milkshakes:"Milchshakes",
+          cocktails:"Cocktails",
+          specialcocktails:"Spezial-Cocktails",
+          frozen:"Frozen",
+          dhocakes:"DHO Pancakes",
+          salads:"Obstsalate",
+          montos:"Montos",
+          drinks:"Getränke"
+        },
+        items: {
+          waf1:{name:"Kit Kat Waffle",desc:""},
+          waf2:{name:"Kinder Waffle",desc:""},
+          waf3:{name:"Oreo Waffle",desc:""},
+          waf4:{name:"Frucht-Waffle",desc:""},
+          waf5:{name:"Weiße Schokoladen-Waffle",desc:""},
+          waf6:{name:"Schokoladen-Waffle",desc:""},
+          waf7:{name:"Banane & Sahne Waffle",desc:""},
+          waf8:{name:"Bananen-Waffle",desc:""},
+          waf9:{name:"Erdbeer-Waffle",desc:""},
+          crp1:{name:"Schokoladen-Crêpe",desc:""},
+          crp2:{name:"Weiße Schokoladen-Crêpe",desc:""},
+          crp3:{name:"Frucht-Crêpe",desc:""},
+          crp4:{name:"Bananen-Crêpe",desc:""},
+          crp5:{name:"Banane & Sahne Crêpe",desc:""},
+          crp6:{name:"Erdbeer-Crêpe",desc:""},
+          crp7:{name:"Kinder / Oreo / Kit Kat Crêpe",desc:""},
+          crp8:{name:"Doppelschokoladen-Crêpe",desc:""},
+          ice1:{name:"Frucht-Eis",desc:""},
+          ice2:{name:"Schokoladen-Eis",desc:""},
+          ice3:{name:"Gemischtes Eis",desc:""},
+          ice4:{name:"Nuss & Honig Eis",desc:""},
+          ice5:{name:"Ice Boost",desc:""},
+          jui1:{name:"Orangensaft (M)",desc:""},
+          jui2:{name:"Erdbeersaft (M)",desc:""},
+          jui3:{name:"Ananassaft (M)",desc:""},
+          jui4:{name:"Kiwisaft (M)",desc:""},
+          jui5:{name:"Orangensaft (L)",desc:""},
+          jui6:{name:"Erdbeersaft (L)",desc:""},
+          jui7:{name:"Ananassaft (L)",desc:""},
+          jui8:{name:"Kiwisaft (L)",desc:""},
+          ms1:{name:"Schokoladen-Milchshake (M)",desc:""},
+          ms2:{name:"Vanille-Milchshake (M)",desc:""},
+          ms3:{name:"Oreo-Milchshake (M)",desc:""},
+          ms4:{name:"Snickers-Milchshake (M)",desc:""},
+          ms5:{name:"Toffifee-Milchshake (M)",desc:""},
+          ms6:{name:"Kit Kat-Milchshake (M)",desc:""},
+          ms7:{name:"Schokoladen-Milchshake (L)",desc:""},
+          ms8:{name:"Vanille-Milchshake (L)",desc:""},
+          ms9:{name:"Oreo-Milchshake (L)",desc:""},
+          ms10:{name:"Snickers-Milchshake (L)",desc:""},
+          ms11:{name:"Toffifee-Milchshake (L)",desc:""},
+          ms12:{name:"Kit Kat-Milchshake (L)",desc:""},
+          ckt1:{name:"Frucht-Cocktail (M)",desc:""},
+          ckt2:{name:"Banane mit Milch (M)",desc:""},
+          ckt3:{name:"Banane & Schokolade (M)",desc:""},
+          ckt4:{name:"Banane & Datteln (M)",desc:""},
+          ckt5:{name:"Banane, Datteln & Schokolade (M)",desc:""},
+          ckt6:{name:"Früchte mit Milch & Schokolade (M)",desc:""},
+          ckt7:{name:"Herzensbrecher (M)",desc:""},
+          ckt8:{name:"Frucht-Cocktail (L)",desc:""},
+          ckt9:{name:"Banane mit Milch (L)",desc:""},
+          ckt10:{name:"Banane & Schokolade (L)",desc:""},
+          ckt11:{name:"Banane & Datteln (L)",desc:""},
+          ckt12:{name:"Banane, Datteln & Schokolade (L)",desc:""},
+          ckt13:{name:"Früchte mit Milch & Schokolade (L)",desc:""},
+          ckt14:{name:"Herzensbrecher (L)",desc:""},
+          spc1:{name:"Früchte-Kaiser (M)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc2:{name:"Bananen-Kaiser (M)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc3:{name:"Banane & Früchte Kaiser (M)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc4:{name:"Früchte & Schokoladen-Kaiser (M)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc5:{name:"Banane & Schokoladen-Kaiser (M)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc6:{name:"Früchte-Kaiser (L)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc7:{name:"Bananen-Kaiser (L)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc8:{name:"Banane & Früchte Kaiser (L)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc9:{name:"Früchte & Schokoladen-Kaiser (L)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          spc10:{name:"Banane & Schokoladen-Kaiser (L)",desc:"Sahne, Nüsse, Honig, Schlagsahne"},
+          frz1:{name:"Frucht-Frozen",desc:""},
+          frz2:{name:"Schokoladen-Frozen",desc:""},
+          frz3:{name:"Bananen-Frozen",desc:""},
+          frz4:{name:"Erdbeer-Frozen",desc:""},
+          cak1:{name:"Schokoladen-Pancake",desc:""},
+          cak2:{name:"Weiße Schokoladen-Pancake",desc:""},
+          cak3:{name:"Frucht-Pancake",desc:""},
+          cak4:{name:"Bananen-Pancake",desc:""},
+          cak5:{name:"Erdbeer-Pancake",desc:""},
+          cak6:{name:"Kinder-Pancake",desc:""},
+          cak7:{name:"Oreo-Pancake",desc:""},
+          cak8:{name:"Kit Kat-Pancake",desc:""},
+          sal1:{name:"Obstsalat (M)",desc:""},
+          sal2:{name:"Obstsalat mit Schokolade (M)",desc:""},
+          sal3:{name:"Obstsalat mit weißer Schokolade (M)",desc:""},
+          sal4:{name:"Obstsalat mit Banane (M)",desc:""},
+          sal5:{name:"Obstsalat mit Banane & Schokolade (M)",desc:""},
+          sal6:{name:"Obstsalat (L)",desc:""},
+          sal7:{name:"Obstsalat mit Schokolade (L)",desc:""},
+          sal8:{name:"Obstsalat mit weißer Schokolade (L)",desc:""},
+          sal9:{name:"Obstsalat mit Banane (L)",desc:""},
+          sal10:{name:"Obstsalat mit Banane & Schokolade (L)",desc:""},
+          mnt1:{name:"Frucht-Montos (M)",desc:""},
+          mnt2:{name:"Schokoladen-Montos (M)",desc:""},
+          mnt3:{name:"Bananen-Montos (M)",desc:""},
+          mnt4:{name:"Erdbeer-Montos (M)",desc:""},
+          mnt5:{name:"Frucht & Schokoladen-Montos (M)",desc:""},
+          mnt6:{name:"Frucht-Montos (L)",desc:""},
+          mnt7:{name:"Schokoladen-Montos (L)",desc:""},
+          mnt8:{name:"Bananen-Montos (L)",desc:""},
+          mnt9:{name:"Erdbeer-Montos (L)",desc:""},
+          mnt10:{name:"Frucht & Schokoladen-Montos (L)",desc:""},
+          drk1:{name:"Zitrone & Minze",desc:""},
+          drk2:{name:"Blaues Getränk",desc:""},
+          drk3:{name:"Roter Sprite",desc:""},
+          pop1:{name:"Sahne & Honig Salat",desc:"",image:"cream-honey-salad.png"}
+        }
+      },
+      fr: {
+        brand: "DHO",
+        tagline: "Waffle · Crêpe · Glace · Cocktails · Pancakes",
+        orderTitle: "Récapitulatif de commande",
+        orderNote: "Appuyez sur les articles pour les ajouter.",
+        totalLabel: "Total",
+        checkout: "Commander",
+        categories: {
+          popular:"Populaires",
+          waffles:"Gaufres",
+          crepes:"Crêpes",
+          icecream:"Glaces",
+          juices:"Jus",
+          milkshakes:"Milkshakes",
+          cocktails:"Cocktails",
+          specialcocktails:"Cocktails Spéciaux",
+          frozen:"Frozen",
+          dhocakes:"DHO Pancakes",
+          salads:"Salades de Fruits",
+          montos:"Montos",
+          drinks:"Boissons"
+        },
+        items: {
+          waf1:{name:"Waffle Kit Kat",desc:""},
+          waf2:{name:"Waffle Kinder",desc:""},
+          waf3:{name:"Waffle Oreo",desc:""},
+          waf4:{name:"Waffle aux Fruits",desc:""},
+          waf5:{name:"Waffle Chocolat Blanc",desc:""},
+          waf6:{name:"Waffle au Chocolat",desc:""},
+          waf7:{name:"Waffle Banane & Crème",desc:""},
+          waf8:{name:"Waffle à la Banane",desc:""},
+          waf9:{name:"Waffle aux Fraises",desc:""},
+          crp1:{name:"Crêpe au Chocolat",desc:""},
+          crp2:{name:"Crêpe Chocolat Blanc",desc:""},
+          crp3:{name:"Crêpe aux Fruits",desc:""},
+          crp4:{name:"Crêpe à la Banane",desc:""},
+          crp5:{name:"Crêpe Banane & Crème",desc:""},
+          crp6:{name:"Crêpe aux Fraises",desc:""},
+          crp7:{name:"Crêpe Kinder / Oreo / Kit Kat",desc:""},
+          crp8:{name:"Crêpe Double Chocolat",desc:""},
+          ice1:{name:"Glace aux Fruits",desc:""},
+          ice2:{name:"Glace au Chocolat",desc:""},
+          ice3:{name:"Glace Mélangée",desc:""},
+          ice4:{name:"Glace Noix & Miel",desc:""},
+          ice5:{name:"Ice Boost",desc:""},
+          jui1:{name:"Jus d'Orange (M)",desc:""},
+          jui2:{name:"Jus de Fraise (M)",desc:""},
+          jui3:{name:"Jus d'Ananas (M)",desc:""},
+          jui4:{name:"Jus de Kiwi (M)",desc:""},
+          jui5:{name:"Jus d'Orange (L)",desc:""},
+          jui6:{name:"Jus de Fraise (L)",desc:""},
+          jui7:{name:"Jus d'Ananas (L)",desc:""},
+          jui8:{name:"Jus de Kiwi (L)",desc:""},
+          ms1:{name:"Milkshake au Chocolat (M)",desc:""},
+          ms2:{name:"Milkshake à la Vanille (M)",desc:""},
+          ms3:{name:"Milkshake Oreo (M)",desc:""},
+          ms4:{name:"Milkshake Snickers (M)",desc:""},
+          ms5:{name:"Milkshake Toffifee (M)",desc:""},
+          ms6:{name:"Milkshake Kit Kat (M)",desc:""},
+          ms7:{name:"Milkshake au Chocolat (L)",desc:""},
+          ms8:{name:"Milkshake à la Vanille (L)",desc:""},
+          ms9:{name:"Milkshake Oreo (L)",desc:""},
+          ms10:{name:"Milkshake Snickers (L)",desc:""},
+          ms11:{name:"Milkshake Toffifee (L)",desc:""},
+          ms12:{name:"Milkshake Kit Kat (L)",desc:""},
+          ckt1:{name:"Cocktail de Fruits (M)",desc:""},
+          ckt2:{name:"Banane au Lait (M)",desc:""},
+          ckt3:{name:"Banane & Chocolat (M)",desc:""},
+          ckt4:{name:"Banane & Dattes (M)",desc:""},
+          ckt5:{name:"Banane, Dattes & Chocolat (M)",desc:""},
+          ckt6:{name:"Fruits au Lait & Chocolat (M)",desc:""},
+          ckt7:{name:"Brise-cœur (M)",desc:""},
+          ckt8:{name:"Cocktail de Fruits (L)",desc:""},
+          ckt9:{name:"Banane au Lait (L)",desc:""},
+          ckt10:{name:"Banane & Chocolat (L)",desc:""},
+          ckt11:{name:"Banane & Dattes (L)",desc:""},
+          ckt12:{name:"Banane, Dattes & Chocolat (L)",desc:""},
+          ckt13:{name:"Fruits au Lait & Chocolat (L)",desc:""},
+          ckt14:{name:"Brise-cœur (L)",desc:""},
+          spc1:{name:"Empereur aux Fruits (M)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc2:{name:"Empereur à la Banane (M)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc3:{name:"Empereur Banane & Fruits (M)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc4:{name:"Empereur Fruits & Chocolat (M)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc5:{name:"Empereur Banane & Chocolat (M)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc6:{name:"Empereur aux Fruits (L)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc7:{name:"Empereur à la Banane (L)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc8:{name:"Empereur Banane & Fruits (L)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc9:{name:"Empereur Fruits & Chocolat (L)",desc:"Crème, Noix, Miel, Chantilly"},
+          spc10:{name:"Empereur Banane & Chocolat (L)",desc:"Crème, Noix, Miel, Chantilly"},
+          frz1:{name:"Frozen aux Fruits",desc:""},
+          frz2:{name:"Frozen au Chocolat",desc:""},
+          frz3:{name:"Frozen à la Banane",desc:""},
+          frz4:{name:"Frozen aux Fraises",desc:""},
+          cak1:{name:"Pancake au Chocolat",desc:""},
+          cak2:{name:"Pancake Chocolat Blanc",desc:""},
+          cak3:{name:"Pancake aux Fruits",desc:""},
+          cak4:{name:"Pancake à la Banane",desc:""},
+          cak5:{name:"Pancake aux Fraises",desc:""},
+          cak6:{name:"Pancake Kinder",desc:""},
+          cak7:{name:"Pancake Oreo",desc:""},
+          cak8:{name:"Pancake Kit Kat",desc:""},
+          sal1:{name:"Salade de Fruits (M)",desc:""},
+          sal2:{name:"Salade de Fruits au Chocolat (M)",desc:""},
+          sal3:{name:"Salade de Fruits Chocolat Blanc (M)",desc:""},
+          sal4:{name:"Salade de Fruits à la Banane (M)",desc:""},
+          sal5:{name:"Salade de Fruits Banane & Chocolat (M)",desc:""},
+          sal6:{name:"Salade de Fruits (L)",desc:""},
+          sal7:{name:"Salade de Fruits au Chocolat (L)",desc:""},
+          sal8:{name:"Salade de Fruits Chocolat Blanc (L)",desc:""},
+          sal9:{name:"Salade de Fruits à la Banane (L)",desc:""},
+          sal10:{name:"Salade de Fruits Banane & Chocolat (L)",desc:""},
+          mnt1:{name:"Montos aux Fruits (M)",desc:""},
+          mnt2:{name:"Montos au Chocolat (M)",desc:""},
+          mnt3:{name:"Montos à la Banane (M)",desc:""},
+          mnt4:{name:"Montos aux Fraises (M)",desc:""},
+          mnt5:{name:"Montos Fruits & Chocolat (M)",desc:""},
+          mnt6:{name:"Montos aux Fruits (L)",desc:""},
+          mnt7:{name:"Montos au Chocolat (L)",desc:""},
+          mnt8:{name:"Montos à la Banane (L)",desc:""},
+          mnt9:{name:"Montos aux Fraises (L)",desc:""},
+          mnt10:{name:"Montos Fruits & Chocolat (L)",desc:""},
+          drk1:{name:"Citron & Menthe",desc:""},
+          drk2:{name:"Boisson Bleue",desc:""},
+          drk3:{name:"Sprite Rouge",desc:""},
+          pop1:{name:"Salade Crème & Miel",desc:"",image:"cream-honey-salad.png"}
+        }
+      },
+      ru: {
+        brand: "DHO",
+        tagline: "Вафли · Блинчики · Мороженое · Коктейли · Панкейки",
+        orderTitle: "Сводка заказа",
+        orderNote: "Нажмите на позиции, чтобы добавить их.",
+        totalLabel: "Итого",
+        checkout: "Оформить",
+        categories: {
+          popular:"Популярное",
+          waffles:"Вафли",
+          crepes:"Блинчики",
+          icecream:"Мороженое",
+          juices:"Соки",
+          milkshakes:"Милкшейки",
+          cocktails:"Коктейли",
+          specialcocktails:"Особые Коктейли",
+          frozen:"Замороженный",
+          dhocakes:"DHO Панкейки",
+          salads:"Фруктовые Салаты",
+          montos:"Монтос",
+          drinks:"Напитки"
+        },
+        items: {
+          waf1:{name:"Вафля Kit Kat",desc:""},
+          waf2:{name:"Вафля Kinder",desc:""},
+          waf3:{name:"Вафля Oreo",desc:""},
+          waf4:{name:"Фруктовая Вафля",desc:""},
+          waf5:{name:"Вафля Белый Шоколад",desc:""},
+          waf6:{name:"Шоколадная Вафля",desc:""},
+          waf7:{name:"Вафля Банан & Сливки",desc:""},
+          waf8:{name:"Банановая Вафля",desc:""},
+          waf9:{name:"Клубничная Вафля",desc:""},
+          crp1:{name:"Шоколадный Блинчик",desc:""},
+          crp2:{name:"Блинчик Белый Шоколад",desc:""},
+          crp3:{name:"Фруктовый Блинчик",desc:""},
+          crp4:{name:"Банановый Блинчик",desc:""},
+          crp5:{name:"Блинчик Банан & Сливки",desc:""},
+          crp6:{name:"Клубничный Блинчик",desc:""},
+          crp7:{name:"Блинчик Kinder / Oreo / Kit Kat",desc:""},
+          crp8:{name:"Блинчик Двойной Шоколад",desc:""},
+          ice1:{name:"Фруктовое Мороженое",desc:""},
+          ice2:{name:"Шоколадное Мороженое",desc:""},
+          ice3:{name:"Ассорти Мороженое",desc:""},
+          ice4:{name:"Мороженое Орехи & Мёд",desc:""},
+          ice5:{name:"Ice Boost",desc:""},
+          jui1:{name:"Апельсиновый Сок (M)",desc:""},
+          jui2:{name:"Клубничный Сок (M)",desc:""},
+          jui3:{name:"Ананасовый Сок (M)",desc:""},
+          jui4:{name:"Сок Киви (M)",desc:""},
+          jui5:{name:"Апельсиновый Сок (L)",desc:""},
+          jui6:{name:"Клубничный Сок (L)",desc:""},
+          jui7:{name:"Ананасовый Сок (L)",desc:""},
+          jui8:{name:"Сок Киви (L)",desc:""},
+          ms1:{name:"Шоколадный Милкшейк (M)",desc:""},
+          ms2:{name:"Ванильный Милкшейк (M)",desc:""},
+          ms3:{name:"Орео Милкшейк (M)",desc:""},
+          ms4:{name:"Сникерс Милкшейк (M)",desc:""},
+          ms5:{name:"Toffifee Милкшейк (M)",desc:""},
+          ms6:{name:"Kit Kat Милкшейк (M)",desc:""},
+          ms7:{name:"Шоколадный Милкшейк (L)",desc:""},
+          ms8:{name:"Ванильный Милкшейк (L)",desc:""},
+          ms9:{name:"Орео Милкшейк (L)",desc:""},
+          ms10:{name:"Сникерс Милкшейк (L)",desc:""},
+          ms11:{name:"Toffifee Милкшейк (L)",desc:""},
+          ms12:{name:"Kit Kat Милкшейк (L)",desc:""},
+          ckt1:{name:"Фруктовый Коктейль (M)",desc:""},
+          ckt2:{name:"Банан с Молоком (M)",desc:""},
+          ckt3:{name:"Банан & Шоколад (M)",desc:""},
+          ckt4:{name:"Банан & Финики (M)",desc:""},
+          ckt5:{name:"Банан, Финики & Шоколад (M)",desc:""},
+          ckt6:{name:"Фрукты с Молоком & Шоколадом (M)",desc:""},
+          ckt7:{name:"Разбиватель Сердец (M)",desc:""},
+          ckt8:{name:"Фруктовый Коктейль (L)",desc:""},
+          ckt9:{name:"Банан с Молоком (L)",desc:""},
+          ckt10:{name:"Банан & Шоколад (L)",desc:""},
+          ckt11:{name:"Банан & Финики (L)",desc:""},
+          ckt12:{name:"Банан, Финики & Шоколад (L)",desc:""},
+          ckt13:{name:"Фрукты с Молоком & Шоколадом (L)",desc:""},
+          ckt14:{name:"Разбиватель Сердец (L)",desc:""},
+          spc1:{name:"Фруктовый Император (M)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc2:{name:"Банановый Император (M)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc3:{name:"Банан & Фрукты Император (M)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc4:{name:"Фрукты & Шоколад Император (M)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc5:{name:"Банан & Шоколад Император (M)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc6:{name:"Фруктовый Император (L)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc7:{name:"Банановый Император (L)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc8:{name:"Банан & Фрукты Император (L)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc9:{name:"Фрукты & Шоколад Император (L)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          spc10:{name:"Банан & Шоколад Император (L)",desc:"Сливки, Орехи, Мёд, Взбитые Сливки"},
+          frz1:{name:"Фруктовый Frozen",desc:""},
+          frz2:{name:"Шоколадный Frozen",desc:""},
+          frz3:{name:"Банановый Frozen",desc:""},
+          frz4:{name:"Клубничный Frozen",desc:""},
+          cak1:{name:"Шоколадный Панкейк",desc:""},
+          cak2:{name:"Панкейк Белый Шоколад",desc:""},
+          cak3:{name:"Фруктовый Панкейк",desc:""},
+          cak4:{name:"Банановый Панкейк",desc:""},
+          cak5:{name:"Клубничный Панкейк",desc:""},
+          cak6:{name:"Kinder Панкейк",desc:""},
+          cak7:{name:"Oreo Панкейк",desc:""},
+          cak8:{name:"Kit Kat Панкейк",desc:""},
+          sal1:{name:"Фруктовый Салат (M)",desc:""},
+          sal2:{name:"Фруктовый Салат с Шоколадом (M)",desc:""},
+          sal3:{name:"Фруктовый Салат Белый Шоколад (M)",desc:""},
+          sal4:{name:"Фруктовый Салат с Бананом (M)",desc:""},
+          sal5:{name:"Фруктовый Салат Банан & Шоколад (M)",desc:""},
+          sal6:{name:"Фруктовый Салат (L)",desc:""},
+          sal7:{name:"Фруктовый Салат с Шоколадом (L)",desc:""},
+          sal8:{name:"Фруктовый Салат Белый Шоколад (L)",desc:""},
+          sal9:{name:"Фруктовый Салат с Бананом (L)",desc:""},
+          sal10:{name:"Фруктовый Салат Банан & Шоколад (L)",desc:""},
+          mnt1:{name:"Монтос Фрукты (M)",desc:""},
+          mnt2:{name:"Монтос Шоколад (M)",desc:""},
+          mnt3:{name:"Монтос Банан (M)",desc:""},
+          mnt4:{name:"Монтос Клубника (M)",desc:""},
+          mnt5:{name:"Монтос Фрукты & Шоколад (M)",desc:""},
+          mnt6:{name:"Монтос Фрукты (L)",desc:""},
+          mnt7:{name:"Монтос Шоколад (L)",desc:""},
+          mnt8:{name:"Монтос Банан (L)",desc:""},
+          mnt9:{name:"Монтос Клубника (L)",desc:""},
+          mnt10:{name:"Монтос Фрукты & Шоколад (L)",desc:""},
+          drk1:{name:"Лимон & Мята",desc:""},
+          drk2:{name:"Синий Напиток",desc:""},
+          drk3:{name:"Красный Sprite",desc:""},
+          pop1:{name:"Салат Сливки & Мёд",desc:"",image:"cream-honey-salad.png"}
+        }
       }
     };
 
@@ -1012,7 +1397,11 @@
     const sizeLabels = {
       en: { m: 'M', l: 'L' },
       tr: { m: 'O', l: 'B' },
-      ar: { m: 'وسط', l: 'كبير' }
+      ar: { m: 'وسط', l: 'كبير' },
+      es: { m: 'M', l: 'G' },
+      de: { m: 'M', l: 'G' },
+      fr: { m: 'M', l: 'G' },
+      ru: { m: 'M', l: 'B' }
     };
     // Track selected size per item: key → 'm' or 'l'
     const selectedSizes = {};
@@ -1034,7 +1423,7 @@
     ];
 
     /* ====== App state ====== */
-    const supportedLangs = ['en','tr','ar'];
+    const supportedLangs = ['en','tr','ar','es','de','fr','ru'];
     const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
     const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
     const _tableParam = new URLSearchParams(window.location.search).get('table');
@@ -1211,7 +1600,7 @@
       document.getElementById('brandName').textContent = t.brand;
       const _badge = document.getElementById('tableBadge');
       if (_badge && state.table) {
-        const tblText = { en: `Table ${state.table}`, tr: `Masa ${state.table}`, ar: `الطاولة ${state.table}` };
+        const tblText = { en: `Table ${state.table}`, tr: `Masa ${state.table}`, ar: `الطاولة ${state.table}`, es: `Mesa ${state.table}`, de: `Tisch ${state.table}`, fr: `Table ${state.table}`, ru: `Стол ${state.table}` };
         _badge.textContent = tblText[state.lang] || `Table ${state.table}`;
         _badge.style.display = '';
       }
@@ -1385,14 +1774,14 @@
 
       /* Build category nav buttons */
       const navBtns = [
-        { key:'waffles', en:'Waffles', tr:'Waffle', ar:'وافل', es:'Waffles' },
-        { key:'crepes', en:'Crêpes', tr:'Krep', ar:'كريب', es:'Crepes' },
-        { key:'icecream', en:'Ice Cream', tr:'Dondurma', ar:'بوظة', es:'Helados' },
-        { key:'milkshakes', en:'Milkshakes', tr:'Milkshake', ar:'ميلك شيك', es:'Batidos' },
-        { key:'cocktails', en:'Cocktails', tr:'Kokteyller', ar:'كوكتيل', es:'Cócteles' },
-        { key:'dhocakes', en:'Pancakes', tr:'Pankekler', ar:'بانكيك', es:'Panqueques' },
-        { key:'salads', en:'Salads', tr:'Salatalar', ar:'سلطات', es:'Ensaladas' },
-        { key:'drinks', en:'Drinks', tr:'İçecekler', ar:'مشروبات', es:'Bebidas' }
+        { key:'waffles', en:'Waffles', tr:'Waffle', ar:'وافل', es:'Waffles', de:'Waffeln', fr:'Gaufres', ru:'Вафли' },
+        { key:'crepes', en:'Crêpes', tr:'Krep', ar:'كريب', es:'Crepes', de:'Crêpes', fr:'Crêpes', ru:'Блинчики' },
+        { key:'icecream', en:'Ice Cream', tr:'Dondurma', ar:'بوظة', es:'Helados', de:'Eis', fr:'Glaces', ru:'Мороженое' },
+        { key:'milkshakes', en:'Milkshakes', tr:'Milkshake', ar:'ميلك شيك', es:'Batidos', de:'Milchshakes', fr:'Milkshakes', ru:'Милкшейки' },
+        { key:'cocktails', en:'Cocktails', tr:'Kokteyller', ar:'كوكتيل', es:'Cócteles', de:'Cocktails', fr:'Cocktails', ru:'Коктейли' },
+        { key:'dhocakes', en:'Pancakes', tr:'Pankekler', ar:'بانكيك', es:'Panqueques', de:'Pancakes', fr:'Pancakes', ru:'Панкейки' },
+        { key:'salads', en:'Salads', tr:'Salatalar', ar:'سلطات', es:'Ensaladas', de:'Salate', fr:'Salades', ru:'Салаты' },
+        { key:'drinks', en:'Drinks', tr:'İçecekler', ar:'مشروبات', es:'Bebidas', de:'Getränke', fr:'Boissons', ru:'Напитки' }
       ];
       const navEl = document.getElementById('catNav');
       navEl.innerHTML = '';
@@ -1458,7 +1847,7 @@
       const list = document.getElementById('orderList');
       list.innerHTML = '';
       const noItems = { en:'No items yet', tr:'Henüz öğe yok', ar:'لا توجد عناصر' };
-      const clearLabel = { en:'Clear all', tr:'Temizle', ar:'مسح الكل' };
+      const clearLabel = { en:'Clear all', tr:'Temizle', ar:'مسح الكل', es:'Borrar todo', de:'Alles löschen', fr:'Tout effacer', ru:'Очистить' };
       if(state.order.length === 0){
         list.innerHTML = `<div style="color:var(--text-secondary);font-size:0.85rem">${noItems[state.lang]}</div>`;
       } else {
@@ -1512,18 +1901,18 @@
       const totalItems = state.order.reduce((s,i) => s + i.qty, 0);
       const total = state.order.reduce((s,i) => s + i.price * i.qty, 0);
       const L = state.lang;
-      const headers = { en: '🧾 *DHO Order*', tr: '🧾 *DHO Sipariş*', ar: '🧾 *طلب DHO*' };
-      const itemLabel = { en: 'Items', tr: 'Ürünler', ar: 'العناصر' };
-      const totalLabel = { en: 'Total', tr: 'Toplam', ar: 'المجموع' };
-      const thanksLabel = { en: 'Thank you! 🙏', tr: 'Teşekkürler! 🙏', ar: 'شكراً لكم! 🙏' };
+      const headers = { en: '🧾 *DHO Order*', tr: '🧾 *DHO Sipariş*', ar: '🧾 *طلب DHO*', es: '🧾 *DHO Pedido*', de: '🧾 *DHO Bestellung*', fr: '🧾 *DHO Commande*', ru: '🧾 *DHO Заказ*' };
+      const itemLabel = { en: 'Items', tr: 'Ürünler', ar: 'العناصر', es: 'Artículos', de: 'Artikel', fr: 'Articles', ru: 'Позиций' };
+      const totalLabel = { en: 'Total', tr: 'Toplam', ar: 'المجموع', es: 'Total', de: 'Gesamt', fr: 'Total', ru: 'Итого' };
+      const thanksLabel = { en: 'Thank you! 🙏', tr: 'Teşekkürler! 🙏', ar: 'شكراً لكم! 🙏', es: '¡Gracias! 🙏', de: 'Danke! 🙏', fr: 'Merci! 🙏', ru: 'Спасибо! 🙏' };
 
       let msg = headers[L] + '\n';
       if (state.table) {
-        const tblLabel = { en: '🪑 *Table*', tr: '🪑 *Masa*', ar: '🪑 *الطاولة*' };
+        const tblLabel = { en: '🪑 *Table*', tr: '🪑 *Masa*', ar: '🪑 *الطاولة*', es: '🪑 *Mesa*', de: '🪑 *Tisch*', fr: '🪑 *Table*', ru: '🪑 *Стол*' };
         msg += `${tblLabel[L]} ${state.table}\n`;
       }
       if (deliveryInfo) {
-        const dlvLabel = { en: '🚚 *Delivery*', tr: '🚚 *Teslimat*', ar: '🚚 *توصيل*' };
+        const dlvLabel = { en: '🚚 *Delivery*', tr: '🚚 *Teslimat*', ar: '🚚 *توصيل*', es: '🚚 *Entrega*', de: '🚚 *Lieferung*', fr: '🚚 *Livraison*', ru: '🚚 *Доставка*' };
         msg += dlvLabel[L] + '\n';
       }
       msg += '━━━━━━━━━━━━━━━\n';
@@ -1563,15 +1952,15 @@
 
     function updateDeliveryModalLabels() {
       const L = state.lang;
-      const titles = { en: 'Delivery Details', tr: 'Teslimat Bilgileri', ar: 'تفاصيل التوصيل', es: 'Detalles de entrega' };
-      const names = { en: 'Name', tr: 'İsim', ar: 'الاسم', es: 'Nombre' };
-      const phones = { en: 'Phone', tr: 'Telefon', ar: 'الهاتف', es: 'Teléfono' };
-      const addrs = { en: 'Address', tr: 'Adres', ar: 'العنوان', es: 'Dirección' };
-      const pays = { en: 'Payment Method', tr: 'Ödeme Yöntemi', ar: 'طريقة الدفع', es: 'Método de pago' };
-      const sends = { en: 'Send Order', tr: 'Siparişi Gönder', ar: 'إرسال الطلب', es: 'Enviar pedido' };
-      const cancels = { en: 'Cancel', tr: 'İptal', ar: 'إلغاء', es: 'Cancelar' };
-      const cashL = { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل', es: 'Pago en efectivo' };
-      const cardL = { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل', es: 'Pago con tarjeta' };
+      const titles = { en: 'Delivery Details', tr: 'Teslimat Bilgileri', ar: 'تفاصيل التوصيل', es: 'Detalles de entrega', de: 'Lieferdetails', fr: 'Détails de livraison', ru: 'Детали доставки' };
+      const names = { en: 'Name', tr: 'İsim', ar: 'الاسم', es: 'Nombre', de: 'Name', fr: 'Nom', ru: 'Имя' };
+      const phones = { en: 'Phone', tr: 'Telefon', ar: 'الهاتف', es: 'Teléfono', de: 'Telefon', fr: 'Téléphone', ru: 'Телефон' };
+      const addrs = { en: 'Address', tr: 'Adres', ar: 'العنوان', es: 'Dirección', de: 'Adresse', fr: 'Adresse', ru: 'Адрес' };
+      const pays = { en: 'Payment Method', tr: 'Ödeme Yöntemi', ar: 'طريقة الدفع', es: 'Método de pago', de: 'Zahlungsmethode', fr: 'Mode de paiement', ru: 'Способ оплаты' };
+      const sends = { en: 'Send Order', tr: 'Siparişi Gönder', ar: 'إرسال الطلب', es: 'Enviar pedido', de: 'Bestellung senden', fr: 'Envoyer la commande', ru: 'Отправить заказ' };
+      const cancels = { en: 'Cancel', tr: 'İptal', ar: 'إلغاء', es: 'Cancelar', de: 'Abbrechen', fr: 'Annuler', ru: 'Отмена' };
+      const cashL = { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل', es: 'Pago en efectivo', de: 'Barzahlung', fr: 'Paiement en espèces', ru: 'Наличные при доставке' };
+      const cardL = { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل', es: 'Pago con tarjeta', de: 'Kartenzahlung', fr: 'Paiement par carte', ru: 'Картой при доставке' };
 
       document.getElementById('deliveryTitle').textContent = titles[L];
       document.getElementById('labelName').textContent = names[L];
