@@ -279,6 +279,7 @@
         </a>
         <div class="leading-none text-center">
           <h1 id="brandName" class="m-0 text-2xl tracking-[0.2px] font-bold">DHO</h1>
+          <div id="tableBadge" style="display:none; margin-top:4px; background:var(--accent); color:var(--accent-dark); border-radius:8px; padding:2px 12px; font-size:13px; font-weight:700; letter-spacing:0.5px;"></div>
         </div>
       </div>
     </header>
@@ -1036,7 +1037,9 @@
     const supportedLangs = ['en','tr','ar'];
     const browserLang = (navigator.language || '').split('-')[0].toLowerCase();
     const detectedLang = supportedLangs.includes(browserLang) ? browserLang : 'en';
-    let state = { lang: detectedLang, order: [] };
+    const _tableParam = new URLSearchParams(window.location.search).get('table');
+    const _tableNumber = (_tableParam && /^[1-9][0-9]*$/.test(_tableParam)) ? parseInt(_tableParam, 10) : null;
+    let state = { lang: detectedLang, order: [], table: _tableNumber };
     const openSections = new Set(['popular']);
 
     /* ====== Category Icons (line-art SVG) ====== */
@@ -1206,6 +1209,12 @@
       document.documentElement.dir = (state.lang === 'ar') ? 'rtl' : 'ltr';
 
       document.getElementById('brandName').textContent = t.brand;
+      const _badge = document.getElementById('tableBadge');
+      if (_badge && state.table) {
+        const tblText = { en: `Table ${state.table}`, tr: `Masa ${state.table}`, ar: `الطاولة ${state.table}` };
+        _badge.textContent = tblText[state.lang] || `Table ${state.table}`;
+        _badge.style.display = '';
+      }
       document.getElementById('orderTitle').textContent = t.orderTitle;
       document.getElementById('orderNote').textContent = t.orderNote;
       document.getElementById('totalLabel').textContent = t.totalLabel;
@@ -1509,6 +1518,10 @@
       const thanksLabel = { en: 'Thank you! 🙏', tr: 'Teşekkürler! 🙏', ar: 'شكراً لكم! 🙏' };
 
       let msg = headers[L] + '\n';
+      if (state.table) {
+        const tblLabel = { en: '🪑 *Table*', tr: '🪑 *Masa*', ar: '🪑 *الطاولة*' };
+        msg += `${tblLabel[L]} ${state.table}\n`;
+      }
       if (deliveryInfo) {
         const dlvLabel = { en: '🚚 *Delivery*', tr: '🚚 *Teslimat*', ar: '🚚 *توصيل*' };
         msg += dlvLabel[L] + '\n';
