@@ -318,6 +318,27 @@
     .qty-num { font-size:0.82rem; font-weight:700; min-width:20px; text-align:center; color:var(--text-primary); }
     .order-row-price { font-size:0.82rem; font-weight:700; color:var(--text-primary); white-space:nowrap; flex-shrink:0; }
     .remove-btn { width:20px; height:20px; border-radius:50%; border:1px solid rgba(255,80,80,0.3); background:rgba(255,80,80,0.07); color:#ff7070; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s; padding:0; }
+
+    /* === Checkout step indicator === */
+    .checkout-steps { display:flex; align-items:flex-start; margin-bottom:20px; }
+    .cs-step { display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+    .cs-dot { width:26px; height:26px; border-radius:50%; border:2px solid var(--border-light); background:var(--surface-card); color:var(--text-secondary); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+    .cs-step > span { font-size:9px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+    .cs-line { flex:1; height:2px; background:var(--border-light); margin-top:13px; transition:background 0.25s; }
+    .cs-done .cs-dot { background:var(--accent); border-color:var(--accent); color:var(--accent-dark); }
+    .cs-done > span { color:var(--accent); }
+    .cs-active .cs-dot { background:transparent; border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent); }
+    .cs-active > span { color:var(--accent); font-weight:700; }
+    .cs-line-done { background:var(--accent); }
+
+    /* === Payment method cards === */
+    .payment-cards { display:flex; flex-direction:column; gap:8px; }
+    .pay-card { display:flex; align-items:center; gap:13px; padding:12px 14px; border-radius:10px; border:2px solid var(--border-light); cursor:pointer; transition:border-color 0.15s, background 0.15s; background:var(--surface-card); user-select:none; }
+    .pay-card:hover { border-color:color-mix(in srgb,var(--accent) 50%,transparent); }
+    .pay-card input[type="radio"] { display:none; }
+    .pay-card.pay-selected { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent); }
+    .pay-icon { font-size:1.5rem; line-height:1; flex-shrink:0; }
+    .pay-text { font-size:0.88rem; font-weight:600; color:var(--text-primary); }
     .remove-btn:hover { background:rgba(255,80,80,0.22); }
     .clear-all-btn { font-size:0.7rem; cursor:pointer; background:none; border:none; padding:0; text-decoration:underline; opacity:0.65; }
     .clear-all-btn:hover { opacity:1; }
@@ -431,35 +452,70 @@
     <img id="lightboxImg" src="" alt="" />
   </div>
 
-  <!-- Delivery info modal -->
+  <!-- Delivery info modal (multi-step) -->
   <div id="deliveryModal" class="fixed inset-0 z-[9998] items-center justify-center p-4" style="display:none; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px);">
     <div class="w-full max-w-[400px] mx-auto rounded-xl p-5" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); border:1px solid var(--border-light); box-shadow:0 8px 30px rgba(0,0,0,0.5);">
-      <h3 id="deliveryTitle" class="mt-0 mb-4 text-lg" style="color:var(--accent);">Delivery Details</h3>
-      <form id="deliveryForm" class="space-y-3">
-        <div>
-          <label id="labelName" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Name</label>
-          <input type="text" id="delName" required class="w-full p-2 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="name">
+
+      <!-- Step indicator -->
+      <div class="checkout-steps">
+        <div class="cs-step cs-done"><div class="cs-dot">&#10003;</div><span id="csLabel1">Items</span></div>
+        <div class="cs-line cs-line-done"></div>
+        <div class="cs-step" id="csStep2"><div class="cs-dot">2</div><span id="csLabel2">Details</span></div>
+        <div class="cs-line" id="csLine23"></div>
+        <div class="cs-step" id="csStep3"><div class="cs-dot">3</div><span id="csLabel3">Payment</span></div>
+        <div class="cs-line" id="csLine34"></div>
+        <div class="cs-step" id="csStep4"><div class="cs-dot">4</div><span id="csLabel4">Confirm</span></div>
+      </div>
+
+      <!-- Screen 1: Delivery details -->
+      <div id="coScreen1">
+        <h3 id="deliveryTitle" class="mt-0 mb-4 text-lg" style="color:var(--accent);">Delivery Details</h3>
+        <div class="space-y-3">
+          <div>
+            <label id="labelName" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Name</label>
+            <input type="text" id="delName" class="w-full p-2 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="name">
+          </div>
+          <div>
+            <label id="labelPhone" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Phone</label>
+            <input type="tel" id="delPhone" class="w-full p-2 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="tel">
+          </div>
+          <div>
+            <label id="labelAddress" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Address</label>
+            <textarea id="delAddress" rows="2" class="w-full p-2 rounded text-sm resize-none" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);"></textarea>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="button" id="coNext" class="flex-1 py-2 rounded font-bold text-sm cursor-pointer" style="background:var(--accent); color:var(--accent-dark); border:none;">Next &#8594;</button>
+            <button type="button" id="deliveryCancel" class="flex-1 py-2 rounded font-bold text-sm cursor-pointer" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-light);">Cancel</button>
+          </div>
         </div>
-        <div>
-          <label id="labelPhone" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Phone</label>
-          <input type="tel" id="delPhone" required class="w-full p-2 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="tel">
+      </div>
+
+      <!-- Screen 2: Payment -->
+      <div id="coScreen2" style="display:none">
+        <h3 id="paymentTitle" class="mt-0 mb-4 text-lg" style="color:var(--accent);">Payment Method</h3>
+        <div class="payment-cards" role="radiogroup" aria-labelledby="paymentTitle">
+          <label class="pay-card" id="payCardCash">
+            <input type="radio" name="delPayment" value="cash">
+            <span class="pay-icon" aria-hidden="true">&#128181;</span>
+            <span class="pay-text" id="optCash">Cash on Delivery</span>
+          </label>
+          <label class="pay-card" id="payCardCard">
+            <input type="radio" name="delPayment" value="card">
+            <span class="pay-icon" aria-hidden="true">&#128179;</span>
+            <span class="pay-text" id="optCard">Card on Delivery</span>
+          </label>
+          <label class="pay-card" id="payCardBank">
+            <input type="radio" name="delPayment" value="bank">
+            <span class="pay-icon" aria-hidden="true">&#127970;</span>
+            <span class="pay-text" id="optBank">Bank Transfer</span>
+          </label>
         </div>
-        <div>
-          <label id="labelAddress" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Address</label>
-          <textarea id="delAddress" required rows="2" class="w-full p-2 rounded text-sm resize-none" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);"></textarea>
+        <div class="flex gap-2 pt-4">
+          <button type="button" id="coBack" class="py-2 px-4 rounded font-bold text-sm cursor-pointer" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-light);">&#8592; Back</button>
+          <button type="button" id="deliverySend" class="flex-1 py-2 rounded font-bold text-sm cursor-pointer" style="background:var(--accent); color:var(--accent-dark); border:none;">Confirm Order &#10003;</button>
         </div>
-        <div>
-          <label id="labelPayment" class="block text-xs font-bold mb-1" style="color:var(--text-secondary);">Payment Method</label>
-          <select id="delPayment" required class="w-full p-2 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);">
-            <option value="cash" id="optCash">Cash on Delivery</option>
-            <option value="card" id="optCard">Card on Delivery</option>
-          </select>
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="submit" id="deliverySend" class="flex-1 py-2 rounded font-bold text-sm cursor-pointer" style="background:var(--accent); color:var(--accent-dark); border:none;">Send Order</button>
-          <button type="button" id="deliveryCancel" class="flex-1 py-2 rounded font-bold text-sm cursor-pointer" style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-light);">Cancel</button>
-        </div>
-      </form>
+      </div>
+
     </div>
   </div>
 
@@ -2080,8 +2136,9 @@
         const addrL = { en: 'Address', tr: 'Adres', ar: 'العنوان' };
         const payL = { en: 'Payment', tr: 'Ödeme', ar: 'الدفع' };
         const payValues = {
-          cash: { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل' },
-          card: { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل' }
+          cash: { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل', es: 'Pago en efectivo', de: 'Barzahlung', fr: 'Paiement en espèces', ru: 'Наличные' },
+          card: { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل', es: 'Pago con tarjeta', de: 'Kartenzahlung', fr: 'Paiement par carte', ru: 'Карта' },
+          bank: { en: 'Bank Transfer', tr: 'Banka Transferi', ar: 'تحويل بنكي', es: 'Transferencia bancaria', de: 'Banküberweisung', fr: 'Virement bancaire', ru: 'Банковский перевод' }
         };
         msg += '\n';
         msg += `📛 *${nameL[L]}:* ${deliveryInfo.name}\n`;
@@ -2102,52 +2159,118 @@
       renderOrder();
     }
 
+    function _setCheckoutStep(step) {
+      [['csStep2',2],['csStep3',3],['csStep4',4]].forEach(([id, n]) => {
+        const el = document.getElementById(id);
+        el.classList.remove('cs-done','cs-active');
+        if (n < step) el.classList.add('cs-done');
+        else if (n === step) el.classList.add('cs-active');
+      });
+      const l23 = document.getElementById('csLine23');
+      const l34 = document.getElementById('csLine34');
+      l23.classList.toggle('cs-line-done', step >= 3);
+      l34.classList.toggle('cs-line-done', step >= 4);
+    }
+
     function updateDeliveryModalLabels() {
       const L = state.lang;
-      const titles = { en: 'Delivery Details', tr: 'Teslimat Bilgileri', ar: 'تفاصيل التوصيل', es: 'Detalles de entrega', de: 'Lieferdetails', fr: 'Détails de livraison', ru: 'Детали доставки' };
-      const names = { en: 'Name', tr: 'İsim', ar: 'الاسم', es: 'Nombre', de: 'Name', fr: 'Nom', ru: 'Имя' };
-      const phones = { en: 'Phone', tr: 'Telefon', ar: 'الهاتف', es: 'Teléfono', de: 'Telefon', fr: 'Téléphone', ru: 'Телефон' };
-      const addrs = { en: 'Address', tr: 'Adres', ar: 'العنوان', es: 'Dirección', de: 'Adresse', fr: 'Adresse', ru: 'Адрес' };
-      const pays = { en: 'Payment Method', tr: 'Ödeme Yöntemi', ar: 'طريقة الدفع', es: 'Método de pago', de: 'Zahlungsmethode', fr: 'Mode de paiement', ru: 'Способ оплаты' };
-      const sends = { en: 'Send Order', tr: 'Siparişi Gönder', ar: 'إرسال الطلب', es: 'Enviar pedido', de: 'Bestellung senden', fr: 'Envoyer la commande', ru: 'Отправить заказ' };
-      const cancels = { en: 'Cancel', tr: 'İptal', ar: 'إلغاء', es: 'Cancelar', de: 'Abbrechen', fr: 'Annuler', ru: 'Отмена' };
-      const cashL = { en: 'Cash on Delivery', tr: 'Kapıda Nakit', ar: 'الدفع نقداً عند التوصيل', es: 'Pago en efectivo', de: 'Barzahlung', fr: 'Paiement en espèces', ru: 'Наличные при доставке' };
-      const cardL = { en: 'Card on Delivery', tr: 'Kapıda Kart', ar: 'الدفع بالبطاقة عند التوصيل', es: 'Pago con tarjeta', de: 'Kartenzahlung', fr: 'Paiement par carte', ru: 'Картой при доставке' };
+      const titles   = { en:'Delivery Details', tr:'Teslimat Bilgileri', ar:'تفاصيل التوصيل', es:'Detalles de entrega', de:'Lieferdetails', fr:'Détails de livraison', ru:'Детали доставки' };
+      const names    = { en:'Name', tr:'İsim', ar:'الاسم', es:'Nombre', de:'Name', fr:'Nom', ru:'Имя' };
+      const phones   = { en:'Phone', tr:'Telefon', ar:'الهاتف', es:'Teléfono', de:'Telefon', fr:'Téléphone', ru:'Телефон' };
+      const addrs    = { en:'Address', tr:'Adres', ar:'العنوان', es:'Dirección', de:'Adresse', fr:'Adresse', ru:'Адрес' };
+      const payTitl  = { en:'Payment Method', tr:'Ödeme Yöntemi', ar:'طريقة الدفع', es:'Método de pago', de:'Zahlungsmethode', fr:'Mode de paiement', ru:'Способ оплаты' };
+      const sends    = { en:'Confirm Order ✓', tr:'Siparişi Onayla ✓', ar:'✓ تأكيد الطلب', es:'Confirmar pedido ✓', de:'Bestätigen ✓', fr:'Confirmer ✓', ru:'Подтвердить ✓' };
+      const cancels  = { en:'Cancel', tr:'İptal', ar:'إلغاء', es:'Cancelar', de:'Abbrechen', fr:'Annuler', ru:'Отмена' };
+      const nexts    = { en:'Next →', tr:'İleri →', ar:'→ التالي', es:'Siguiente →', de:'Weiter →', fr:'Suivant →', ru:'Далее →' };
+      const backs    = { en:'← Back', tr:'← Geri', ar:'رجوع ←', es:'← Atrás', de:'← Zurück', fr:'← Retour', ru:'← Назад' };
+      const cashL    = { en:'Cash on Delivery', tr:'Kapıda Nakit', ar:'الدفع نقداً عند التوصيل', es:'Pago en efectivo', de:'Barzahlung', fr:'Espèces à la livraison', ru:'Наличные при доставке' };
+      const cardL    = { en:'Card on Delivery', tr:'Kapıda Kart', ar:'البطاقة عند التوصيل', es:'Tarjeta a la entrega', de:'Kartenzahlung', fr:'Carte à la livraison', ru:'Картой при доставке' };
+      const bankL    = { en:'Bank Transfer', tr:'Banka Transferi', ar:'تحويل بنكي', es:'Transferencia bancaria', de:'Banküberweisung', fr:'Virement bancaire', ru:'Банковский перевод' };
+      const csL1     = { en:'Items', tr:'Ürünler', ar:'العناصر', es:'Artículos', de:'Artikel', fr:'Articles', ru:'Товары' };
+      const csL2     = { en:'Details', tr:'Bilgiler', ar:'التفاصيل', es:'Detalles', de:'Details', fr:'Détails', ru:'Детали' };
+      const csL3     = { en:'Payment', tr:'Ödeme', ar:'الدفع', es:'Pago', de:'Zahlung', fr:'Paiement', ru:'Оплата' };
+      const csL4     = { en:'Confirm', tr:'Onayla', ar:'تأكيد', es:'Confirmar', de:'Bestätigen', fr:'Confirmer', ru:'Подтвердить' };
 
-      document.getElementById('deliveryTitle').textContent = titles[L];
-      document.getElementById('labelName').textContent = names[L];
-      document.getElementById('labelPhone').textContent = phones[L];
-      document.getElementById('labelAddress').textContent = addrs[L];
-      document.getElementById('labelPayment').textContent = pays[L];
-      document.getElementById('deliverySend').textContent = sends[L];
+      document.getElementById('deliveryTitle').textContent  = titles[L];
+      document.getElementById('labelName').textContent      = names[L];
+      document.getElementById('labelPhone').textContent     = phones[L];
+      document.getElementById('labelAddress').textContent   = addrs[L];
+      document.getElementById('paymentTitle').textContent   = payTitl[L];
+      document.getElementById('deliverySend').textContent   = sends[L];
       document.getElementById('deliveryCancel').textContent = cancels[L];
-      document.getElementById('optCash').textContent = cashL[L];
-      document.getElementById('optCard').textContent = cardL[L];
+      document.getElementById('coNext').textContent         = nexts[L];
+      document.getElementById('coBack').textContent         = backs[L];
+      document.getElementById('optCash').textContent        = cashL[L];
+      document.getElementById('optCard').textContent        = cardL[L];
+      document.getElementById('optBank').textContent        = bankL[L];
+      document.getElementById('csLabel1').textContent       = csL1[L];
+      document.getElementById('csLabel2').textContent       = csL2[L];
+      document.getElementById('csLabel3').textContent       = csL3[L];
+      document.getElementById('csLabel4').textContent       = csL4[L];
     }
 
     function showDeliveryModal() {
       updateDeliveryModalLabels();
-      const modal = document.getElementById('deliveryModal');
-      document.getElementById('deliveryForm').reset();
-      modal.style.display = 'flex';
+      document.getElementById('coScreen1').style.display = '';
+      document.getElementById('coScreen2').style.display = 'none';
+      ['delName','delPhone','delAddress'].forEach(id => { document.getElementById(id).value = ''; });
+      document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('pay-selected'));
+      document.querySelectorAll('input[name="delPayment"]').forEach(r => { r.checked = false; });
+      _setCheckoutStep(2);
+      document.getElementById('deliveryModal').style.display = 'flex';
     }
 
     function hideDeliveryModal() {
       document.getElementById('deliveryModal').style.display = 'none';
     }
 
+    // Payment card tap → highlight
+    document.querySelectorAll('.pay-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('pay-selected'));
+        card.classList.add('pay-selected');
+        card.querySelector('input[type="radio"]').checked = true;
+      });
+    });
+
     document.getElementById('deliveryCancel').addEventListener('click', hideDeliveryModal);
     document.getElementById('deliveryModal').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) hideDeliveryModal();
     });
 
-    document.getElementById('deliveryForm').addEventListener('submit', (e) => {
-      e.preventDefault();
+    document.getElementById('coNext').addEventListener('click', () => {
+      const name    = document.getElementById('delName').value.trim();
+      const phone   = document.getElementById('delPhone').value.trim();
+      const address = document.getElementById('delAddress').value.trim();
+      const L = state.lang;
+      if (!name || !phone || !address) {
+        alert(L==='tr' ? 'Lütfen tüm alanları doldurun.' : L==='ar' ? 'يرجى ملء جميع الحقول.' : L==='de' ? 'Bitte alle Felder ausfüllen.' : L==='fr' ? 'Veuillez remplir tous les champs.' : L==='ru' ? 'Пожалуйста, заполните все поля.' : 'Please fill in all fields.');
+        return;
+      }
+      document.getElementById('coScreen1').style.display = 'none';
+      document.getElementById('coScreen2').style.display = '';
+      _setCheckoutStep(3);
+    });
+
+    document.getElementById('coBack').addEventListener('click', () => {
+      document.getElementById('coScreen2').style.display = 'none';
+      document.getElementById('coScreen1').style.display = '';
+      _setCheckoutStep(2);
+    });
+
+    document.getElementById('deliverySend').addEventListener('click', () => {
+      const payment = document.querySelector('input[name="delPayment"]:checked');
+      const L = state.lang;
+      if (!payment) {
+        alert(L==='tr' ? 'Lütfen bir ödeme yöntemi seçin.' : L==='ar' ? 'يرجى اختيار طريقة الدفع.' : L==='de' ? 'Bitte Zahlungsmethode wählen.' : L==='fr' ? 'Veuillez choisir un mode de paiement.' : L==='ru' ? 'Выберите способ оплаты.' : 'Please select a payment method.');
+        return;
+      }
+      _setCheckoutStep(4);
       const info = {
         name: document.getElementById('delName').value.trim(),
         phone: document.getElementById('delPhone').value.trim(),
         address: document.getElementById('delAddress').value.trim(),
-        payment: document.getElementById('delPayment').value
+        payment: payment.value
       };
       hideDeliveryModal();
       sendToWhatsApp(info);
