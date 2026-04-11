@@ -331,6 +331,38 @@
     .cs-active > span { color:var(--accent); font-weight:700; }
     .cs-line-done { background:var(--accent); }
 
+    /* === Add-to-cart feedback === */
+    @keyframes itemFlash {
+      0%   { background: color-mix(in srgb, var(--accent) 28%, transparent); transform: scale(1.018); }
+      60%  { background: color-mix(in srgb, var(--accent) 16%, transparent); transform: scale(1.006); }
+      100% { background: transparent; transform: scale(1); }
+    }
+    .item-flash { animation: itemFlash 0.45s ease-out forwards; }
+    @keyframes toastIn  { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+    #dho-toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: color-mix(in srgb, var(--accent) 18%, rgba(7,32,51,0.95));
+      border: 1px solid var(--accent); color: var(--text-primary);
+      font-size: 0.82rem; font-weight: 600;
+      padding: 9px 18px; border-radius: 999px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      white-space: nowrap; pointer-events: none; z-index: 9000;
+      display: none;
+    }
+    #dho-toast.toast-show { display: block; animation: toastIn 0.25s ease forwards; }
+    #dho-toast.toast-hide { animation: toastOut 0.3s ease forwards; }
+    /* Cart count badge on checkout button */
+    #cartCountBadge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent-dark); color: var(--accent);
+      font-size: 10px; font-weight: 800;
+      width: 17px; height: 17px; border-radius: 50%;
+      margin-left: 5px; vertical-align: middle;
+      transition: transform 0.2s;
+    }
+    #cartCountBadge.badge-pop { animation: itemFlash 0.3s ease-out; }
+
     /* === Payment method cards === */
     .payment-cards { display:flex; flex-direction:column; gap:8px; }
     .pay-card { display:flex; align-items:center; gap:13px; padding:12px 14px; border-radius:10px; border:2px solid var(--border-light); cursor:pointer; transition:border-color 0.15s, background 0.15s; background:var(--surface-card); user-select:none; }
@@ -441,11 +473,14 @@
         <div id="orderList" class="min-h-[120px]" style="color:var(--text-secondary);"></div>
         <div class="mt-[18px] flex justify-between items-center gap-3">
           <div style="color:var(--text-secondary);"><strong id="totalLabel" class="font-bold">Total</strong><div id="totalPrice">₺0</div></div>
-          <button class="border-none py-[10px] px-[14px] rounded-[10px] font-bold cursor-pointer" style="background:var(--accent); color:var(--accent-dark);" id="checkoutBtn">Checkout</button>
+          <button class="border-none py-[10px] px-[14px] rounded-[10px] font-bold cursor-pointer" style="background:var(--accent); color:var(--accent-dark);" id="checkoutBtn">Checkout <span id="cartCountBadge" style="display:none"></span></button>
         </div>
       </aside>
     </main>
   </div>
+
+  <!-- Toast notification -->
+  <div id="dho-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Lightbox overlay -->
   <div id="lightbox" onclick="this.classList.remove('active')">
@@ -1868,6 +1903,7 @@
           const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
+          itemEl.dataset.itemkey = itemKey;
           if (state.lang === 'ar') itemEl.style.direction = 'ltr';
           itemEl.tabIndex = 0;
           itemEl.setAttribute('role','button');
@@ -2012,6 +2048,46 @@
       if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:orderName, price:prices[itemKey], qty:1 }); }
       recordClick(itemKey);
       renderOrder();
+      _showAddedFeedback(itemKey, orderName);
+    }
+
+    let _toastTimer = null;
+    function _showAddedFeedback(itemKey, name) {
+      // Flash the item card
+      const allItems = document.querySelectorAll('.menu-item');
+      allItems.forEach(el => {
+        if (el.dataset && el.dataset.itemkey === itemKey) {
+          el.classList.remove('item-flash');
+          void el.offsetWidth; // reflow
+          el.classList.add('item-flash');
+          el.addEventListener('animationend', () => el.classList.remove('item-flash'), { once: true });
+        }
+      });
+      // Update cart badge
+      const total = state.order.reduce((s, i) => s + i.qty, 0);
+      const badge = document.getElementById('cartCountBadge');
+      if (badge) {
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-flex' : 'none';
+        badge.classList.remove('badge-pop');
+        void badge.offsetWidth;
+        badge.classList.add('badge-pop');
+        badge.addEventListener('animationend', () => badge.classList.remove('badge-pop'), { once: true });
+      }
+      // Toast
+      const L = state.lang;
+      const addedMsg = { en: `✓ ${name} added`, tr: `✓ ${name} eklendi`, ar: `✓ تم	إضافة ${name}`, es: `✓ ${name} agregado`, de: `✓ ${name} hinzugefügt`, fr: `✓ ${name} ajouté`, ru: `✓ ${name} добавлено` };
+      const toast = document.getElementById('dho-toast');
+      if (!toast) return;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      toast.className = ''; // reset
+      toast.textContent = addedMsg[L] || addedMsg.en;
+      toast.classList.add('toast-show');
+      _toastTimer = setTimeout(() => {
+        toast.classList.remove('toast-show');
+        toast.classList.add('toast-hide');
+        setTimeout(() => { toast.className = ''; }, 320);
+      }, 2500);
     }
 
     function changeQty(idx, delta){
@@ -2026,6 +2102,10 @@
     }
 
     function renderOrder(){
+      // Sync cart badge count
+      const _total = state.order.reduce((s, i) => s + i.qty, 0);
+      const _badge = document.getElementById('cartCountBadge');
+      if (_badge) { _badge.textContent = _total; _badge.style.display = _total > 0 ? 'inline-flex' : 'none'; }
       const list = document.getElementById('orderList');
       list.innerHTML = '';
       const noItems = { en:'No items yet', tr:'Henüz öğe yok', ar:'لا توجد عناصر' };
