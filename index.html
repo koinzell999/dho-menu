@@ -275,9 +275,8 @@
       #aside { padding: 10px !important; }
       #aside h3 { font-size: 0.95rem !important; }
       /* Smaller floating buttons */
-      #backToTop, #collapseAllBtn, #whatsappBtn { width: 36px !important; height: 36px !important; }
+      #backToTop, #collapseAllBtn { width: 36px !important; height: 36px !important; }
       #collapseAllBtn { bottom: 60px !important; }
-      #whatsappBtn { bottom: 108px !important; }
     }
 
     /* === ≥1440px — Large desktops === */
@@ -2199,15 +2198,6 @@
     })();
   </script>
 
-  <!-- WhatsApp floating button -->
-  <a id="whatsappBtn" href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
-     class="fixed z-50 w-10 h-10 rounded-full bg-[#25D366] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center hover:scale-110 no-underline opacity-0 pointer-events-none"
-     style="bottom: 120px; left: 16px; transition: opacity 0.3s, transform 0.2s;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-5 h-5 fill-white shrink-0">
-      <path d="M16.004 2.002c-7.732 0-14.002 6.27-14.002 14.002 0 2.468.657 4.876 1.904 6.988L2 30l7.207-1.87A13.94 13.94 0 0 0 16.004 30c7.732 0 14.002-6.27 14.002-14.002S23.736 2.002 16.004 2.002zm0 25.6a11.56 11.56 0 0 1-5.9-1.616l-.424-.252-4.274 1.108 1.14-4.156-.276-.44a11.56 11.56 0 0 1-1.77-6.244c0-6.392 5.204-11.596 11.604-11.596 6.392 0 11.596 5.204 11.596 11.596S22.396 27.602 16.004 27.602zm6.36-8.676c-.348-.176-2.064-1.02-2.384-1.136-.32-.116-.552-.176-.784.176s-.9 1.136-1.104 1.368c-.204.232-.404.26-.752.088-.348-.176-1.472-.544-2.804-1.732-1.036-.924-1.736-2.064-1.94-2.412-.204-.348-.02-.536.152-.712.156-.156.348-.404.52-.608.176-.204.232-.348.348-.58.116-.232.06-.436-.028-.608-.088-.176-.784-1.892-1.076-2.588-.284-.68-.572-.588-.784-.6-.204-.008-.436-.012-.668-.012s-.608.088-.928.436c-.32.348-1.22 1.192-1.22 2.908s1.248 3.376 1.424 3.608c.176.232 2.46 3.752 5.96 5.264.832.36 1.484.576 1.992.736.836.264 1.596.228 2.2.14.672-.1 2.064-.844 2.356-1.66.288-.816.288-1.516.2-1.66-.088-.148-.32-.232-.668-.408z"/>
-    </svg>
-  </a>
-
   <!-- Collapse All button -->
   <button id="collapseAllBtn" aria-label="Collapse all sections"
      class="fixed z-50 w-10 h-10 rounded-full bg-[#ffd24a] text-[#072033] shadow-[0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-center cursor-pointer hover:scale-110 opacity-0 pointer-events-none"
@@ -2229,7 +2219,6 @@
   <script>
     const backToTopBtn = document.getElementById('backToTop');
     const collapseAllBtn = document.getElementById('collapseAllBtn');
-    const whatsappBtn = document.getElementById('whatsappBtn');
 
     collapseAllBtn.addEventListener('click', () => {
       openSections.clear();
@@ -2246,9 +2235,6 @@
       // Collapse all: show when any section is open
       collapseAllBtn.style.opacity = hasOpen ? '1' : '0';
       collapseAllBtn.style.pointerEvents = hasOpen ? 'auto' : 'none';
-      // WhatsApp: show when any section is open
-      whatsappBtn.style.opacity = hasOpen ? '1' : '0';
-      whatsappBtn.style.pointerEvents = hasOpen ? 'auto' : 'none';
     }
 
     window.addEventListener('scroll', updateFloatingButtons);
