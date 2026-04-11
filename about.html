@@ -49,8 +49,16 @@
 </head>
 <body class="m-0 min-h-screen font-sans antialiased p-3 sm:p-6 flex flex-col items-center" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); color:var(--text-primary);">
 
-  <!-- Theme toggle — top-right -->
+  <!-- Toolbar: Language switcher + Theme toggle —  top-right -->
   <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="en">EN</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="tr">TR</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ar">ع</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="es">ES</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="de">DE</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="fr">FR</button>
+    <button class="about-lang bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ru">RU</button>
+    <span style="color:var(--border-light); margin:0 2px;">|</span>
     <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
   </div>
 
@@ -96,6 +104,39 @@
           <strong style="color:var(--text-primary);">WhatsApp:</strong> <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:var(--accent);">Message us</a>
         </p>
       </div>
+
+      <!-- Opening Hours -->
+      <div class="p-4 rounded-xl" style="background:var(--surface-card); border:1px solid var(--border);">
+        <div class="flex items-center justify-between mb-3">
+          <h2 id="hours-title" class="text-base font-bold m-0" style="color:var(--accent);">Opening Hours</h2>
+          <span id="open-badge" class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3);"></span>
+        </div>
+        <table class="w-full text-sm border-collapse" id="hours-table">
+          <tbody>
+            <tr class="border-b" style="border-color:var(--border-light);">
+              <td id="days-1" class="py-2 pr-3 font-semibold" style="color:var(--text-primary); white-space:nowrap;">Mon – Tue</td>
+              <td class="py-2" style="color:var(--text-secondary);">
+                <div>00:00 – 04:00</div>
+                <div>14:00 – 23:59</div>
+              </td>
+            </tr>
+            <tr class="border-b" style="border-color:var(--border-light);">
+              <td id="days-2" class="py-2 pr-3 font-semibold" style="color:var(--text-primary); white-space:nowrap;">Wed – Thu</td>
+              <td class="py-2" style="color:var(--text-secondary);">
+                <div>00:00 – 02:00</div>
+                <div>14:00 – 23:59</div>
+              </td>
+            </tr>
+            <tr>
+              <td id="days-3" class="py-2 pr-3 font-semibold" style="color:var(--text-primary); white-space:nowrap;">Fri – Sun</td>
+              <td class="py-2" style="color:var(--text-secondary);">
+                <div>00:00 – 04:00</div>
+                <div>14:00 – 23:59</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -113,8 +154,9 @@
     <p>&copy; 2026 DHO. All rights reserved.</p>
   </footer>
 
-  <!-- Theme toggle logic -->
+  <!-- Theme toggle + lang logic -->
   <script>
+    /* ====== Theme ====== */
     (function(){
       var btn = document.getElementById('themeToggle'), root = document.documentElement;
       function getInitialTheme(){
@@ -126,6 +168,95 @@
       function apply(light){ if(light){root.classList.add('light-mode');btn.textContent='☀️';btn.title='Switch to dark mode';}else{root.classList.remove('light-mode');btn.textContent='🌙';btn.title='Switch to light mode';} }
       apply(getInitialTheme() === 'light');
       btn.addEventListener('click',function(){ var g=!root.classList.contains('light-mode'); localStorage.setItem('dho_theme',g?'light':'dark'); apply(g); });
+    })();
+
+    /* ====== Opening Hours i18n ====== */
+    const hoursI18n = {
+      en: {
+        title: 'Opening Hours',
+        days: ['Mon – Tue', 'Wed – Thu', 'Fri – Sun'],
+        open: '🟢 Open now', closed: '🔴 Closed now'
+      },
+      tr: {
+        title: 'Çalışma Saatleri',
+        days: ['Pazartesi – Salı', 'Çarşamba – Perşembe', 'Cuma – Pazar'],
+        open: '🟢 Şu an açık', closed: '🔴 Şu an kapalı'
+      },
+      ar: {
+        title: 'ساعات العمل',
+        days: ['الاثنين – الثلاثاء', 'الأربعاء – الخميس', 'الجمعة – الأحد'],
+        open: '🟢 مفتوح الآن', closed: '🔴 مغلق الآن'
+      },
+      es: {
+        title: 'Horario de apertura',
+        days: ['Lunes – Martes', 'Miércoles – Jueves', 'Viernes – Domingo'],
+        open: '🟢 Abierto ahora', closed: '🔴 Cerrado ahora'
+      },
+      de: {
+        title: 'Öffnungszeiten',
+        days: ['Montag – Dienstag', 'Mittwoch – Donnerstag', 'Freitag – Sonntag'],
+        open: '🟢 Jetzt geöffnet', closed: '🔴 Jetzt geschlossen'
+      },
+      fr: {
+        title: "Horaires d'ouverture",
+        days: ['Lundi – Mardi', 'Mercredi – Jeudi', 'Vendredi – Dimanche'],
+        open: '🟢 Ouvert maintenant', closed: '🔴 Fermé maintenant'
+      },
+      ru: {
+        title: 'Часы работы',
+        days: ['Понедельник – Вторник', 'Среда – Четверг', 'Пятница – Воскресенье'],
+        open: '🟢 Сейчас открыто', closed: '🔴 Сейчас закрыто'
+      }
+    };
+
+    /* Check if currently open based on local time */
+    function isOpenNow() {
+      const now = new Date();
+      const day = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
+      const mins = now.getHours() * 60 + now.getMinutes();
+      // Slots per day-group (in minutes):
+      //   Mon(1),Tue(2),Fri(5),Sat(6),Sun(0): 0-240 | 840-1439
+      //   Wed(3),Thu(4):                       0-120 | 840-1439
+      const earlyClose = [3, 4].includes(day) ? 120 : 240; // 02:00 or 04:00
+      const earlyOpen  = 0;
+      const lateOpen   = 840;  // 14:00
+      const lateClose  = 1439; // 23:59
+      return (mins >= earlyOpen && mins < earlyClose) || (mins >= lateOpen && mins <= lateClose);
+    }
+
+    function applyLang(lang) {
+      const t = hoursI18n[lang] || hoursI18n.en;
+      document.getElementById('hours-title').textContent = t.title;
+      document.getElementById('days-1').textContent = t.days[0];
+      document.getElementById('days-2').textContent = t.days[1];
+      document.getElementById('days-3').textContent = t.days[2];
+      const badge = document.getElementById('open-badge');
+      const open = isOpenNow();
+      badge.textContent = open ? t.open : t.closed;
+      badge.style.background = open ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
+      badge.style.color      = open ? '#22c55e'              : '#ef4444';
+      badge.style.borderColor= open ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+      // RTL for Arabic
+      document.getElementById('hours-table').style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+      // Highlight active button
+      document.querySelectorAll('.about-lang').forEach(btn => {
+        btn.style.background = btn.dataset.lang === lang ? 'var(--accent)' : 'transparent';
+        btn.style.color      = btn.dataset.lang === lang ? 'var(--accent-dark)' : 'var(--text-secondary)';
+      });
+      localStorage.setItem('dho_about_lang', lang);
+    }
+
+    // Init language: prefer what user set in main app, then localStorage, then browser
+    (function(){
+      const stored = localStorage.getItem('dho_about_lang') || localStorage.getItem('dho_lang');
+      const supported = Object.keys(hoursI18n);
+      const browser = (navigator.language || '').split('-')[0].toLowerCase();
+      const lang = (stored && supported.includes(stored)) ? stored
+                 : (supported.includes(browser) ? browser : 'en');
+      applyLang(lang);
+      document.querySelectorAll('.about-lang').forEach(btn => {
+        btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+      });
     })();
   </script>
 
