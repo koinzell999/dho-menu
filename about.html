@@ -100,6 +100,10 @@
         <h2 class="text-base font-bold mb-2" style="color:var(--accent);">Visit Us</h2>
         <p>We'd love to see you! Come by and enjoy the DHO experience in person.</p>
         <p class="mt-2">
+          <strong id="visit-addr-label" style="color:var(--text-primary);">Address:</strong> Stadyum Cd., Yeni Mahallesi, Mezitli, Mersin 33330, Turkey<br/>
+          <a href="https://www.google.com/maps?q=36.752126,34.533231" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:var(--accent);">📍 View on Google Maps</a>
+        </p>
+        <p class="mt-2">
           <strong style="color:var(--text-primary);">Phone:</strong> <a href="tel:+905377177719" class="hover:underline" style="color:var(--accent);">+90 537 717 7719</a><br/>
           <strong style="color:var(--text-primary);">WhatsApp:</strong> <a href="https://wa.me/905377177719" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color:var(--accent);">Message us</a>
         </p>
@@ -175,37 +179,44 @@
       en: {
         title: 'Opening Hours',
         days: ['Mon – Tue', 'Wed – Thu', 'Fri – Sun'],
-        open: '🟢 Open now', closed: '🔴 Closed now'
+        open: '🟢 Open now', closed: '🔴 Closed now',
+        addrLabel: 'Address'
       },
       tr: {
         title: 'Çalışma Saatleri',
         days: ['Pazartesi – Salı', 'Çarşamba – Perşembe', 'Cuma – Pazar'],
-        open: '🟢 Şu an açık', closed: '🔴 Şu an kapalı'
+        open: '🟢 Şu an açık', closed: '🔴 Şu an kapalı',
+        addrLabel: 'Adres'
       },
       ar: {
         title: 'ساعات العمل',
         days: ['الاثنين – الثلاثاء', 'الأربعاء – الخميس', 'الجمعة – الأحد'],
-        open: '🟢 مفتوح الآن', closed: '🔴 مغلق الآن'
+        open: '🟢 مفتوح الآن', closed: '🔴 مغلق الآن',
+        addrLabel: 'العنوان'
       },
       es: {
         title: 'Horario de apertura',
         days: ['Lunes – Martes', 'Miércoles – Jueves', 'Viernes – Domingo'],
-        open: '🟢 Abierto ahora', closed: '🔴 Cerrado ahora'
+        open: '🟢 Abierto ahora', closed: '🔴 Cerrado ahora',
+        addrLabel: 'Dirección'
       },
       de: {
         title: 'Öffnungszeiten',
         days: ['Montag – Dienstag', 'Mittwoch – Donnerstag', 'Freitag – Sonntag'],
-        open: '🟢 Jetzt geöffnet', closed: '🔴 Jetzt geschlossen'
+        open: '🟢 Jetzt geöffnet', closed: '🔴 Jetzt geschlossen',
+        addrLabel: 'Adresse'
       },
       fr: {
         title: "Horaires d'ouverture",
         days: ['Lundi – Mardi', 'Mercredi – Jeudi', 'Vendredi – Dimanche'],
-        open: '🟢 Ouvert maintenant', closed: '🔴 Fermé maintenant'
+        open: '🟢 Ouvert maintenant', closed: '🔴 Fermé maintenant',
+        addrLabel: 'Adresse'
       },
       ru: {
         title: 'Часы работы',
         days: ['Понедельник – Вторник', 'Среда – Четверг', 'Пятница – Воскресенье'],
-        open: '🟢 Сейчас открыто', closed: '🔴 Сейчас закрыто'
+        open: '🟢 Сейчас открыто', closed: '🔴 Сейчас закрыто',
+        addrLabel: 'Адрес'
       }
     };
 
@@ -230,6 +241,7 @@
       document.getElementById('days-1').textContent = t.days[0];
       document.getElementById('days-2').textContent = t.days[1];
       document.getElementById('days-3').textContent = t.days[2];
+      document.getElementById('visit-addr-label').textContent = (t.addrLabel || 'Address') + ':';
       const badge = document.getElementById('open-badge');
       const open = isOpenNow();
       badge.textContent = open ? t.open : t.closed;
