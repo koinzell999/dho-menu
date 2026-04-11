@@ -295,16 +295,35 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="m-0 min-h-screen font-sans bg-gradient-to-b from-[#0b2b4a] to-[#072033] text-[#f7f7f7] antialiased p-2 sm:p-6 flex flex-col items-center">
-  <!-- Language switcher + Theme toggle — top-right -->
-  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);" role="toolbar" aria-label="Language switcher">
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="en">EN</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="tr">TR</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ar">ع</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="es">ES</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="de">DE</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="fr">FR</button>
-    <button class="bg-transparent border-none py-0.5 px-1.5 rounded cursor-pointer font-semibold text-[11px]" style="color:var(--text-secondary);" data-lang="ru">RU</button>
-    <span style="color:var(--border-light); margin:0 2px;">|</span>
+  <!-- Language dropdown — top-left -->
+  <div class="fixed top-2 left-2 z-50" id="langDropdownWrap">
+    <button id="langDropdownBtn"
+      class="flex items-center gap-1.5 backdrop-blur rounded-lg px-2.5 py-1.5 font-semibold text-[12px] cursor-pointer border-none"
+      style="background:var(--toolbar-bg); border:1px solid var(--border-light); color:var(--text-secondary);"
+      aria-haspopup="listbox" aria-expanded="false">
+      <!-- Globe icon -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span id="langDropdownLabel">EN</span>
+      <!-- Chevron -->
+      <svg id="langChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <!-- Dropdown menu -->
+    <div id="langDropdownMenu"
+      class="absolute top-full left-0 mt-1 rounded-xl overflow-hidden backdrop-blur"
+      style="display:none; min-width:110px; background:var(--toolbar-bg); border:1px solid var(--border-light); box-shadow:0 8px 24px var(--shadow);"
+      role="listbox">
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="en">🇬🇧 English</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="tr">🇹🇷 Türkçe</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="ar">🇸🇦 العربية</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="es">🇪🇸 Español</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="de">🇩🇪 Deutsch</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="fr">🇫🇷 Français</button>
+      <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="ru">🇷🇺 Русский</button>
+    </div>
+  </div>
+
+  <!-- Theme toggle + Admin — top-right -->
+  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
     <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
     <a href="admin.html" class="text-[10px] ml-1" style="color:var(--text-secondary); opacity:0.6;">Admin</a>
   </div>
@@ -1644,15 +1663,14 @@
       document.getElementById('totalLabel').textContent = t.totalLabel;
       document.getElementById('checkoutBtn').textContent = t.checkout;
 
-      document.querySelectorAll('[data-lang]').forEach(btn=>{
+      // Update dropdown label to show current active lang
+      const _langLabels = { en:'EN', tr:'TR', ar:'ع', es:'ES', de:'DE', fr:'FR', ru:'RU' };
+      const _lbl = document.getElementById('langDropdownLabel');
+      if (_lbl) _lbl.textContent = _langLabels[state.lang] || state.lang.toUpperCase();
+      document.querySelectorAll('.lang-opt').forEach(btn => {
         const isActive = btn.dataset.lang === state.lang;
-        if(isActive){
-          btn.style.background = 'var(--accent)';
-          btn.style.color = 'var(--accent-dark)';
-        } else {
-          btn.style.background = 'transparent';
-          btn.style.color = 'var(--text-secondary)';
-        }
+        btn.style.background = isActive ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'transparent';
+        btn.style.color = isActive ? 'var(--accent)' : 'var(--text-secondary)';
       });
 
       const menuEl = document.getElementById('menu');
@@ -1910,13 +1928,40 @@
       document.getElementById('totalPrice').textContent = formatPrice(total);
     }
 
-    /* ====== Language switcher ====== */
-    document.querySelectorAll('[data-lang]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        state.lang = btn.dataset.lang;
-        render();
+    /* ====== Language dropdown ====== */
+    (function(){
+      const wrap   = document.getElementById('langDropdownWrap');
+      const btn    = document.getElementById('langDropdownBtn');
+      const menu   = document.getElementById('langDropdownMenu');
+      const chev   = document.getElementById('langChevron');
+
+      function openMenu(){
+        menu.style.display = 'block';
+        chev.style.transform = 'rotate(180deg)';
+        btn.setAttribute('aria-expanded','true');
+      }
+      function closeMenu(){
+        menu.style.display = 'none';
+        chev.style.transform = '';
+        btn.setAttribute('aria-expanded','false');
+      }
+
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        menu.style.display === 'none' ? openMenu() : closeMenu();
       });
-    });
+
+      document.addEventListener('click', ()=> closeMenu());
+      menu.addEventListener('click', (e)=> e.stopPropagation());
+
+      document.querySelectorAll('.lang-opt').forEach(opt =>{
+        opt.addEventListener('click', ()=>{
+          state.lang = opt.dataset.lang;
+          render();
+          closeMenu();
+        });
+      });
+    })();
 
     /* ====== Checkout helpers ====== */
     const RESTAURANT_LAT = 36.752126;
