@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cashier Login — DHO</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <style>
+    html, body { height: 100%; }
+    body {
+      background: linear-gradient(135deg, #072033 0%, #0b2b4a 100%);
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px #0d2d45 inset !important;
+      -webkit-text-fill-color: #f1f5f9 !important;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Brand -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#ffd24a] text-[#072033] text-3xl font-black mb-4 shadow-xl select-none">D</div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">DHO Cashier</h1>
+      <p class="text-[#64748b] text-sm mt-1">Staff access only</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-6 shadow-2xl">
+
+      <div id="errorMsg" class="hidden mb-4 px-4 py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm leading-relaxed"></div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[#94a3b8] text-xs font-semibold uppercase tracking-widest mb-1.5" for="emailInput">Email</label>
+          <input
+            id="emailInput" type="email" autocomplete="email"
+            placeholder="cashier@dho.com"
+            class="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-white/25 bg-white/5 border border-white/12 focus:outline-none focus:border-[#ffd24a]/55 transition-colors"
+          />
+        </div>
+        <div>
+          <label class="block text-[#94a3b8] text-xs font-semibold uppercase tracking-widest mb-1.5" for="passInput">Password</label>
+          <input
+            id="passInput" type="password" autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-white/25 bg-white/5 border border-white/12 focus:outline-none focus:border-[#ffd24a]/55 transition-colors"
+          />
+        </div>
+        <button
+          id="loginBtn"
+          class="w-full py-3 mt-1 rounded-xl bg-[#ffd24a] text-[#072033] font-bold text-sm cursor-pointer hover:bg-[#f5c832] active:scale-[0.98] transition-all"
+        >
+          Sign In
+        </button>
+      </div>
+    </div>
+
+    <p class="text-center text-[#334155] text-xs mt-6">DHO Tat Juices &mdash; Internal Use Only</p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_7ilyQud2-zrMcT4v_JGBKHGTgzXucaE",
+      authDomain: "dho-menu.firebaseapp.com",
+      projectId: "dho-menu",
+      storageBucket: "dho-menu.firebasestorage.app",
+      messagingSenderId: "759293016064",
+      appId: "1:759293016064:web:f0620da51e23d1ecf680e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Redirect if already logged in
+    auth.onAuthStateChanged(user => {
+      if (user) window.location.replace('cashier.html');
+    });
+
+    const loginBtn  = document.getElementById('loginBtn');
+    const errorEl   = document.getElementById('errorMsg');
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('emailInput').value.trim();
+      const pass  = document.getElementById('passInput').value;
+      errorEl.classList.add('hidden');
+
+      if (!email || !pass) { showError('Please enter your email and password.'); return; }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        // onAuthStateChanged handles the redirect
+      } catch (err) {
+        const friendlyMsgs = {
+          'auth/invalid-credential' : 'Invalid email or password.',
+          'auth/user-not-found'     : 'No account found with this email.',
+          'auth/wrong-password'     : 'Incorrect password.',
+          'auth/invalid-email'      : 'Please enter a valid email address.',
+          'auth/too-many-requests'  : 'Too many failed attempts. Please wait a moment.'
+        };
+        showError(friendlyMsgs[err.code] || 'Sign-in failed. Please try again.');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    }
+
+    loginBtn.addEventListener('click', doLogin);
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>

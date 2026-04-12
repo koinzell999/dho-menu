@@ -2580,6 +2580,22 @@
     }
 
     let _toastTimer = null;
+
+    /* ====== Standalone toast helper ====== */
+    function showToast(msg, duration) {
+      const toast = document.getElementById('dho-toast');
+      if (!toast) return;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      toast.className = '';
+      toast.textContent = msg;
+      toast.classList.add('toast-show');
+      _toastTimer = setTimeout(() => {
+        toast.classList.remove('toast-show');
+        toast.classList.add('toast-hide');
+        setTimeout(() => { toast.className = ''; }, 320);
+      }, duration || 3000);
+    }
+
     function _showAddedFeedback(itemKey, name) {
       // Flash the item card
       const allItems = document.querySelectorAll('.menu-item');
@@ -2902,10 +2918,39 @@
     document.getElementById('cartOverlay').addEventListener('click', closeCart);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
 
+    /* ====== Table order → Firestore ====== */
+    async function sendTableOrderToFirestore() {
+      const tableKey = 'table' + state.table;
+      const items    = state.order.map(o => ({ name: o.name, price: o.price, qty: o.qty }));
+      const total    = items.reduce((s, i) => s + i.price * i.qty, 0);
+      try {
+        await db.collection('orders').doc(tableKey).set({
+          tableId   : state.table,
+          items     : items,
+          total     : total,
+          status    : 'new',
+          timestamp : firebase.firestore.FieldValue.serverTimestamp()
+        });
+        state.order = [];
+        renderOrder();
+        closeCart();
+        showToast('🍽 Order sent to kitchen!', 4500);
+      } catch (err) {
+        console.error('Order submit error:', err);
+        showToast('Could not send order — please try again.', 3500);
+      }
+    }
+
     /* ====== Checkout button ====== */
     document.getElementById('checkoutBtn').addEventListener('click', ()=>{
       if(state.order.length === 0){
         alert((state.lang==='tr') ? 'Lütfen önce bir öğe ekleyin.' : (state.lang==='ar') ? 'يرجى إضافة عنصر أولاً.' : 'Please add an item first.');
+        return;
+      }
+
+      // QR table order — send directly to kitchen via Firestore
+      if (state.table) {
+        sendTableOrderToFirestore();
         return;
       }
 

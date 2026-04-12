@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cashier Dashboard — DHO</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    html, body { height: 100%; }
+    body {
+      background: linear-gradient(to bottom, #072033 0%, #061825 100%);
+      min-height: 100vh;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    /* Status badges */
+    .s-badge { display:inline-flex; align-items:center; padding:2px 10px; border-radius:999px; font-size:0.68rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
+    .s-empty    { background:rgba(255,255,255,0.04); color:#475569; border:1px solid rgba(255,255,255,0.08); }
+    .s-new      { background:rgba(255,210,74,0.15);  color:#ffd24a;  border:1px solid rgba(255,210,74,0.35); }
+    .s-preparing{ background:rgba(251,146,60,0.15);  color:#fb923c;  border:1px solid rgba(251,146,60,0.35); }
+    .s-served   { background:rgba(74,222,128,0.15);  color:#4ade80;  border:1px solid rgba(74,222,128,0.30); }
+    .s-paid     { background:rgba(148,163,184,0.12); color:#94a3b8;  border:1px solid rgba(148,163,184,0.22); }
+
+    /* Status action buttons */
+    .act-btn {
+      flex: 1; padding: 7px 6px; border-radius: 10px; font-size: 0.73rem; font-weight: 700;
+      cursor: pointer; transition: all 0.14s; border: 1px solid transparent; text-align: center;
+    }
+    .act-btn-preparing { background:rgba(251,146,60,0.14); color:#fb923c; border-color:rgba(251,146,60,0.32); }
+    .act-btn-preparing:hover { background:rgba(251,146,60,0.28); }
+    .act-btn-served    { background:rgba(74,222,128,0.14); color:#4ade80;  border-color:rgba(74,222,128,0.28); }
+    .act-btn-served:hover    { background:rgba(74,222,128,0.26); }
+    .act-btn-paid      { background:rgba(255,210,74,0.14);  color:#ffd24a;  border-color:rgba(255,210,74,0.28); }
+    .act-btn-paid:hover      { background:rgba(255,210,74,0.26); }
+    .act-btn-disabled  { background:transparent; color:#334155; border-color:rgba(255,255,255,0.05); cursor:not-allowed; }
+
+    /* New order highlight */
+    .card-new { animation: ringPulse 2s ease-out infinite; }
+    @keyframes ringPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,210,74,0); }
+      50%      { box-shadow: 0 0 0 7px rgba(255,210,74,0.18); }
+    }
+
+    /* Card enter */
+    .card-in { animation: cardIn 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes cardIn { from { opacity:0; transform:translateY(8px) scale(0.975); } to { opacity:1; transform:none; } }
+
+    /* Tab */
+    .tab-btn { padding:7px 16px; border-radius:9px; font-size:0.8rem; font-weight:600; cursor:pointer; border:none; transition:all 0.14s; }
+    .tab-btn.active  { background:#ffd24a; color:#072033; }
+    .tab-btn:not(.active) { background:transparent; color:#64748b; }
+    .tab-btn:not(.active):hover { background:rgba(255,255,255,0.07); color:#f1f5f9; }
+
+    /* Daily summary chart bar */
+    .bar-track { height:9px; background:rgba(255,255,255,0.07); border-radius:5px; overflow:hidden; flex:1; }
+    .bar-fill  { height:100%; background:#ffd24a; border-radius:5px; transition:width 0.55s ease; }
+
+    /* Scrollable content area height calc */
+    .main-scroll { min-height: calc(100vh - 56px); }
+  </style>
+</head>
+<body>
+
+  <!-- Auth loader -->
+  <div id="authLoader" class="fixed inset-0 z-50 flex items-center justify-center bg-[#072033]">
+    <div class="text-center">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#ffd24a] text-[#072033] text-2xl font-black mb-4 select-none">D</div>
+      <p class="text-[#64748b] text-sm">Loading dashboard…</p>
+    </div>
+  </div>
+
+  <!-- App shell (hidden until auth confirmed) -->
+  <div id="app" class="hidden min-h-screen flex flex-col">
+
+    <!-- ── Top bar ─────────────────────────────────────────── -->
+    <header class="sticky top-0 z-40 border-b border-white/[0.07]" style="background:rgba(7,32,51,0.92); backdrop-filter:blur(12px);">
+      <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
+
+        <!-- Logo + title -->
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-[#ffd24a] text-[#072033] font-black flex items-center justify-center text-sm select-none">D</div>
+          <span class="font-bold text-white text-sm hidden sm:block">DHO Cashier</span>
+        </div>
+
+        <!-- Live indicator -->
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse"></span>
+          <span class="text-[#4ade80] text-xs font-semibold">Live</span>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="flex gap-1 bg-white/[0.05] rounded-xl p-1 mx-auto">
+          <button class="tab-btn active" data-tab="orders"  onclick="switchTab(this)">Orders</button>
+          <button class="tab-btn"        data-tab="summary" onclick="switchTab(this)">Summary</button>
+        </nav>
+
+        <!-- Kitchen link + sign out -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <a href="kitchen.html" class="hidden sm:inline-flex text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors">
+            🍳 Kitchen
+          </a>
+          <button id="signOutBtn" class="text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors cursor-pointer border-none bg-transparent">
+            Sign Out
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ── Orders tab ──────────────────────────────────────── -->
+    <div id="tabOrders" class="main-scroll max-w-7xl mx-auto w-full px-4 py-5">
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
+          <div id="statNew"      class="text-2xl font-bold text-[#ffd24a]">0</div>
+          <div class="text-[#64748b] text-xs mt-0.5">New</div>
+        </div>
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
+          <div id="statPreparing" class="text-2xl font-bold text-[#fb923c]">0</div>
+          <div class="text-[#64748b] text-xs mt-0.5">Preparing</div>
+        </div>
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
+          <div id="statServed"   class="text-2xl font-bold text-[#4ade80]">0</div>
+          <div class="text-[#64748b] text-xs mt-0.5">Served</div>
+        </div>
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
+          <div id="statRevenue"  class="text-2xl font-bold text-white">₺0</div>
+          <div class="text-[#64748b] text-xs mt-0.5">Today</div>
+        </div>
+      </div>
+
+      <!-- New-order banner -->
+      <div id="newBanner" class="hidden mb-4 px-4 py-3 rounded-xl bg-[#ffd24a]/12 border border-[#ffd24a]/28 text-[#ffd24a] text-sm font-semibold flex items-center gap-2">
+        🔔 New order received!
+      </div>
+
+      <!-- Table grid -->
+      <div id="tableGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- ── Summary tab ─────────────────────────────────────── -->
+    <div id="tabSummary" class="hidden main-scroll max-w-5xl mx-auto w-full px-4 py-5">
+
+      <h2 class="text-lg font-bold text-white mb-5">
+        Daily Summary —
+        <span id="todayDate" class="text-[#ffd24a] font-semibold"></span>
+      </h2>
+
+      <!-- KPI cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Revenue</div>
+          <div id="sumRevenue" class="text-3xl font-bold text-[#ffd24a]">₺0</div>
+        </div>
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Orders Paid</div>
+          <div id="sumOrders" class="text-3xl font-bold text-white">0</div>
+        </div>
+        <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Avg. Order</div>
+          <div id="sumAvg" class="text-3xl font-bold text-white">₺0</div>
+        </div>
+      </div>
+
+      <!-- Top items chart -->
+      <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5 mb-4">
+        <h3 class="text-sm font-bold text-white mb-4">Top Items Today</h3>
+        <div id="topItemsList" class="space-y-3"></div>
+        <p id="noTopItems" class="hidden text-[#475569] text-sm">No paid orders yet today.</p>
+      </div>
+
+      <!-- Order history list -->
+      <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-white">Order History</h3>
+          <button onclick="loadTodaySummary()" class="text-xs text-[#64748b] hover:text-[#ffd24a] cursor-pointer border-none bg-transparent transition-colors">↻ Refresh</button>
+        </div>
+        <div id="historyList" class="space-y-2"></div>
+        <p id="noHistoryList" class="hidden text-[#475569] text-sm">No history yet.</p>
+      </div>
+
+    </div>
+  </div><!-- #app -->
+
+  <script>
+    /* ── Firebase setup ─────────────────────────────────── */
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_7ilyQud2-zrMcT4v_JGBKHGTgzXucaE",
+      authDomain: "dho-menu.firebaseapp.com",
+      projectId: "dho-menu",
+      storageBucket: "dho-menu.firebasestorage.app",
+      messagingSenderId: "759293016064",
+      appId: "1:759293016064:web:f0620da51e23d1ecf680e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    const TABLE_COUNT = 6;
+    let tableOrders    = {};  // tableKey → order data
+    let unsubOrders    = null;
+    let prevOrderCount = -1;  // -1 = first load (no alert)
+    let bannerTimer    = null;
+
+    /* ── Auth guard ─────────────────────────────────────── */
+    auth.onAuthStateChanged(user => {
+      if (!user) { window.location.replace('cashier-login.html'); return; }
+      document.getElementById('authLoader').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      startListening();
+      loadTodaySummary();
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+      if (unsubOrders) unsubOrders();
+      auth.signOut().then(() => window.location.replace('cashier-login.html'));
+    });
+
+    /* ── Real-time listener ─────────────────────────────── */
+    function startListening() {
+      unsubOrders = db.collection('orders').onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'removed') {
+            delete tableOrders[change.doc.id];
+          } else {
+            tableOrders[change.doc.id] = { id: change.doc.id, ...change.doc.data() };
+          }
+        });
+
+        const currentCount = Object.values(tableOrders).filter(o => o.status === 'new').length;
+        if (prevOrderCount !== -1 && currentCount > prevOrderCount) showBanner();
+        prevOrderCount = currentCount;
+
+        renderTableGrid();
+        updateStatCounts();
+      });
+    }
+
+    /* ── Tab switching ──────────────────────────────────── */
+    function switchTab(btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      document.getElementById('tabOrders').classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('tabSummary').classList.toggle('hidden', tab !== 'summary');
+      if (tab === 'summary') loadTodaySummary();
+    }
+
+    /* ── New-order banner ───────────────────────────────── */
+    function showBanner() {
+      const el = document.getElementById('newBanner');
+      el.classList.remove('hidden');
+      if (bannerTimer) clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    /* ── Stats update ───────────────────────────────────── */
+    function updateStatCounts() {
+      const all = Object.values(tableOrders);
+      document.getElementById('statNew').textContent      = all.filter(o => o.status === 'new').length;
+      document.getElementById('statPreparing').textContent = all.filter(o => o.status === 'preparing').length;
+      document.getElementById('statServed').textContent   = all.filter(o => o.status === 'served').length;
+    }
+
+    /* ── Table grid ─────────────────────────────────────── */
+    function renderTableGrid() {
+      const grid = document.getElementById('tableGrid');
+      grid.innerHTML = '';
+
+      for (let t = 1; t <= TABLE_COUNT; t++) {
+        const key   = 'table' + t;
+        const order = tableOrders[key];
+        const card  = document.createElement('div');
+        card.className = 'card-in bg-white/[0.04] border border-white/[0.09] rounded-2xl p-5 flex flex-col gap-3';
+
+        if (order && order.status === 'new') card.classList.add('card-new');
+
+        if (!order) {
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm">Table ${t}</span>
+              <span class="s-badge s-empty">Empty</span>
+            </div>
+            <p class="text-[#334155] text-xs flex-1">No active order</p>`;
+        } else {
+          const total   = (order.items || []).reduce((s, i) => s + i.price * i.qty, 0);
+          const ts      = order.timestamp ? new Date(order.timestamp.seconds * 1000) : null;
+          const timeStr = ts ? ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          const elapsed = ts ? Math.floor((Date.now() - ts.getTime()) / 60000) : null;
+
+          const itemsHtml = (order.items || []).map(i =>
+            `<div class="flex justify-between text-xs text-[#cbd5e1] py-[3px]">
+               <span>${i.name} <span class="text-[#64748b]">× ${i.qty}</span></span>
+               <span class="ml-3 flex-shrink-0">₺${(i.price * i.qty).toFixed(0)}</span>
+             </div>`
+          ).join('');
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-white text-sm">Table ${t}</span>
+              <span class="s-badge s-${order.status}">${capitalize(order.status)}</span>
+            </div>
+            ${timeStr ? `<div class="text-[#475569] text-xs">${timeStr}${elapsed !== null ? ` &nbsp;·&nbsp; ${elapsed === 0 ? 'just now' : elapsed + ' min ago'}` : ''}</div>` : ''}
+            <div class="border-t border-white/[0.07] pt-2 space-y-0">${itemsHtml}</div>
+            <div class="flex items-center justify-between font-bold pt-1.5 border-t border-white/[0.07]">
+              <span class="text-[#64748b] text-xs">Total</span>
+              <span class="text-[#ffd24a]">₺${total.toFixed(0)}</span>
+            </div>
+            <div class="flex gap-2 flex-wrap">${buildButtons(key, order.status)}</div>`;
+        }
+
+        grid.appendChild(card);
+      }
+    }
+
+    function buildButtons(tableKey, status) {
+      const transitions = [
+        { next: 'preparing', label: '⏳ Preparing', from: ['new'] },
+        { next: 'served',    label: '🍽 Served',    from: ['new', 'preparing'] },
+        { next: 'paid',      label: '✅ Paid',       from: ['new', 'preparing', 'served'] }
+      ];
+      return transitions.map(({ next, label, from }) => {
+        const enabled = from.includes(status);
+        const active  = status === next;
+        if (active) return ''; // already on this status, skip
+        const cls = enabled ? `act-btn act-btn-${next}` : 'act-btn act-btn-disabled';
+        const handler = enabled ? `onclick="setStatus('${tableKey}','${next}')"` : 'disabled';
+        return `<button class="${cls}" ${handler}>${label}</button>`;
+      }).join('');
+    }
+
+    async function setStatus(tableKey, newStatus) {
+      try {
+        if (newStatus === 'paid') {
+          const order = tableOrders[tableKey];
+          if (order) {
+            const total = (order.items || []).reduce((s, i) => s + i.price * i.qty, 0);
+            await db.collection('orderHistory').add({
+              tableId  : order.tableId,
+              tableKey : tableKey,
+              items    : order.items || [],
+              total    : total,
+              completedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            await db.collection('orders').doc(tableKey).delete();
+          }
+          return;
+        }
+        await db.collection('orders').doc(tableKey).update({ status: newStatus });
+      } catch (err) {
+        console.error('Status update failed:', err);
+        alert('Could not update order status. Please try again.');
+      }
+    }
+
+    /* ── Daily summary ──────────────────────────────────── */
+    async function loadTodaySummary() {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      document.getElementById('todayDate').textContent =
+        todayStart.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      try {
+        const snap = await db.collection('orderHistory')
+          .where('completedAt', '>=', firebase.firestore.Timestamp.fromDate(todayStart))
+          .get();
+
+        const orders   = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const totalRev = orders.reduce((s, o) => s + (o.total || 0), 0);
+        const count    = orders.length;
+        const avg      = count > 0 ? Math.round(totalRev / count) : 0;
+
+        document.getElementById('sumRevenue').textContent = '₺' + totalRev.toFixed(0);
+        document.getElementById('sumOrders').textContent  = count;
+        document.getElementById('sumAvg').textContent     = '₺' + avg;
+        document.getElementById('statRevenue').textContent = '₺' + totalRev.toFixed(0);
+
+        // Top items bar chart
+        const itemMap = {};
+        orders.forEach(o => (o.items || []).forEach(i => {
+          itemMap[i.name] = (itemMap[i.name] || 0) + i.qty;
+        }));
+        const sorted = Object.entries(itemMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+        const maxQty = sorted[0]?.[1] || 1;
+
+        const topList    = document.getElementById('topItemsList');
+        const noTopItems = document.getElementById('noTopItems');
+        if (sorted.length === 0) {
+          topList.innerHTML = '';
+          noTopItems.classList.remove('hidden');
+        } else {
+          noTopItems.classList.add('hidden');
+          topList.innerHTML = sorted.map(([name, qty]) => `
+            <div class="flex items-center gap-3">
+              <span class="text-[#cbd5e1] text-xs w-40 truncate flex-shrink-0">${name}</span>
+              <div class="bar-track">
+                <div class="bar-fill" style="width:${Math.round((qty / maxQty) * 100)}%"></div>
+              </div>
+              <span class="text-[#ffd24a] text-xs font-bold w-8 text-right flex-shrink-0">×${qty}</span>
+            </div>`).join('');
+        }
+
+        // History list
+        const histList    = document.getElementById('historyList');
+        const noHistList  = document.getElementById('noHistoryList');
+        if (orders.length === 0) {
+          histList.innerHTML = '';
+          noHistList.classList.remove('hidden');
+        } else {
+          noHistList.classList.add('hidden');
+          const sorted2 = [...orders].sort((a, b) =>
+            (b.completedAt?.seconds || 0) - (a.completedAt?.seconds || 0)
+          );
+          histList.innerHTML = sorted2.map(o => {
+            const ts = o.completedAt
+              ? new Date(o.completedAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : '';
+            const tNum = o.tableId || o.tableKey?.replace('table', '') || '?';
+            const iCount = (o.items || []).length;
+            return `
+              <div class="flex items-center justify-between py-2.5 px-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
+                <div>
+                  <span class="text-white text-sm font-semibold">Table ${tNum}</span>
+                  <span class="text-[#475569] text-xs ml-2">${iCount} item${iCount !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-[#ffd24a] font-bold text-sm">₺${(o.total || 0).toFixed(0)}</div>
+                  ${ts ? `<div class="text-[#475569] text-xs">${ts}</div>` : ''}
+                </div>
+              </div>`;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load summary:', err);
+      }
+    }
+
+    function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
+  </script>
+</body>
+</html>
