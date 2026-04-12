@@ -97,6 +97,7 @@
       --toolbar-bg: rgba(11,43,74,0.8);
       --banner-bg: rgba(11,43,74,0.95);
       --logo-shadow: rgba(0,0,0,0.35);
+      --logo-bg: #ffd24a;
     }
 
     /* === CSS Variables — Light mode === */
@@ -118,6 +119,7 @@
       --toolbar-bg: rgba(254,246,231,0.92);
       --banner-bg: rgba(254,246,231,0.95);
       --logo-shadow: rgba(100,60,0,0.15);
+      --logo-bg: #2d1a08;
     }
 
     /* === Smooth theme transition === */
@@ -219,7 +221,7 @@
     .site-banner-logo {
       position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%);
       width: 88px; height: 88px; border-radius: 50%;
-      background: #ffd24a; overflow: hidden; display: block;
+      background: var(--logo-bg); overflow: hidden; display: block;
       box-shadow: 0 6px 22px var(--logo-shadow), 0 0 0 4px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 20%, transparent);
       transition: box-shadow 0.2s;
     }
