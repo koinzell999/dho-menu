@@ -144,6 +144,11 @@
     .menu-item:active { transform: none; }
     .menu-item .item-name { transition: font-size 0.15s ease, letter-spacing 0.15s ease; display: inline-block; }
     .menu-item:hover .item-name, .menu-item:active .item-name { font-size: 1.05em; letter-spacing: 0.3px; }
+    .item-prep-time {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2px;
+      color: var(--text-secondary); opacity: 0.85; margin-top: 2px;
+    }
     .menu-item .item-ingredients {
       display: none;
       font-size: 0.72rem;
@@ -1859,6 +1864,38 @@
       drk3: "grenadine syrup, Sprite, fresh lemon juice, ice"
     };
 
+    /* ====== Preparation Times (minutes) ====== */
+    // Based on food-service industry standards for a café kitchen
+    const prepTimes = {
+      // Waffles: 5-7 min (waffle iron cook time + toppings)
+      waf1:7, waf2:7, waf3:7, waf4:6, waf5:6, waf6:6, waf7:6, waf8:6, waf9:6,
+      // Crepes: 5-7 min (cook both sides + fill)
+      crp1:6, crp2:6, crp3:6, crp4:6, crp5:6, crp6:6, crp7:7, crp8:7,
+      // Ice Cream: 3-4 min (scoop + toppings)
+      ice1:4, ice2:4, ice3:4, ice4:4, ice5:4,
+      // Juices: 3-5 min (fresh squeeze)
+      jui1:4, jui2:4, jui3:4, jui4:4, jui5:5, jui6:5, jui7:5, jui8:5,
+      // Milkshakes: 3-5 min (blend + pour)
+      ms1:4, ms2:4, ms3:4, ms4:4, ms5:4, ms6:4, ms7:5, ms8:5, ms9:5, ms10:5, ms11:5, ms12:5,
+      // Cocktails: 5-7 min (blend fruit + assemble)
+      ckt1:5, ckt2:5, ckt3:5, ckt4:5, ckt5:6, ckt6:6, ckt7:6,
+      ckt8:6, ckt9:6, ckt10:6, ckt11:6, ckt12:7, ckt13:7, ckt14:7,
+      // Special Cocktails: 8-10 min (multiple ingredients + assembly)
+      spc1:8, spc2:8, spc3:8, spc4:9, spc5:9, spc6:10, spc7:10, spc8:10, spc9:10, spc10:10,
+      // Frozen: 5 min (blend + crushed ice)
+      frz1:5, frz2:5, frz3:5, frz4:5,
+      // DHO Pancakes: 8-10 min (batter + griddle cook time)
+      cak1:10, cak2:10, cak3:9, cak4:9, cak5:9, cak6:9, cak7:9, cak8:10,
+      // Fruit Salads: 5-7 min (wash, peel, cut, assemble)
+      sal1:5, sal2:6, sal3:6, sal4:5, sal5:6, sal6:7, sal7:7, sal8:7, sal9:6, sal10:7,
+      // Montos: 6-8 min (layer + decorate)
+      mnt1:6, mnt2:6, mnt3:6, mnt4:6, mnt5:7, mnt6:7, mnt7:7, mnt8:7, mnt9:7, mnt10:8,
+      // Drinks: 2-3 min (mix + pour)
+      drk1:3, drk2:2, drk3:2,
+      // Popular
+      pop1:5
+    };
+
     function render(){
             // Debug: log translation object and menu items in Spanish mode
             if (state.lang === 'es') {
@@ -2004,6 +2041,8 @@
               `</span>`;
           }
 
+          const prepTime = prepTimes[activeKey] ?? prepTimes[itemKey];
+          const prepHTML = prepTime ? `<div class="item-prep-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>~${prepTime} min</div>` : '';
           const isRTL = state.lang === 'ar';
           itemEl.innerHTML = isRTL ? `
             <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
@@ -2011,6 +2050,7 @@
               ${imageHTML}
               <div class="min-w-0">
                 <div class="font-bold item-name flex items-center gap-1 flex-wrap justify-end">${displayName}${sizeHTML}${ingToggleHTML}</div>
+                ${prepHTML}
                 ${descHTML}
                 ${ingHTML}
               </div>
@@ -2020,6 +2060,7 @@
               ${imageHTML}
               <div class="min-w-0">
                 <div class="font-bold item-name flex items-center gap-1 flex-wrap">${displayName}${sizeHTML}${ingToggleHTML}</div>
+                ${prepHTML}
                 ${descHTML}
                 ${ingHTML}
               </div>
