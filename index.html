@@ -2934,7 +2934,8 @@
         state.order = [];
         renderOrder();
         closeCart();
-        showToast('🍽 Order sent to kitchen!', 4500);
+        // Redirect to order status page so customer can track progress
+        window.location.href = 'order-status.html?table=' + state.table;
       } catch (err) {
         console.error('Order submit error:', err);
         showToast('Could not send order — please try again.', 3500);

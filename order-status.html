@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Order Status — DHO</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, #0b2b4a 0%, #072033 100%);
+      color: #f1f5f9;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      align-self: flex-start;
+    }
+    .brand-logo {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: #ffd24a;
+      color: #072033;
+      font-weight: 900;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .brand-name  { font-size: 15px; font-weight: 700; color: #f1f5f9; }
+    .brand-table { font-size: 12px; color: #64748b; margin-top: 1px; }
+
+    /* ── Card ───────────────────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    }
+
+    /* ── Progress stepper ───────────────────────────── */
+    .stepper {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .stepper::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 28px;
+      right: 28px;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      z-index: 0;
+    }
+    .step-track {
+      position: absolute;
+      top: 18px;
+      left: 28px;
+      height: 2px;
+      background: #ffd24a;
+      z-index: 1;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 2;
+      flex: 1;
+    }
+    .step-dot {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      border: 2px solid rgba(255,255,255,0.12);
+      background: #0b2b4a;
+      transition: all 0.4s ease;
+      flex-shrink: 0;
+    }
+    .step-dot.done   { background: #ffd24a; border-color: #ffd24a; color: #072033; }
+    .step-dot.active { background: rgba(255,210,74,0.18); border-color: #ffd24a; color: #ffd24a; animation: dotPulse 1.8s ease-in-out infinite; }
+    .step-dot.served-done { background: #4ade80; border-color: #4ade80; color: #052e16; animation: none; }
+
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(255,210,74,0.35); }
+      50%      { box-shadow: 0 0 0 8px rgba(255,210,74,0); }
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+      color: #475569;
+      transition: color 0.4s;
+      max-width: 70px;
+    }
+    .step-label.active { color: #ffd24a; }
+    .step-label.done   { color: #94a3b8; }
+    .step-label.served-done { color: #4ade80; }
+
+    /* ── Status banner ──────────────────────────────── */
+    .status-banner {
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.5s ease;
+    }
+    .status-banner.state-new {
+      background: rgba(255,210,74,0.08);
+      border-color: rgba(255,210,74,0.28);
+    }
+    .status-banner.state-preparing {
+      background: rgba(251,146,60,0.09);
+      border-color: rgba(251,146,60,0.30);
+    }
+    .status-banner.state-served {
+      background: rgba(74,222,128,0.10);
+      border-color: rgba(74,222,128,0.35);
+      animation: bannerGlow 2s ease-in-out infinite;
+    }
+    @keyframes bannerGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+      50%      { box-shadow: 0 0 18px 2px rgba(74,222,128,0.18); }
+    }
+    .banner-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+    .banner-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .banner-title.state-new      { color: #ffd24a; }
+    .banner-title.state-preparing{ color: #fb923c; }
+    .banner-title.state-served   { color: #4ade80; }
+    .banner-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* ── Items list ─────────────────────────────────── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 13px;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-name { color: #cbd5e1; }
+    .item-qty  { color: #64748b; font-size: 11px; margin-left: 4px; }
+    .item-price{ color: #f1f5f9; font-weight: 600; flex-shrink: 0; margin-left: 12px; }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      margin-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.09);
+      font-weight: 700;
+    }
+    .total-label { color: #64748b; font-size: 13px; }
+    .total-value { color: #ffd24a; font-size: 17px; }
+
+    /* ── Back to menu link ──────────────────────────── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .back-link:hover { color: #ffd24a; border-color: rgba(255,210,74,0.35); }
+
+    /* ── Notification button ────────────────────────── */
+    .notif-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .notif-btn:hover  { color: #ffd24a; border-color: rgba(255,210,74,0.35); }
+    .notif-btn.granted{ color: #4ade80; border-color: rgba(74,222,128,0.30); pointer-events: none; }
+
+    /* ── Thank you screen ───────────────────────────── */
+    .done-screen {
+      display: none;
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .done-screen .done-icon { font-size: 56px; margin-bottom: 16px; }
+    .done-screen .done-title{ font-size: 22px; font-weight: 800; color: #4ade80; margin-bottom: 8px; }
+    .done-screen .done-sub  { font-size: 13px; color: #64748b; line-height: 1.5; }
+
+    /* ── No order screen ──────────────────────────── */
+    .empty-screen {
+      display: none;
+      text-align: center;
+      padding: 32px 20px;
+      color: #475569;
+    }
+    .empty-screen .empty-icon  { font-size: 44px; margin-bottom: 14px; }
+    .empty-screen .empty-title { font-size: 16px; font-weight: 700; color: #64748b; }
+    .empty-screen .empty-sub   { font-size: 12px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <!-- Brand header -->
+  <div class="brand">
+    <div class="brand-logo">D</div>
+    <div>
+      <div class="brand-name">DHO Tat Juices</div>
+      <div class="brand-table" id="tableLabel">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="card" id="mainCard">
+
+    <!-- Stepper -->
+    <div class="stepper" id="stepper">
+      <div class="step-track" id="stepTrack" style="width:0%"></div>
+      <div class="step">
+        <div class="step-dot" id="dot1">📋</div>
+        <div class="step-label" id="lbl1">Order<br>Received</div>
+      </div>
+      <div class="step">
+        <div class="step-dot" id="dot2">👨‍🍳</div>
+        <div class="step-label" id="lbl2">Being<br>Prepared</div>
+      </div>
+      <div class="step">
+        <div class="step-dot" id="dot3">🎉</div>
+        <div class="step-label" id="lbl3">Ready to<br>Serve!</div>
+      </div>
+    </div>
+
+    <!-- Status banner -->
+    <div class="status-banner state-new" id="statusBanner">
+      <span class="banner-icon" id="bannerIcon">⏳</span>
+      <div>
+        <div class="banner-title state-new" id="bannerTitle">Order Received</div>
+        <div class="banner-sub" id="bannerSub">Your order has been sent to the kitchen. Hang tight!</div>
+      </div>
+    </div>
+
+    <!-- Notification button -->
+    <button class="notif-btn" id="notifBtn" onclick="requestNotifPermission()">
+      <span>🔔</span>
+      <span id="notifBtnLabel">Notify me when ready</span>
+    </button>
+
+    <!-- Items -->
+    <div style="margin-top: 20px;">
+      <div class="section-title">Your Order</div>
+      <div id="itemsList"></div>
+      <div class="total-row">
+        <span class="total-label">Total</span>
+        <span class="total-value" id="totalValue">₺0</span>
+      </div>
+    </div>
+
+    <!-- Done & empty screens (hidden initially) -->
+    <div class="done-screen" id="doneScreen">
+      <div class="done-icon">🎉</div>
+      <div class="done-title">Enjoy your meal!</div>
+      <div class="done-sub">Your order has been completed.<br>Thank you for visiting DHO!</div>
+    </div>
+
+    <div class="empty-screen" id="emptyScreen">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">No active order</div>
+      <div class="empty-sub">Scan your table QR code to start an order.</div>
+    </div>
+
+  </div>
+
+  <!-- Back to menu -->
+  <a href="#" id="backLink" class="back-link">
+    ← Back to Menu
+  </a>
+
+  <script>
+    /* ── Firebase ───────────────────────────────────── */
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_7ilyQud2-zrMcT4v_JGBKHGTgzXucaE",
+      authDomain: "dho-menu.firebaseapp.com",
+      projectId: "dho-menu",
+      storageBucket: "dho-menu.firebasestorage.app",
+      messagingSenderId: "759293016064",
+      appId: "1:759293016064:web:f0620da51e23d1ecf680e5"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ── Table from URL ─────────────────────────────── */
+    const params     = new URLSearchParams(window.location.search);
+    const tableParam = params.get('table');
+    const tableNum   = tableParam && /^[1-6]$/.test(tableParam) ? tableParam : null;
+    const tableKey   = tableNum ? 'table' + tableNum : null;
+
+    document.getElementById('tableLabel').textContent = tableNum ? `Table ${tableNum}` : 'Unknown table';
+    document.getElementById('backLink').href = tableNum ? `index.html?table=${tableNum}` : 'index.html';
+
+    /* ── State tracking ─────────────────────────────── */
+    let prevStatus     = null;
+    let notifGranted   = Notification.permission === 'granted';
+
+    /* ── Notification setup ─────────────────────────── */
+    function updateNotifBtn() {
+      const btn   = document.getElementById('notifBtn');
+      const label = document.getElementById('notifBtnLabel');
+      if (Notification.permission === 'granted') {
+        btn.classList.add('granted');
+        label.textContent = 'Notifications enabled ✓';
+      } else if (Notification.permission === 'denied') {
+        btn.style.display = 'none';
+      }
+    }
+    updateNotifBtn();
+
+    async function requestNotifPermission() {
+      if (!('Notification' in window)) return;
+      const perm = await Notification.requestPermission();
+      notifGranted = perm === 'granted';
+      updateNotifBtn();
+    }
+
+    function sendBrowserNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/logo.png', badge: '/logo.png' });
+      }
+    }
+
+    /* ── Audio chime (Web Audio API) ────────────────── */
+    function playChime() {
+      try {
+        const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6 — pleasant chord
+        notes.forEach((freq, i) => {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const t = ctx.currentTime + i * 0.12;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.28, t + 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+          osc.start(t);
+          osc.stop(t + 0.95);
+        });
+      } catch (_) { /* audio unavailable */ }
+    }
+
+    /* ── UI rendering ───────────────────────────────── */
+    const STATUS_CONFIG = {
+      new: {
+        step: 1,
+        bannerClass: 'state-new',
+        icon: '⏳',
+        title: 'Order Received',
+        sub: 'Your order has been sent to the kitchen. Hang tight!',
+        titleClass: 'state-new',
+        track: '0%'
+      },
+      preparing: {
+        step: 2,
+        bannerClass: 'state-preparing',
+        icon: '👨‍🍳',
+        title: 'Being Prepared',
+        sub: 'The kitchen is working on your order right now.',
+        titleClass: 'state-preparing',
+        track: '50%'
+      },
+      served: {
+        step: 3,
+        bannerClass: 'state-served',
+        icon: '🎉',
+        title: 'Ready to Serve!',
+        sub: 'Your order is on its way to your table. Enjoy!',
+        titleClass: 'state-served',
+        track: '100%'
+      }
+    };
+
+    function applyStatus(status) {
+      const cfg = STATUS_CONFIG[status];
+      if (!cfg) return;
+
+      /* Step dots */
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById('dot' + i);
+        const lbl = document.getElementById('lbl' + i);
+        dot.className = 'step-dot';
+        lbl.className = 'step-label';
+        if (i < cfg.step)      { dot.classList.add(status === 'served' && i === 2 ? 'served-done' : 'done'); lbl.classList.add('done'); }
+        else if (i === cfg.step){ dot.classList.add(status === 'served' ? 'served-done' : 'active'); lbl.classList.add(status === 'served' ? 'served-done' : 'active'); }
+      }
+
+      /* Step 1 always done once order exists */
+      if (cfg.step >= 1) {
+        document.getElementById('dot1').className = 'step-dot done';
+        document.getElementById('lbl1').className = 'step-label done';
+      }
+
+      /* Progress track */
+      document.getElementById('stepTrack').style.width = cfg.track;
+
+      /* Banner */
+      const banner = document.getElementById('statusBanner');
+      banner.className = 'status-banner ' + cfg.bannerClass;
+      document.getElementById('bannerIcon').textContent  = cfg.icon;
+      document.getElementById('bannerTitle').textContent = cfg.title;
+      document.getElementById('bannerTitle').className   = 'banner-title ' + cfg.titleClass;
+      document.getElementById('bannerSub').textContent   = cfg.sub;
+    }
+
+    function renderItems(items, total) {
+      const list = document.getElementById('itemsList');
+      list.innerHTML = (items || []).map(i => `
+        <div class="item-row">
+          <span><span class="item-name">${i.name}</span><span class="item-qty">× ${i.qty}</span></span>
+          <span class="item-price">₺${(i.price * i.qty).toFixed(0)}</span>
+        </div>`).join('');
+      document.getElementById('totalValue').textContent = '₺' + (total || 0).toFixed(0);
+    }
+
+    function showOrderView()  {
+      document.getElementById('stepper').style.display    = '';
+      document.getElementById('statusBanner').style.display = '';
+      document.getElementById('itemsList').parentElement.style.display = '';
+      document.getElementById('doneScreen').style.display  = 'none';
+      document.getElementById('emptyScreen').style.display = 'none';
+      document.getElementById('notifBtn').style.display    = Notification.permission === 'denied' ? 'none' : '';
+    }
+
+    function showDoneView() {
+      document.getElementById('stepper').style.display    = 'none';
+      document.getElementById('statusBanner').style.display = 'none';
+      document.getElementById('itemsList').parentElement.style.display = 'none';
+      document.getElementById('doneScreen').style.display  = '';
+      document.getElementById('emptyScreen').style.display = 'none';
+      document.getElementById('notifBtn').style.display    = 'none';
+    }
+
+    function showEmptyView() {
+      document.getElementById('stepper').style.display    = 'none';
+      document.getElementById('statusBanner').style.display = 'none';
+      document.getElementById('itemsList').parentElement.style.display = 'none';
+      document.getElementById('doneScreen').style.display  = 'none';
+      document.getElementById('emptyScreen').style.display = '';
+      document.getElementById('notifBtn').style.display    = 'none';
+    }
+
+    /* ── Real-time listener ─────────────────────────── */
+    if (!tableKey) {
+      showEmptyView();
+    } else {
+      db.collection('orders').doc(tableKey).onSnapshot(snapshot => {
+        if (!snapshot.exists) {
+          // Order was deleted (= marked Paid by cashier)
+          if (prevStatus !== null) {
+            // Had an active order before — show thank you
+            showDoneView();
+          } else {
+            showEmptyView();
+          }
+          return;
+        }
+
+        const data   = snapshot.data();
+        const status = data.status;
+
+        showOrderView();
+        applyStatus(status);
+        renderItems(data.items, data.total);
+
+        // Alert when order becomes "served"
+        if (prevStatus && prevStatus !== 'served' && status === 'served') {
+          playChime();
+          sendBrowserNotification('🎉 Your order is ready!', `Table ${tableNum} — your order is on its way. Enjoy!`);
+        }
+
+        prevStatus = status;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -20,10 +20,12 @@ service cloud.firestore {
     }
 
     // Orders: one document per table (table1 … table6).
+    // - Anyone can read (customers track their own order on the status page).
     // - Authenticated cashier: full read/write (status changes, deletions).
     // - Unauthenticated customer: may only create or update with status = 'new'.
     match /orders/{tableId} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
       allow create: if request.auth == null
                     && request.resource.data.status == 'new';
       allow update: if request.auth == null
