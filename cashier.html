@@ -38,6 +38,8 @@
     .act-btn-paid      { background:rgba(255,210,74,0.14);  color:#ffd24a;  border-color:rgba(255,210,74,0.28); }
     .act-btn-paid:hover      { background:rgba(255,210,74,0.26); }
     .act-btn-disabled  { background:transparent; color:#334155; border-color:rgba(255,255,255,0.05); cursor:not-allowed; }
+    .act-btn-cancel    { background:rgba(239,68,68,0.10); color:#f87171; border-color:rgba(239,68,68,0.28); }
+    .act-btn-cancel:hover { background:rgba(239,68,68,0.22); }
 
     /* New order highlight */
     .card-new { animation: ringPulse 2s ease-out infinite; }
@@ -388,7 +390,9 @@
                 <button id="pay-cash-${key}" class="pay-btn pay-btn-cash" onclick="markPaid('${key}','cash')">💵 Cash</button>
                 <button id="pay-card-${key}" class="pay-btn pay-btn-card" onclick="markPaid('${key}','card')">💳 Card</button>
               </div>
-            </div>`;
+            </div>
+            <!-- Cancel order -->
+            <button class="act-btn act-btn-cancel w-full mt-1" onclick="cancelOrder('${key}')">✕ Cancel Order</button>`;
         }
 
         grid.appendChild(card);
@@ -413,6 +417,20 @@
       } catch (err) {
         console.error('Status update failed:', err);
         alert('Could not update status. Please try again.');
+      }
+    }
+
+    /* ── Cancel Order ─────────────────────────────────────*/
+    async function cancelOrder(tableKey) {
+      const order = tableOrders[tableKey];
+      if (!order) return;
+      const tNum = tableKey.replace('table', '');
+      if (!confirm(`Cancel order for Table ${tNum}? This cannot be undone.`)) return;
+      try {
+        await db.collection('orders').doc(tableKey).delete();
+      } catch (err) {
+        console.error('Cancel failed:', err);
+        alert('Could not cancel the order. Please try again.');
       }
     }
 
