@@ -216,11 +216,11 @@
     #brandName { display: none; }
 
     /* === Site Banner === */
-    .site-banner { position: relative; width: 100%; border-radius: 14px; margin-bottom: 56px; }
-    .site-banner-img { width: 100%; height: 170px; object-fit: cover; object-position: center 40%; border-radius: 14px; display: block; transition: filter 0.25s ease; }
+    .site-banner { position: relative; width: 100%; border-radius: 14px; margin-bottom: 16px; }
+    .site-banner-img { width: 100%; height: 210px; object-fit: cover; object-position: center 40%; border-radius: 14px; display: block; transition: filter 0.25s ease; }
     .light-mode .site-banner-img { filter: invert(1); }
     .site-banner-logo {
-      position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
       width: 88px; height: 88px; border-radius: 50%;
       background: var(--logo-bg); overflow: hidden; display: block;
       box-shadow: 0 6px 22px var(--logo-shadow), 0 0 0 4px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 20%, transparent);
@@ -228,14 +228,14 @@
     }
     .site-banner-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
     @media (max-width: 480px) {
-      .site-banner-img { height: 115px; }
-      .site-banner-logo { width: 72px; height: 72px; bottom: -36px; }
-      .site-banner { margin-bottom: 46px; }
+      .site-banner-img { height: 160px; }
+      .site-banner-logo { width: 72px; height: 72px; bottom: 8px; }
+      .site-banner { margin-bottom: 12px; }
     }
     @media (max-width: 360px) {
-      .site-banner-img { height: 90px; }
-      .site-banner-logo { width: 62px; height: 62px; bottom: -31px; }
-      .site-banner { margin-bottom: 40px; }
+      .site-banner-img { height: 130px; }
+      .site-banner-logo { width: 62px; height: 62px; bottom: 6px; }
+      .site-banner { margin-bottom: 10px; }
     }
 
     /* === Desktop: sticky order sidebar === */
@@ -254,9 +254,9 @@
       .menu-items-grid .menu-item:last-child { border-bottom: none; }
       /* Tighter header on desktop */
       #app > header { margin-bottom: 10px; }
-      .site-banner-img { height: 190px; }
-      .site-banner-logo { width: 96px; height: 96px; bottom: -48px; }
-      .site-banner { margin-bottom: 62px; }
+      .site-banner-img { height: 230px; }
+      .site-banner-logo { width: 96px; height: 96px; bottom: 8px; }
+      .site-banner { margin-bottom: 16px; }
     }
 
     /* === ≤1024px — Small laptops / large tablets === */
