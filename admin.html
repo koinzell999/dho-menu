@@ -125,6 +125,42 @@
         <h2 class="text-lg m-0" style="color:var(--accent);">Update Prices</h2>
         <button id="logoutBtn" type="button" class="text-xs font-semibold px-2 py-1 rounded" style="border:1px solid var(--border-light); color:var(--text-secondary); background:transparent;">Logout</button>
       </div>
+
+      <!-- ── Staff Tools ─────────────────────────────────── -->
+      <div class="mb-6 rounded-xl overflow-hidden" style="border:1px solid var(--border-light);">
+        <div class="flex items-center justify-between px-4 py-2.5" style="background:var(--surface-card); border-bottom:1px solid var(--border-light);">
+          <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-secondary);">Staff Tools</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 p-4">
+
+          <!-- Cashier Dashboard -->
+          <a href="cashier.html" target="_blank" rel="noopener"
+             class="flex flex-col items-start gap-2 p-4 rounded-xl cursor-pointer transition-all"
+             style="background:color-mix(in srgb,var(--accent) 8%,transparent); border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);"
+             onmouseover="this.style.background='color-mix(in srgb,var(--accent) 15%,transparent)'"
+             onmouseout="this.style.background='color-mix(in srgb,var(--accent) 8%,transparent)'">
+            <span class="text-2xl leading-none">🧾</span>
+            <div>
+              <div class="text-sm font-bold" style="color:var(--text-primary);">Cashier</div>
+              <div class="text-xs mt-0.5" style="color:var(--text-secondary);">Orders &amp; status</div>
+            </div>
+          </a>
+
+          <!-- Kitchen View -->
+          <a href="kitchen.html" target="_blank" rel="noopener"
+             class="flex flex-col items-start gap-2 p-4 rounded-xl cursor-pointer transition-all"
+             style="background:rgba(251,146,60,0.08); border:1px solid rgba(251,146,60,0.28);"
+             onmouseover="this.style.background='rgba(251,146,60,0.15)'"
+             onmouseout="this.style.background='rgba(251,146,60,0.08)'">
+            <span class="text-2xl leading-none">🍳</span>
+            <div>
+              <div class="text-sm font-bold" style="color:var(--text-primary);">Kitchen</div>
+              <div class="text-xs mt-0.5" style="color:var(--text-secondary);">Active orders only</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
       <div class="mb-4 relative">
         <input type="text" id="priceSearch" placeholder="Search item…" class="w-full p-2 pl-8 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="off">
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
