@@ -9,6 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
   <style>
     html, body { height: 100%; }
     body {
@@ -119,8 +120,9 @@
 
         <!-- Tabs -->
         <nav class="flex gap-1 bg-white/[0.05] rounded-xl p-1 mx-auto">
-          <button class="tab-btn active" data-tab="orders"  onclick="switchTab(this)">Orders</button>
-          <button class="tab-btn"        data-tab="summary" onclick="switchTab(this)">Summary</button>
+          <button class="tab-btn active" data-tab="orders"   onclick="switchTab(this)">Orders</button>
+          <button class="tab-btn"        data-tab="summary"  onclick="switchTab(this)">Summary</button>
+          <button class="tab-btn"        data-tab="insights" onclick="switchTab(this)">✨ Insights</button>
         </nav>
 
         <!-- Kitchen link + sign out -->
@@ -245,6 +247,49 @@
       </div>
 
     </div>
+
+    <!-- ── Insights tab ──────────────────────────────────────── -->
+    <div id="tabInsights" class="hidden main-scroll max-w-4xl mx-auto w-full px-4 py-5 space-y-5">
+
+      <!-- Date picker + Run button -->
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <h2 class="text-lg font-bold text-white">AI Insights</h2>
+        <div class="flex items-center gap-2">
+          <input id="insightDate" type="date" class="bg-white/[0.06] border border-white/[0.12] text-white text-xs rounded-lg px-3 py-1.5 outline-none" />
+          <button id="runAnalysisBtn" onclick="runAIAnalysis()" class="text-xs font-bold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-4 py-1.5 rounded-lg cursor-pointer transition-colors">✨ Analyze</button>
+        </div>
+      </div>
+
+      <!-- Status / spinner -->
+      <div id="insightStatus" class="hidden text-[#64748b] text-sm flex items-center gap-2">
+        <svg class="animate-spin w-4 h-4 text-[#ffd24a]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        <span id="insightStatusText">Analyzing…</span>
+      </div>
+
+      <!-- AI Summary card -->
+      <div id="insightSummaryCard" class="hidden bg-white/[0.04] border border-[#ffd24a]/20 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-[#ffd24a] uppercase tracking-widest">AI Analysis</h3>
+          <span id="insightDateLabel" class="text-[#475569] text-xs"></span>
+        </div>
+        <pre id="insightText" class="whitespace-pre-wrap text-[#cbd5e1] text-sm leading-relaxed font-sans"></pre>
+      </div>
+
+      <!-- CSV download row -->
+      <div id="insightCSVRow" class="hidden flex gap-2">
+        <button id="dlDailyCSV"  class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-3 py-1.5 rounded-lg cursor-pointer">⬇ Daily CSV</button>
+        <button id="dlMinuteCSV" class="text-xs font-semibold text-[#64748b] hover:text-white border border-white/[0.12] bg-transparent px-3 py-1.5 rounded-lg cursor-pointer">⬇ Minute CSV</button>
+      </div>
+
+      <!-- Historical analyses -->
+      <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5">
+        <h3 class="text-sm font-bold text-white mb-4">Analysis History</h3>
+        <div id="insightHistory" class="space-y-3"></div>
+        <p id="noInsightHistory" class="hidden text-[#475569] text-sm">No analyses saved yet.</p>
+      </div>
+
+    </div>
+
   </div><!-- #app -->
 
   <script>
@@ -317,9 +362,11 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const tab = btn.dataset.tab;
-      document.getElementById('tabOrders').classList.toggle('hidden', tab !== 'orders');
-      document.getElementById('tabSummary').classList.toggle('hidden', tab !== 'summary');
-      if (tab === 'summary') loadTodaySummary();
+      document.getElementById('tabOrders').classList.toggle('hidden',   tab !== 'orders');
+      document.getElementById('tabSummary').classList.toggle('hidden',  tab !== 'summary');
+      document.getElementById('tabInsights').classList.toggle('hidden', tab !== 'insights');
+      if (tab === 'summary')  loadTodaySummary();
+      if (tab === 'insights') loadInsights();
     }
 
     /* ── New-order banner ───────────────────────────────── */
@@ -487,6 +534,22 @@
         });
         await analyticsRef.set(analyticsUpdate, { merge: true });
 
+        /* 4 — minute-level analytics */
+        const minuteKey = new Date().toLocaleTimeString('en-GB', {
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }); // HH:MM
+        const minuteRef = db.collection('analytics').doc(dateKey)
+          .collection('minutes').doc(minuteKey);
+        const minuteUpdate = {
+          totalSales : FV.increment(total),
+          orderCount : FV.increment(1),
+          [`${method}Sales`] : FV.increment(total),
+        };
+        (order.items || []).forEach(i => {
+          minuteUpdate[`itemsSold.${sanitizeKey(i.name)}`] = FV.increment(i.qty);
+        });
+        await minuteRef.set(minuteUpdate, { merge: true });
+
         // Refresh summary if on that tab
         if (!document.getElementById('tabSummary').classList.contains('hidden')) {
           loadTodaySummary();
@@ -645,6 +708,98 @@
       } catch (err) {
         console.error('Failed to load summary:', err);
       }
+    }
+
+    /* ── Insights tab ──────────────────────────────────────── */
+    async function loadInsights() {
+      // Set default date to today
+      const dateInput = document.getElementById('insightDate');
+      if (!dateInput.value) dateInput.value = todayKey();
+
+      // Load history
+      try {
+        const snap = await db.collection('aiSummaries')
+          .orderBy('analyzedAt', 'desc').limit(10).get();
+        const histEl   = document.getElementById('insightHistory');
+        const noHistEl = document.getElementById('noInsightHistory');
+        if (snap.empty) {
+          histEl.innerHTML = ''; noHistEl.classList.remove('hidden');
+        } else {
+          noHistEl.classList.add('hidden');
+          histEl.innerHTML = snap.docs.map(d => {
+            const data = d.data();
+            const ts   = data.analyzedAt
+              ? new Date(data.analyzedAt.seconds * 1000).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+              : '';
+            return `
+              <div class="border border-white/[0.08] rounded-xl p-4 cursor-pointer hover:bg-white/[0.04] transition-colors" onclick="showStoredSummary(${JSON.stringify(data.dateKey)}, ${JSON.stringify(data.summary)})">
+                <div class="flex items-center justify-between">
+                  <span class="text-white font-semibold text-sm">${data.dateKey}</span>
+                  <span class="text-[#475569] text-xs">${ts}</span>
+                </div>
+                <p class="text-[#64748b] text-xs mt-1 line-clamp-2">${(data.summary || '').replace(/\n/g, ' ').substring(0, 120)}…</p>
+              </div>`;
+          }).join('');
+        }
+      } catch (err) { console.error('History load failed:', err); }
+    }
+
+    function showStoredSummary(dateKey, summary) {
+      document.getElementById('insightText').textContent = summary;
+      document.getElementById('insightDateLabel').textContent = dateKey;
+      document.getElementById('insightSummaryCard').classList.remove('hidden');
+      document.getElementById('insightSummaryCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function runAIAnalysis() {
+      const dateKey  = document.getElementById('insightDate').value || todayKey();
+      const statusEl = document.getElementById('insightStatus');
+      const statusTx = document.getElementById('insightStatusText');
+      const btn      = document.getElementById('runAnalysisBtn');
+
+      // Show spinner
+      btn.disabled = true;
+      statusEl.classList.remove('hidden');
+      statusTx.textContent = 'Requesting AI analysis… this may take 30–60 seconds.';
+      document.getElementById('insightSummaryCard').classList.add('hidden');
+      document.getElementById('insightCSVRow').classList.add('hidden');
+
+      try {
+        const analyzeDay = firebase.functions().httpsCallable('analyzeDay');
+        const result     = await analyzeDay({ dateKey });
+        const { aiSummary, csvDaily, csvMinutes } = result.data;
+
+        // Display summary
+        document.getElementById('insightText').textContent = aiSummary || '(No response from AI)';
+        document.getElementById('insightDateLabel').textContent = dateKey;
+        document.getElementById('insightSummaryCard').classList.remove('hidden');
+
+        // Wire CSV download buttons
+        const csvRow = document.getElementById('insightCSVRow');
+        csvRow.classList.remove('hidden');
+        document.getElementById('dlDailyCSV').onclick  = () => triggerCSVDownload(csvDaily,  `DHO-Daily-${dateKey}.csv`);
+        document.getElementById('dlMinuteCSV').onclick = () => triggerCSVDownload(csvMinutes, `DHO-Minutes-${dateKey}.csv`);
+
+        statusTx.textContent = 'Analysis complete.';
+        setTimeout(() => statusEl.classList.add('hidden'), 3000);
+
+        // Refresh history list
+        loadInsights();
+
+      } catch (err) {
+        console.error('Analysis error:', err);
+        statusTx.textContent = `Error: ${err.message || 'Analysis failed.'}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function triggerCSVDownload(csvContent, filename) {
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
     }
 
     /* ── CSV Export ─────────────────────────────────────── */

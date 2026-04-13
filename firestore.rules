@@ -42,6 +42,17 @@ service cloud.firestore {
     // Only authenticated cashier can read/write.
     match /analytics/{dateId} {
       allow read, write: if request.auth != null;
+
+      // Minute-level sub-documents (HH:MM keys)
+      match /minutes/{minuteId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // AI summaries: written by Cloud Functions, read by cashier.
+    match /aiSummaries/{dateId} {
+      allow read: if request.auth != null;
+      allow write: if false; // written only by Cloud Functions (admin SDK)
     }
 
     // Deny everything else by default.
