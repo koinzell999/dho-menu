@@ -19,9 +19,14 @@
     <div class="text-center mb-10 no-print">
       <h1 class="text-3xl font-bold text-[#072033] mb-1">DHO Menu — Table QR Codes</h1>
       <p class="text-[#555]">Print and place each QR code on the corresponding table</p>
-      <button onclick="window.print()" class="mt-4 bg-[#ffd24a] text-[#072033] py-2 px-8 rounded-lg font-bold cursor-pointer text-sm shadow">
-        Print All QR Codes
-      </button>
+      <div class="flex justify-center gap-3 mt-4 flex-wrap">
+        <a href="index.html" class="bg-[#072033] text-[#ffd24a] py-2 px-8 rounded-lg font-bold text-sm shadow inline-block">
+          ← Return to Menu
+        </a>
+        <button onclick="window.print()" class="bg-[#ffd24a] text-[#072033] py-2 px-8 rounded-lg font-bold cursor-pointer text-sm shadow">
+          Print All QR Codes
+        </button>
+      </div>
     </div>
 
     <!-- QR Grid -->

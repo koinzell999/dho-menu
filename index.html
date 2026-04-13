@@ -1924,6 +1924,7 @@
     let prices = { ...defaultPrices };
     let hiddenItems = {};
     let imageOverrides = {};
+    let customItems = {};
     let weeklyPopularItems = [];
 
     /* ====== Weekly click tracking ====== */
@@ -1984,18 +1985,37 @@
           db.collection("prices").doc("menu").get(),
           db.collection("settings").doc("menu").get()
         ]);
+        let remotePrices = null;
         if (priceDoc.exists) {
-          const remote = priceDoc.data();
+          remotePrices = priceDoc.data();
           // Only apply remote prices for keys that exist in the current menu
           const merged = { ...defaultPrices };
           for (const key of Object.keys(defaultPrices)) {
-            if (remote[key] !== undefined) merged[key] = remote[key];
+            if (remotePrices[key] !== undefined) merged[key] = remotePrices[key];
           }
           prices = merged;
         }
         if (settingsDoc.exists) {
           hiddenItems = settingsDoc.data().hiddenItems || {};
           imageOverrides = settingsDoc.data().imageOverrides || {};
+          customItems = settingsDoc.data().customItems || {};
+          // Inject custom items into the menu
+          for (const [key, item] of Object.entries(customItems)) {
+            if (!item || !item.name || !item.category) continue;
+            const itemEntry = { name: item.name, desc: '' };
+            for (const lang of supportedLangs) {
+              if (translations[lang] && translations[lang].items) {
+                translations[lang].items[key] = itemEntry;
+              }
+            }
+            if (translations.es && translations.es.items) translations.es.items[key] = itemEntry;
+            if (item.ingredients) itemIngredients[key] = item.ingredients;
+            const cat = menuStructure.find(c => c.key === item.category);
+            if (cat && !cat.items.includes(key)) cat.items.push(key);
+            // Apply price: prefer remotePrices, fall back to what was stored in customItem
+            if (remotePrices && remotePrices[key] !== undefined) prices[key] = remotePrices[key];
+            else if (item.price !== undefined) prices[key] = item.price;
+          }
         }
       } catch (e) {
         console.error("Error loading prices:", e);
@@ -2424,6 +2444,7 @@
           const activePrice = prices[activeKey];
           const displayName = hasSizes ? stripSizeFromName(itemData.name) : itemData.name;
           const currentImage = resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
+          if (!currentImage) return; // hide items without a photo
           const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
@@ -2467,7 +2488,7 @@
           }
 
           const prepTime = prepTimes[activeKey] ?? prepTimes[itemKey];
-          const prepHTML = prepTime ? `<div class="item-prep-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>~${prepTime} min</div>` : '';
+          const prepHTML = ''; // hidden until prep times are accurate
           const isRTL = state.lang === 'ar';
           itemEl.innerHTML = isRTL ? `
             <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>

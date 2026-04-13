@@ -157,6 +157,55 @@
 
         </div>
       </div>
+      <!-- ── Add New Item ───────────────────────────────── -->
+      <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(74,222,128,0.25); overflow:hidden;">
+        <button type="button" onclick="toggleAddItemForm()" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 16px; background:rgba(74,222,128,0.08); border:none; border-bottom:0; cursor:pointer;">
+          <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#4ade80;">➕ Add New Item</span>
+          <span id="addItemToggleIcon" style="color:#4ade80; font-size:14px;">▸</span>
+        </button>
+        <div id="addItemFormBody" style="display:none; padding:14px; border-top:1px solid rgba(74,222,128,0.18);">
+          <div style="display:grid; gap:10px;">
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Item Name *</label>
+              <input id="newItemName" type="text" placeholder="e.g. Nutella Waffle" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Category *</label>
+              <select id="newItemCategory" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;">
+                <option value="">— Select category —</option>
+                <option value="waffles">🧇 Waffles</option>
+                <option value="crepes">🥞 Crepes</option>
+                <option value="icecream">🍨 Ice Cream</option>
+                <option value="juices">🧃 Juices</option>
+                <option value="milkshakes">🥤 Milkshakes</option>
+                <option value="cocktails">🍹 Cocktails</option>
+                <option value="specialcocktails">👑 Special Cocktails</option>
+                <option value="frozen">🍧 Frozen</option>
+                <option value="dhocakes">🍰 DHO Cakes</option>
+                <option value="salads">🥗 Fruit Salads</option>
+                <option value="montos">🍓 Montos</option>
+                <option value="mojitos">🍸 Mojitos</option>
+                <option value="drinks">🥤 Drinks</option>
+                <option value="desserts">🍮 Desserts</option>
+                <option value="combos">🍱 Combos</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Price (₺) *</label>
+              <input id="newItemPrice" type="number" min="0" placeholder="350" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ingredients</label>
+              <input id="newItemIngredients" type="text" placeholder="e.g. waffle batter, Nutella, banana" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" />
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button type="button" onclick="addNewCustomItem()" style="padding:8px 18px; border-radius:8px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:12px; font-weight:700; cursor:pointer;">Add Item</button>
+              <span id="addItemMsg" style="font-size:12px; display:none;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="mb-4 relative">
         <input type="text" id="priceSearch" placeholder="Search item…" class="w-full p-2 pl-8 rounded text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="off">
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
@@ -311,6 +360,7 @@
     let prices = { ...defaultPrices };
     let hiddenItems = {};
     let imageOverrides = {};
+    let customItems = {};
     let collapsedCats = {};
     let idleTimer = null;
     const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
@@ -403,6 +453,7 @@
         if (settingsDoc.exists) {
           hiddenItems = settingsDoc.data().hiddenItems || {};
           imageOverrides = settingsDoc.data().imageOverrides || {};
+          customItems = settingsDoc.data().customItems || {};
         }
       } catch (err) {
         console.error("Failed to load prices:", err);
@@ -422,7 +473,7 @@
     }
 
     async function persistMenuSettings() {
-      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides }, { merge: true });
+      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems }, { merge: true });
     }
 
     function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
@@ -527,6 +578,96 @@
           rowsWrap.appendChild(div);
         });
       });
+
+      // ── Custom items ─────────────────────────────────────
+      const catDisplayNames = {
+        waffles:"🧇 Waffle'lar", crepes:"🥞 Krepler", icecream:"🍨 Dondurmalar",
+        juices:"🧃 Meyve Suları", milkshakes:"🥤 Milkshake'ler", cocktails:"🍹 Kokteyller",
+        specialcocktails:"👑 Özel Kokteyller", frozen:"🍧 Frozen", dhocakes:"🍰 DHO Kekler",
+        salads:"🥗 Meyve Salataları", montos:"🍓 Montos", mojitos:"🍸 Mojitos",
+        drinks:"🥤 İçecekler", desserts:"🍮 Desserts", combos:"🍱 Combos", popular:"⭐ Popular"
+      };
+
+      // Group custom items by their assigned category
+      const customByCat = {};
+      for (const [key, item] of Object.entries(customItems)) {
+        const cat = item.category || 'other';
+        if (!customByCat[cat]) customByCat[cat] = [];
+        customByCat[cat].push(key);
+      }
+
+      for (const [catKey, keys] of Object.entries(customByCat)) {
+        const catLabel = catDisplayNames[catKey] || catKey;
+
+        // Find existing section or create one
+        let section = Array.from(container.querySelectorAll('.cat-section'))
+          .find(s => s.dataset.cat === catLabel);
+        let rowsWrap;
+
+        if (!section) {
+          section = document.createElement('div');
+          section.className = 'cat-section mt-2';
+          section.dataset.cat = catLabel;
+          const headerBtn = document.createElement('button');
+          headerBtn.type = 'button';
+          headerBtn.className = 'cat-header-btn';
+          headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[catLabel] ? '▸' : '▾'}</span>`;
+          rowsWrap = document.createElement('div');
+          rowsWrap.className = `cat-rows ${collapsedCats[catLabel] ? 'hidden' : ''}`;
+          headerBtn.addEventListener('click', () => {
+            collapsedCats[catLabel] = !collapsedCats[catLabel];
+            rowsWrap.classList.toggle('hidden', collapsedCats[catLabel]);
+            headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[catLabel] ? '▸' : '▾'}</span>`;
+          });
+          section.appendChild(headerBtn);
+          section.appendChild(rowsWrap);
+          container.appendChild(section);
+        } else {
+          rowsWrap = section.querySelector('.cat-rows');
+        }
+
+        for (const key of keys) {
+          const item = customItems[key];
+          if (!item) continue;
+          const isHidden = !!hiddenItems[key];
+          const hasCustomImage = !!imageOverrides[key];
+          const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || '';
+          const currentPrice = prices[key] !== undefined ? prices[key] : (item.price || 0);
+          const safeName = (item.name || key).replace(/'/g, "\\'");
+
+          const div = document.createElement('div');
+          div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
+          div.dataset.name = (item.name || '').toLowerCase();
+          div.dataset.key = key;
+          div.dataset.hidden = isHidden ? '1' : '0';
+          div.dataset.custom = '1';
+          div.innerHTML = `
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              ${imgSrc
+                ? `<img src="${imgSrc}" alt="${item.name}" class="img-preview" referrerpolicy="no-referrer" />`
+                : `<div class="img-preview flex items-center justify-center" style="background:var(--surface-card); border:1px dashed var(--border-light); font-size:9px; color:var(--text-secondary);">No img</div>`}
+              <div>
+                <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${item.name || key}</label>
+                <div style="font-size:10px; color:var(--text-secondary);">Custom · ${catLabel}</div>
+              </div>
+            </div>
+            <div class="w-full sm:w-auto">
+              <div class="flex w-full sm:w-auto items-center gap-2 flex-wrap">
+                <input type="number" name="${key}" value="${currentPrice}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
+                <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
+                <button type="button" onclick="deleteCustomItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">Delete</button>
+              </div>
+              <div class="img-tools">
+                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">Upload</button>
+                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">URL</button>
+                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">Reset</button>
+                <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
+              </div>
+            </div>
+          `;
+          rowsWrap.appendChild(div);
+        }
+      }
 
       // Re-apply active filters after redraw.
       filterPrices(document.getElementById('priceSearch').value || '');
@@ -711,6 +852,95 @@
         });
     });
   </script>
+
+  <script>
+    /* ── Add New Item ──────────────────────────────────── */
+    function toggleAddItemForm() {
+      const body = document.getElementById('addItemFormBody');
+      const icon = document.getElementById('addItemToggleIcon');
+      const isHidden = body.style.display === 'none' || body.style.display === '';
+      body.style.display = isHidden ? 'block' : 'none';
+      icon.textContent = isHidden ? '▾' : '▸';
+    }
+
+    function showAddItemMsg(text, color) {
+      const el = document.getElementById('addItemMsg');
+      el.textContent = text;
+      el.style.color = color === 'green' ? '#4ade80' : '#f87171';
+      el.style.display = 'inline';
+    }
+
+    async function addNewCustomItem() {
+      const name = document.getElementById('newItemName').value.trim();
+      const category = document.getElementById('newItemCategory').value;
+      const priceStr = document.getElementById('newItemPrice').value;
+      const ingredients = document.getElementById('newItemIngredients').value.trim();
+
+      if (!name || !category || !priceStr) {
+        showAddItemMsg('Please fill in name, category and price.', 'red');
+        return;
+      }
+      const price = parseInt(priceStr);
+      if (isNaN(price) || price < 0) {
+        showAddItemMsg('Please enter a valid price.', 'red');
+        return;
+      }
+
+      const key = 'cust_' + Date.now();
+      customItems[key] = { name, category, price, ingredients, createdAt: Date.now() };
+      prices[key] = price;
+
+      try {
+        await Promise.all([
+          persistMenuSettings(),
+          db.collection('prices').doc('menu').set({ [key]: price }, { merge: true })
+        ]);
+        document.getElementById('newItemName').value = '';
+        document.getElementById('newItemCategory').value = '';
+        document.getElementById('newItemPrice').value = '';
+        document.getElementById('newItemIngredients').value = '';
+        showAddItemMsg('Item added successfully!', 'green');
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+        setTimeout(() => { document.getElementById('addItemMsg').style.display = 'none'; }, 3000);
+      } catch (err) {
+        delete customItems[key];
+        delete prices[key];
+        showAddItemMsg('Error: ' + err.message, 'red');
+      }
+    }
+
+    async function deleteCustomItem(key) {
+      const itemName = (customItems[key] && customItems[key].name) || key;
+      if (!confirm('Delete "' + itemName + '"? This cannot be undone.')) return;
+      const backup = customItems[key];
+      const priceBackup = prices[key];
+
+      const overrideData = imageOverrides[key];
+      if (overrideData && typeof overrideData === 'object' && overrideData.path) {
+        try { await storage.ref(overrideData.path).delete(); } catch (_) {}
+      }
+      delete imageOverrides[key];
+      delete hiddenItems[key];
+      delete customItems[key];
+      delete prices[key];
+
+      try {
+        await Promise.all([
+          persistMenuSettings(),
+          db.collection('prices').doc('menu').update({ [key]: firebase.firestore.FieldValue.delete() })
+        ]);
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      } catch (err) {
+        customItems[key] = backup;
+        prices[key] = priceBackup;
+        if (overrideData) imageOverrides[key] = overrideData;
+        alert('Error deleting item: ' + err.message);
+      }
+    }
+  </script>
+
   <script>
     const backToTopBtn = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
