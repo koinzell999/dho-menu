@@ -198,6 +198,18 @@
               <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ingredients</label>
               <input id="newItemIngredients" type="text" placeholder="e.g. waffle batter, Nutella, banana" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" />
             </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Image</label>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <button type="button" onclick="document.getElementById('newItemFileInput').click()" class="img-btn" style="font-size:12px; padding:6px 12px;">📁 Upload from device</button>
+                <button type="button" onclick="pickNewItemImageUrl()" class="img-btn" style="font-size:12px; padding:6px 12px;">🔗 Paste URL</button>
+                <button type="button" onclick="clearNewItemImage()" class="img-btn" id="newItemClearBtn" style="font-size:12px; padding:6px 12px; display:none;">✕ Remove</button>
+                <input id="newItemFileInput" type="file" accept="image/*" style="display:none" onchange="pickNewItemImageFile(this)" />
+              </div>
+              <div id="newItemImagePreviewWrap" style="display:none; margin-top:8px;">
+                <img id="newItemImagePreview" src="" alt="Preview" style="width:80px; height:60px; object-fit:cover; border-radius:8px; border:1px solid var(--border-light);" />
+              </div>
+            </div>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
               <button type="button" onclick="addNewCustomItem()" style="padding:8px 18px; border-radius:8px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:12px; font-weight:700; cursor:pointer;">Add Item</button>
               <span id="addItemMsg" style="font-size:12px; display:none;"></span>
@@ -855,6 +867,46 @@
 
   <script>
     /* ── Add New Item ──────────────────────────────────── */
+    // ── New item image state ─────────────────────────────
+    let _newItemImageBlob = null;   // File blob from upload
+    let _newItemImageUrl  = null;   // URL from paste
+
+    function _showNewItemPreview(src) {
+      document.getElementById('newItemImagePreview').src = src;
+      document.getElementById('newItemImagePreviewWrap').style.display = 'block';
+      document.getElementById('newItemClearBtn').style.display = 'inline';
+    }
+
+    function clearNewItemImage() {
+      _newItemImageBlob = null;
+      _newItemImageUrl  = null;
+      document.getElementById('newItemFileInput').value = '';
+      document.getElementById('newItemImagePreviewWrap').style.display = 'none';
+      document.getElementById('newItemClearBtn').style.display = 'none';
+    }
+
+    async function pickNewItemImageFile(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); input.value = ''; return; }
+      _newItemImageBlob = await resizeImageSourceToBlob(file);
+      _newItemImageUrl  = null;
+      const dataUrl = await blobToDataURL(_newItemImageBlob);
+      _showNewItemPreview(dataUrl);
+    }
+
+    async function pickNewItemImageUrl() {
+      const raw = prompt('Paste image URL (https://...)');
+      if (raw === null) return;
+      const url = raw.trim();
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) { alert('Please enter a valid image URL.'); return; }
+      _newItemImageUrl  = url;
+      _newItemImageBlob = null;
+      _showNewItemPreview(url);
+    }
+    // ────────────────────────────────────────────────────────
+
     function toggleAddItemForm() {
       const body = document.getElementById('addItemFormBody');
       const icon = document.getElementById('addItemToggleIcon');
@@ -890,6 +942,23 @@
       customItems[key] = { name, category, price, ingredients, createdAt: Date.now() };
       prices[key] = price;
 
+      // Upload image if one was selected
+      if (_newItemImageBlob || _newItemImageUrl) {
+        try {
+          const blob = _newItemImageBlob || await (async () => {
+            const res = await fetch(_newItemImageUrl, { mode: 'cors', referrerPolicy: 'no-referrer' });
+            return resizeImageSourceToBlob(await res.blob());
+          })();
+          try {
+            imageOverrides[key] = await uploadBlobForItem(key, blob);
+          } catch (_) {
+            imageOverrides[key] = { url: await blobToDataURL(blob), source: 'inline-fallback', updatedAt: Date.now() };
+          }
+        } catch (imgErr) {
+          if (_newItemImageUrl) imageOverrides[key] = { url: _newItemImageUrl, source: 'url', updatedAt: Date.now() };
+        }
+      }
+
       try {
         await Promise.all([
           persistMenuSettings(),
@@ -899,6 +968,7 @@
         document.getElementById('newItemCategory').value = '';
         document.getElementById('newItemPrice').value = '';
         document.getElementById('newItemIngredients').value = '';
+        clearNewItemImage();
         showAddItemMsg('Item added successfully!', 'green');
         renderPriceForm();
         filterPrices(document.getElementById('priceSearch').value || '');
@@ -906,6 +976,7 @@
       } catch (err) {
         delete customItems[key];
         delete prices[key];
+        delete imageOverrides[key];
         showAddItemMsg('Error: ' + err.message, 'red');
       }
     }
