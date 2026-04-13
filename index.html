@@ -2444,7 +2444,6 @@
           const activePrice = prices[activeKey];
           const displayName = hasSizes ? stripSizeFromName(itemData.name) : itemData.name;
           const currentImage = resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
-          if (!currentImage) return; // hide items without a photo
           const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';
