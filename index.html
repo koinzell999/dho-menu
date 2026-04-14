@@ -392,13 +392,26 @@
     .item-flash { animation: itemFlash 0.45s ease-out forwards; }
     @keyframes toastIn  { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
     @keyframes toastOut { from { opacity:1; } to { opacity:0; } }
+    /* === Add-to-cart button on item rows === */
+    .add-item-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent); color: var(--accent-dark);
+      border: none; cursor: pointer; font-size: 18px; font-weight: 700;
+      flex-shrink: 0; transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      line-height: 1;
+    }
+    .add-item-btn:hover { transform: scale(1.13); box-shadow: 0 3px 12px rgba(0,0,0,0.28); }
+    .add-item-btn:active { transform: scale(0.93); }
+
     #dho-toast {
       position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      background: color-mix(in srgb, var(--accent) 18%, rgba(7,32,51,0.95));
+      background: color-mix(in srgb, var(--accent) 20%, var(--bg-to));
       border: 1px solid var(--accent); color: var(--text-primary);
       font-size: 0.82rem; font-weight: 600;
       padding: 9px 18px; border-radius: 999px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       white-space: nowrap; pointer-events: none; z-index: 9000;
       display: none;
     }
@@ -426,6 +439,28 @@
     .remove-btn:hover { background:rgba(255,80,80,0.22); }
     .clear-all-btn { font-size:0.7rem; cursor:pointer; background:none; border:none; padding:0; text-decoration:underline; opacity:0.65; }
     .clear-all-btn:hover { opacity:1; }
+
+    /* === Floating cart FAB === */
+    #cartFab {
+      position: fixed; bottom: 68px; right: 16px; z-index: 50;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--accent); color: var(--accent-dark);
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.3s, transform 0.2s;
+      opacity: 0; pointer-events: none;
+    }
+    #cartFab:hover { transform: scale(1.1); }
+    #cartFab.fab-visible { opacity: 1; pointer-events: auto; }
+    #cartFabBadge {
+      position: absolute; top: -3px; right: -3px;
+      background: #e63946; color: #fff;
+      font-size: 9px; font-weight: 800;
+      min-width: 16px; height: 16px; border-radius: 99px; padding: 0 3px;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
 
     /* === ≥2560px — 4K displays === */
     @media (min-width: 2560px) {
@@ -2242,6 +2277,7 @@
           itemEl.setAttribute('role','button');
           itemEl.addEventListener('click', (e)=> {
             if (e.target.closest('.size-toggle')) return;
+            if (e.target.closest('.add-item-btn')) return;
             const sz = selectedSizes[itemKey] || 'm';
             const key = (sizePairs[itemKey] && sz === 'l') ? sizePairs[itemKey] : itemKey;
             addToOrder(key);
@@ -2278,8 +2314,14 @@
           const prepTime = prepTimes[activeKey] ?? prepTimes[itemKey];
           const prepHTML = ''; // hidden until prep times are accurate
           const isRTL = state.lang === 'ar';
+          const addBtnLabel = { en:'+', tr:'+', ar:'+', es:'+', de:'+', fr:'+', ru:'+' }[state.lang] || '+';
+          const addBtnTitle = { en:'Add to cart', tr:'Sepete ekle', ar:'أضف إلى السلة', es:'Agregar', de:'Hinzufügen', fr:'Ajouter', ru:'Добавить' }[state.lang] || 'Add to cart';
+          const addBtnHTML = `<button class="add-item-btn" onclick="event.stopPropagation();addToOrder('${activeKey}')" aria-label="${addBtnTitle}" title="${addBtnTitle}">${addBtnLabel}</button>`;
           itemEl.innerHTML = isRTL ? `
-            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${addBtnHTML}
+              <div class="font-extrabold" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
+            </div>
             <div class="flex gap-3 items-center min-w-0 flex-row-reverse text-right flex-1">
               ${imageHTML}
               <div class="min-w-0">
@@ -2299,7 +2341,10 @@
                 ${ingHTML}
               </div>
             </div>
-            <div class="font-extrabold shrink-0" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="font-extrabold" style="color:var(--text-primary)">${formatPrice(activePrice)}</div>
+              ${addBtnHTML}
+            </div>
           `;
 
           // Handle size toggle clicks
@@ -2461,6 +2506,11 @@
       if (_badge) { _badge.textContent = _total; _badge.style.display = _total > 0 ? 'inline-flex' : 'none'; }
       const _iconBadge = document.getElementById('cartIconBadge');
       if (_iconBadge) { _iconBadge.textContent = _total; _iconBadge.style.display = _total > 0 ? 'flex' : 'none'; }
+      // Update floating cart FAB
+      const _fab = document.getElementById('cartFab');
+      const _fabBadge = document.getElementById('cartFabBadge');
+      if (_fab) { _fab.classList.toggle('fab-visible', _total > 0); }
+      if (_fabBadge) { _fabBadge.textContent = _total > 0 ? _total : ''; }
       const list = document.getElementById('orderList');
       list.innerHTML = '';
       const noItems = { en:'No items yet', tr:'Henüz öğe yok', ar:'لا توجد عناصر' };
@@ -2828,6 +2878,12 @@
       });
     })();
   </script>
+
+  <!-- Floating cart FAB -->
+  <button id="cartFab" aria-label="Open cart" onclick="openCart()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    <span id="cartFabBadge"></span>
+  </button>
 
   <!-- Collapse All button -->
   <button id="collapseAllBtn" aria-label="Collapse all sections"
