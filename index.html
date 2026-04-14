@@ -1725,6 +1725,7 @@
     let hiddenItems = {};
     let imageOverrides = {};
     let customItems = {};
+    let deletedItems = {};
     let weeklyPopularItems = [];
 
     /* ====== Weekly click tracking ====== */
@@ -1799,6 +1800,7 @@
           hiddenItems = settingsDoc.data().hiddenItems || {};
           imageOverrides = settingsDoc.data().imageOverrides || {};
           customItems = settingsDoc.data().customItems || {};
+          deletedItems = settingsDoc.data().deletedItems || {};
           // Inject custom items into the menu
           for (const [key, item] of Object.entries(customItems)) {
             if (!item || !item.name || !item.category) continue;
@@ -2155,8 +2157,8 @@
       menuStructure.forEach(cat=>{
         // In Spanish mode, ignore hiddenItems (show all items)
         const visibleItems = (state.lang === 'es')
-          ? cat.items
-          : cat.items.filter(itemKey => !hiddenItems[itemKey]);
+          ? cat.items.filter(itemKey => !deletedItems[itemKey])
+          : cat.items.filter(itemKey => !hiddenItems[itemKey] && !deletedItems[itemKey]);
         if (visibleItems.length === 0) return;
         anyItems = true;
 

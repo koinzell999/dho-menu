@@ -383,6 +383,7 @@
     let hiddenItems = {};
     let imageOverrides = {};
     let customItems = {};
+    let deletedItems = {};
     let collapsedCats = {};
     let idleTimer = null;
     const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
@@ -476,6 +477,7 @@
           hiddenItems = settingsDoc.data().hiddenItems || {};
           imageOverrides = settingsDoc.data().imageOverrides || {};
           customItems = settingsDoc.data().customItems || {};
+          deletedItems = settingsDoc.data().deletedItems || {};
         }
       } catch (err) {
         console.error("Failed to load prices:", err);
@@ -495,7 +497,7 @@
     }
 
     async function persistMenuSettings() {
-      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems }, { merge: true });
+      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems }, { merge: true });
     }
 
     function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
@@ -570,6 +572,7 @@
         container.appendChild(section);
 
         cat.items.forEach(key => {
+          if (deletedItems[key]) return;
           const isHidden = !!hiddenItems[key];
           const hasCustomImage = !!imageOverrides[key];
           const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key);
@@ -585,9 +588,10 @@
               <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
             </div>
             <div class="w-full sm:w-auto">
-              <div class="flex w-full sm:w-auto items-center gap-2">
+              <div class="flex w-full sm:w-auto items-center gap-2 flex-wrap">
               <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
               <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
+              <button type="button" onclick="deleteStaticItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">Delete</button>
               </div>
               <div class="img-tools">
                 <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">Upload</button>
@@ -988,6 +992,51 @@
         delete prices[key];
         delete imageOverrides[key];
         showAddItemMsg('Error: ' + err.message, 'red');
+      }
+    }
+
+    async function deleteStaticItem(key) {
+      const itemName = itemNames[key] || key;
+      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis will hide it from all customers. You can restore it by contacting your developer.')) return;
+      deletedItems[key] = true;
+      if (!hiddenItems[key]) hiddenItems[key] = true;
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      } catch (err) {
+        delete deletedItems[key];
+        alert('Error deleting item: ' + err.message);
+      }
+    }
+
+    async function deleteStaticItem(key) {
+      const itemName = itemNames[key] || key;
+      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis will remove it from all customers. You can restore it by contacting your developer.')) return;
+      deletedItems[key] = true;
+      hiddenItems[key] = true;
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      } catch (err) {
+        delete deletedItems[key];
+        alert('Error deleting item: ' + err.message);
+      }
+    }
+
+    async function deleteStaticItem(key) {
+      const itemName = itemNames[key] || key;
+      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis removes it from all customers.')) return;
+      deletedItems[key] = true;
+      hiddenItems[key] = true;
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      } catch (err) {
+        delete deletedItems[key];
+        alert('Error deleting item: ' + err.message);
       }
     }
 
