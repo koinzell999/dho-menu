@@ -77,6 +77,29 @@
     }
     .img-btn:hover { border-color: var(--accent); color: var(--accent); }
     .img-preview { width: 56px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-light); }
+
+    /* ── Language switcher ──────────────────────────────── */
+    .lang-bar { display:flex; gap:4px; align-items:center; }
+    .lang-pill {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .lang-pill.active {
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    /* RTL support for Arabic */
+    [dir="rtl"] .cat-header-btn { flex-direction: row-reverse; }
+    [dir="rtl"] .img-tools { flex-direction: row-reverse; }
+    [dir="rtl"] .flex { /* scoped via JS class */ }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -85,8 +108,14 @@
 </head>
 <body class="m-0 min-h-screen font-sans antialiased p-3 sm:p-6 overflow-x-hidden box-border flex flex-col items-center" style="background:linear-gradient(to bottom, var(--bg-from), var(--bg-to)); color:var(--text-primary);">
 
-  <!-- Theme toggle — top-right -->
-  <div class="fixed top-2 right-2 z-50 flex gap-1 items-center backdrop-blur rounded-lg px-1.5 py-1" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
+  <!-- Toolbar: theme + language — top-right -->
+  <div class="fixed top-2 right-2 z-50 flex gap-2 items-center backdrop-blur rounded-lg px-2 py-1.5" style="background:var(--toolbar-bg); border:1px solid var(--border-light);">
+    <div class="lang-bar">
+      <button class="lang-pill active" data-lang="en" onclick="setAdminLang('en')" title="English">EN</button>
+      <button class="lang-pill" data-lang="tr" onclick="setAdminLang('tr')" title="Türkçe">TR</button>
+      <button class="lang-pill" data-lang="ar" onclick="setAdminLang('ar')" title="العربية">AR</button>
+    </div>
+    <div style="width:1px; height:16px; background:var(--border-light);"></div>
     <button id="themeToggle" class="bg-transparent border-none py-0.5 px-1 rounded cursor-pointer text-sm" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
   </div>
 
@@ -97,39 +126,39 @@
           <span style="color:var(--accent-dark);" class="font-bold">A</span>
         </div>
         <div class="leading-none">
-          <h1 class="m-0 text-xl tracking-[0.2px]">DHO Admin</h1>
-          <p class="m-0 text-sm" style="color:var(--text-secondary);">Control Panel</p>
+          <h1 class="m-0 text-xl tracking-[0.2px]" id="adminPanelTitle">DHO Admin</h1>
+          <p class="m-0 text-sm" id="adminPanelSubtitle" style="color:var(--text-secondary);">Control Panel</p>
         </div>
       </div>
       <a href="index.html" id="backToMenuLink" class="text-xs underline shrink-0" style="color:var(--text-secondary);">Back to Menu</a>
     </header>
 
     <div id="loginSection" class="p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
-      <h2 class="text-lg mb-4" style="color:var(--accent);">Admin Login</h2>
+      <h2 class="text-lg mb-4" style="color:var(--accent);" id="loginTitle">Admin Login</h2>
       <form id="loginForm">
         <div class="mb-4">
-          <label class="block text-sm font-bold mb-2">Username</label>
+          <label class="block text-sm font-bold mb-2" id="labelUsername">Username</label>
           <input type="email" id="username" class="w-full p-3 rounded text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="email" required>
         </div>
         <div class="mb-4">
-          <label class="block text-sm font-bold mb-2">Password</label>
+          <label class="block text-sm font-bold mb-2" id="labelPassword">Password</label>
           <input type="password" id="password" class="w-full p-3 rounded text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" autocomplete="current-password" required>
         </div>
-        <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Login</button>
+        <button type="submit" id="loginBtn" class="py-3 px-6 rounded font-bold cursor-pointer w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Login</button>
       </form>
       <p id="loginError" class="text-red-400 mt-2 hidden">Invalid credentials</p>
     </div>
 
     <div id="adminSection" class="hidden p-4 sm:p-6 rounded-xl" style="background:var(--surface-card);">
       <div class="mb-4 flex items-center justify-between gap-2">
-        <h2 class="text-lg m-0" style="color:var(--accent);">Update Prices</h2>
+        <h2 class="text-lg m-0" id="updatePricesTitle" style="color:var(--accent);">Update Prices</h2>
         <button id="logoutBtn" type="button" class="text-xs font-semibold px-2 py-1 rounded" style="border:1px solid var(--border-light); color:var(--text-secondary); background:transparent;">Logout</button>
       </div>
 
       <!-- ── Staff Tools ─────────────────────────────────── -->
       <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(255,210,74,0.25); overflow:hidden;">
         <div style="padding:8px 16px; background:rgba(255,210,74,0.08); border-bottom:1px solid rgba(255,210,74,0.18);">
-          <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent);">⚡ Staff Tools</span>
+          <span id="staffToolsLabel" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent);">⚡ Staff Tools</span>
         </div>
         <div style="display:flex; gap:10px; padding:14px;">
 
@@ -139,8 +168,8 @@
              onmouseout="this.style.background='rgba(255,210,74,0.07)'">
             <span style="font-size:22px; line-height:1;">🧾</span>
             <div>
-              <div style="font-size:13px; font-weight:700; color:var(--text-primary);">Cashier</div>
-              <div style="font-size:11px; margin-top:2px; color:var(--text-secondary);">Orders &amp; status</div>
+              <div id="cashierLabel" style="font-size:13px; font-weight:700; color:var(--text-primary);">Cashier</div>
+              <div id="cashierDesc" style="font-size:11px; margin-top:2px; color:var(--text-secondary);">Orders &amp; status</div>
             </div>
           </a>
 
@@ -150,8 +179,8 @@
              onmouseout="this.style.background='rgba(251,146,60,0.07)'">
             <span style="font-size:22px; line-height:1;">🍳</span>
             <div>
-              <div style="font-size:13px; font-weight:700; color:var(--text-primary);">Kitchen</div>
-              <div style="font-size:11px; margin-top:2px; color:var(--text-secondary);">Active orders only</div>
+              <div id="kitchenLabel" style="font-size:13px; font-weight:700; color:var(--text-primary);">Kitchen</div>
+              <div id="kitchenDesc" style="font-size:11px; margin-top:2px; color:var(--text-secondary);">Active orders only</div>
             </div>
           </a>
 
@@ -160,17 +189,17 @@
       <!-- ── Add New Item ───────────────────────────────── -->
       <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(74,222,128,0.25); overflow:hidden;">
         <button type="button" onclick="toggleAddItemForm()" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 16px; background:rgba(74,222,128,0.08); border:none; border-bottom:0; cursor:pointer;">
-          <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#4ade80;">➕ Add New Item</span>
+          <span id="addItemSectionLabel" style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#4ade80;">➕ Add New Item</span>
           <span id="addItemToggleIcon" style="color:#4ade80; font-size:14px;">▸</span>
         </button>
         <div id="addItemFormBody" style="display:none; padding:14px; border-top:1px solid rgba(74,222,128,0.18);">
           <div style="display:grid; gap:10px;">
             <div>
-              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Item Name *</label>
+              <label id="labelNewItemName" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Item Name *</label>
               <input id="newItemName" type="text" placeholder="e.g. Nutella Waffle" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" />
             </div>
             <div>
-              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Category *</label>
+              <label id="labelNewItemCategory" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Category *</label>
               <select id="newItemCategory" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;">
                 <option value="">— Select category —</option>
                 <option value="waffles">🧇 Waffles</option>
@@ -190,15 +219,15 @@
               </select>
             </div>
             <div>
-              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Price (₺) *</label>
+              <label id="labelNewItemPrice" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Price (₺) *</label>
               <input id="newItemPrice" type="number" min="0" placeholder="350" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
             </div>
             <div>
-              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ingredients</label>
+              <label id="labelNewItemIngredients" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ingredients</label>
               <input id="newItemIngredients" type="text" placeholder="e.g. waffle batter, Nutella, banana" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" />
             </div>
             <div>
-              <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Image</label>
+              <label id="labelNewItemImage" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Image</label>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <button type="button" onclick="document.getElementById('newItemFileInput').click()" class="img-btn" style="font-size:12px; padding:6px 12px;">📁 Upload from device</button>
                 <button type="button" onclick="pickNewItemImageUrl()" class="img-btn" style="font-size:12px; padding:6px 12px;">🔗 Paste URL</button>
@@ -210,7 +239,7 @@
               </div>
             </div>
             <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <button type="button" onclick="addNewCustomItem()" style="padding:8px 18px; border-radius:8px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:12px; font-weight:700; cursor:pointer;">Add Item</button>
+              <button type="button" id="addItemSubmitBtn" onclick="addNewCustomItem()" style="padding:8px 18px; border-radius:8px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:12px; font-weight:700; cursor:pointer;">Add Item</button>
               <span id="addItemMsg" style="font-size:12px; display:none;"></span>
             </div>
           </div>
@@ -222,15 +251,15 @@
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm" style="color:var(--text-secondary);">🔍</span>
         <button type="button" id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--text-secondary); background:none; border:none; cursor:pointer;">✕</button>
       </div>
-      <p class="text-xs mb-2" style="color:var(--text-secondary); opacity:0.8;">Images: use Upload (device) or URL (internet) per item.</p>
+      <p class="text-xs mb-2" id="imgHintText" style="color:var(--text-secondary); opacity:0.8;">Images: use Upload (device) or URL (internet) per item.</p>
       <div class="mb-3 flex items-center justify-end">
         <label for="hiddenOnlyToggle" class="text-xs font-semibold cursor-pointer" style="color:var(--text-secondary);">
-          <input type="checkbox" id="hiddenOnlyToggle" class="align-middle mr-1" /> Hidden items only
+          <input type="checkbox" id="hiddenOnlyToggle" class="align-middle mr-1" /> <span id="hiddenOnlyLabel">Hidden items only</span>
         </label>
       </div>
       <form id="priceForm">
         <div id="priceInputs" class="space-y-4"></div>
-        <button type="submit" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Prices</button>
+        <button type="submit" id="savePricesBtn" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Prices</button>
       </form>
       <p id="saveMessage" class="text-green-400 mt-2 hidden">Prices updated successfully!</p>
     </div>
@@ -296,6 +325,299 @@
     window.addEventListener('pagehide', () => {
       auth.signOut().catch(() => {});
     });
+  </script>
+
+  <!-- ── Admin i18n ──────────────────────────────────────── -->
+  <script>
+    let adminLang = localStorage.getItem('dho_admin_lang') || 'en';
+
+    const adminI18n = {
+      en: {
+        panelTitle: 'DHO Admin', panelSubtitle: 'Control Panel',
+        backToMenu: 'Back to Menu', loginTitle: 'Admin Login',
+        labelUsername: 'Username', labelPassword: 'Password', loginBtn: 'Login',
+        logoutBtn: 'Logout', updatePricesTitle: 'Update Prices',
+        addItemSection: '➕ Add New Item', labelNewItemName: 'Item Name *',
+        labelNewItemCategory: 'Category *', labelNewItemPrice: 'Price (₺) *',
+        labelNewItemIngredients: 'Ingredients', labelNewItemImage: 'Image',
+        addItemSubmitBtn: 'Add Item', searchPlaceholder: 'Search item…',
+        imgHint: 'Images: use Upload (device) or URL (internet) per item.',
+        hiddenOnlyLabel: 'Hidden items only', savePricesBtn: 'Save Prices',
+        saveSuccess: 'Prices updated successfully!', btnShow: 'Show', btnHide: 'Hide',
+        btnDelete: 'Delete', btnUpload: 'Upload', btnUrl: 'URL', btnReset: 'Reset',
+        customBadge: 'Custom', staffTools: '⚡ Staff Tools',
+        cashierLabel: 'Cashier', cashierDesc: 'Orders & status',
+        kitchenLabel: 'Kitchen', kitchenDesc: 'Active orders only',
+        deleteConfirm: (name) => `Permanently delete "${name}" from the menu?\n\nThis removes it from all customers.`,
+        deleteCustomConfirm: (name) => `Delete "${name}"? This cannot be undone.`,
+        errFillFields: 'Please fill in name, category and price.',
+        errInvalidPrice: 'Please enter a valid price.',
+        addSuccess: 'Item added successfully!',
+      },
+      tr: {
+        panelTitle: 'DHO Yönetim', panelSubtitle: 'Kontrol Paneli',
+        backToMenu: 'Menüye Dön', loginTitle: 'Yönetici Girişi',
+        labelUsername: 'Kullanıcı Adı', labelPassword: 'Şifre', loginBtn: 'Giriş Yap',
+        logoutBtn: 'Çıkış', updatePricesTitle: 'Fiyatları Güncelle',
+        addItemSection: '➕ Yeni Ürün Ekle', labelNewItemName: 'Ürün Adı *',
+        labelNewItemCategory: 'Kategori *', labelNewItemPrice: 'Fiyat (₺) *',
+        labelNewItemIngredients: 'Malzemeler', labelNewItemImage: 'Görsel',
+        addItemSubmitBtn: 'Ürün Ekle', searchPlaceholder: 'Ürün ara…',
+        imgHint: 'Görsel: cihazdan yükle veya URL kullan.',
+        hiddenOnlyLabel: 'Sadece gizli ürünler', savePricesBtn: 'Fiyatları Kaydet',
+        saveSuccess: 'Fiyatlar başarıyla güncellendi!', btnShow: 'Göster', btnHide: 'Gizle',
+        btnDelete: 'Sil', btnUpload: 'Yükle', btnUrl: 'URL', btnReset: 'Sıfırla',
+        customBadge: 'Özel', staffTools: '⚡ Personel Araçları',
+        cashierLabel: 'Kasa', cashierDesc: 'Sipariş & durum',
+        kitchenLabel: 'Mutfak', kitchenDesc: 'Aktif siparişler',
+        deleteConfirm: (name) => `"${name}" ürününü menüden kalıcı olarak silmek istiyor musunuz?\n\nTüm müşterilerden kaldırılacak.`,
+        deleteCustomConfirm: (name) => `"${name}" silinsin mi? Bu işlem geri alınamaz.`,
+        errFillFields: 'Lütfen ad, kategori ve fiyatı doldurun.',
+        errInvalidPrice: 'Lütfen geçerli bir fiyat girin.',
+        addSuccess: 'Ürün başarıyla eklendi!',
+      },
+      ar: {
+        panelTitle: 'DHO الإدارة', panelSubtitle: 'لوحة التحكم',
+        backToMenu: 'العودة للمنيو', loginTitle: 'تسجيل الدخول',
+        labelUsername: 'البريد الإلكتروني', labelPassword: 'كلمة المرور', loginBtn: 'دخول',
+        logoutBtn: 'خروج', updatePricesTitle: 'تحديث الأسعار',
+        addItemSection: '➕ إضافة منتج جديد', labelNewItemName: 'اسم المنتج *',
+        labelNewItemCategory: 'الفئة *', labelNewItemPrice: 'السعر (₺) *',
+        labelNewItemIngredients: 'المكونات', labelNewItemImage: 'الصورة',
+        addItemSubmitBtn: 'إضافة المنتج', searchPlaceholder: 'بحث عن منتج…',
+        imgHint: 'الصورة: رفع من الجهاز أو استخدام رابط URL.',
+        hiddenOnlyLabel: 'المنتجات المخفية فقط', savePricesBtn: 'حفظ الأسعار',
+        saveSuccess: 'تم تحديث الأسعار بنجاح!', btnShow: 'إظهار', btnHide: 'إخفاء',
+        btnDelete: 'حذف', btnUpload: 'رفع', btnUrl: 'رابط', btnReset: 'إعادة',
+        customBadge: 'مخصص', staffTools: '⚡ أدوات الموظفين',
+        cashierLabel: 'الكاشير', cashierDesc: 'الطلبات والحالة',
+        kitchenLabel: 'المطبخ', kitchenDesc: 'الطلبات النشطة',
+        deleteConfirm: (name) => `هل تريد حذف "${name}" من المنيو نهائياً؟\n\nسيُزال من جميع الزبائن.`,
+        deleteCustomConfirm: (name) => `حذف "${name}"؟ لا يمكن التراجع عن هذا.`,
+        errFillFields: 'يرجى تعبئة الاسم والفئة والسعر.',
+        errInvalidPrice: 'يرجى إدخال سعر صحيح.',
+        addSuccess: 'تمت إضافة المنتج بنجاح!',
+      }
+    };
+
+    // Item names by language
+    const itemNamesLoc = {
+      en: {
+        waf1:"Kit Kat Waffle",waf2:"Kinder Waffle",waf3:"Oreo Waffle",waf4:"Fruit Waffle",
+        waf5:"White Chocolate Waffle",waf6:"Chocolate Waffle",waf7:"Banana & Cream Waffle",
+        waf8:"Banana Waffle",waf9:"Strawberry Waffle",waf10:"Belgian Chocolate Waffle",
+        waf11:"Lotus Waffle",waf12:"Dubai Waffle",waf13:"Mixed Waffle",waf14:"Pistachio Waffle",
+        crp1:"Chocolate Crepe",crp2:"White Chocolate Crepe",crp3:"Fruit Crepe",crp4:"Banana Crepe",
+        crp5:"Banana & Cream Crepe",crp6:"Strawberry Crepe",crp7:"Kinder / Oreo / Kit Kat Crepe",
+        crp8:"Double Chocolate Crepe",crp9:"Fottochini Crepe",crp10:"Sushi Crepe",crp11:"Belgian Chocolate Crepe",
+        ice1:"Fruit Ice Cream",ice2:"Chocolate Ice Cream",ice3:"Mixed Ice Cream",
+        ice4:"Nuts & Honey Ice Cream",ice5:"Ice Boost",
+        jui1:"Orange Juice (M)",jui2:"Strawberry Juice (M)",jui3:"Pineapple Juice (M)",jui4:"Kiwi Juice (M)",
+        jui5:"Orange Juice (L)",jui6:"Strawberry Juice (L)",jui7:"Pineapple Juice (L)",jui8:"Kiwi Juice (L)",
+        ms1:"Chocolate Milkshake (M)",ms2:"Vanilla Milkshake (M)",ms3:"Oreo Milkshake (M)",
+        ms4:"Snickers Milkshake (M)",ms6:"Kit Kat Milkshake (M)",
+        ms7:"Chocolate Milkshake (L)",ms8:"Vanilla Milkshake (L)",ms9:"Oreo Milkshake (L)",
+        ms10:"Snickers Milkshake (L)",ms12:"Kit Kat Milkshake (L)",
+        ms13:"Strawberry Milkshake",ms15:"Lotus Milkshake",ms16:"Kinder Milkshake",
+        ckt1:"Fruit Cocktail (M)",ckt2:"Banana with Milk (M)",ckt3:"Banana & Chocolate (M)",
+        ckt4:"Banana & Dates (M)",ckt7:"Heartbreaker (M)",
+        ckt8:"Fruit Cocktail (L)",ckt9:"Banana with Milk (L)",ckt10:"Banana & Chocolate (L)",
+        ckt11:"Banana & Dates (L)",ckt14:"Heartbreaker (L)",
+        ckt15:"Strawberry Cocktail (M)",ckt19:"Strawberry Cocktail (L)",
+        spc1:"Fruits Emperor (M)",spc2:"Banana Emperor (M)",spc5:"Banana & Chocolate Emperor (M)",
+        spc6:"Fruits Emperor (L)",spc7:"Banana Emperor (L)",spc10:"Banana & Chocolate Emperor (L)",
+        frz1:"Fruit Frozen",frz2:"Chocolate Frozen",frz3:"Banana Frozen",frz4:"Strawberry Frozen",frz5:"Mixed Frozen",
+        cak1:"Chocolate Pancake",cak2:"White Chocolate Pancake",cak3:"Fruit Pancake",cak4:"Banana Pancake",
+        cak5:"Strawberry Pancake",cak6:"Kinder Pancake",cak7:"Oreo Pancake",cak8:"Kit Kat Pancake",
+        cak9:"Banana & Cream Pancake",cak10:"Lotus Pancake",cak11:"Dubai Pancake",
+        sal1:"Fruit Salad (M)",sal2:"Fruit Salad with Chocolate (M)",sal3:"Fruit Salad with White Chocolate (M)",
+        sal4:"Fruit Salad with Banana (M)",sal5:"Fruit Salad with Banana & Chocolate (M)",
+        sal6:"Fruit Salad (L)",sal7:"Fruit Salad with Chocolate (L)",sal8:"Fruit Salad with White Chocolate (L)",
+        sal9:"Fruit Salad with Banana (L)",sal10:"Fruit Salad with Banana & Chocolate (L)",
+        sal11:"Belgian Choc. Fruit Salad",sal12:"Diet Fruit Salad",sal13:"Biscuit Choc. Fruit Salad",
+        moj1:"Strawberry Mojito",moj2:"Mixed Mojito",moj3:"Mint Mojito",moj4:"Lemon Mojito",
+        drk1:"Lemon & Mint",drk2:"Blue Drink",drk3:"Red Sprite",
+        pop1:"Cream & Honey Salad",
+        eco1:"Choc. Pancake & Vanilla Milkshake",eco2:"Choc. Waffle & Vanilla Milkshake",
+        eco3:"Choc. Pancake & Choc. Milkshake",eco4:"Choc. Crepe & Strawberry Milkshake",
+        eco5:"Choc. Waffle & Strawberry Milkshake",eco6:"Choc. Crepe & Vanilla Milkshake",
+        eco7:"Choc. Pancake & Strawberry Milkshake",eco8:"Choc. Crepe & Choc. Milkshake",
+        dst1:"DHO Pistachio Künefe",dst2:"DHO Dubai Cake",dst3:"DHO Lotus Künefe",dst4:"DHO Chocolate Künefe"
+      },
+      tr: {
+        waf1:"Kit Kat Waffle",waf2:"Kinder Waffle",waf3:"Oreo Waffle",waf4:"Meyveli Waffle",
+        waf5:"Beyaz Çikolatalı Waffle",waf6:"Çikolatalı Waffle",waf7:"Muzlu Kaymaklı Waffle",
+        waf8:"Muzlu Waffle",waf9:"Çilekli Waffle",waf10:"Belçika Çikolatalı Waffle",
+        waf11:"Lotuslu Waffle",waf12:"Dubai Waffle",waf13:"Karışık Waffle",waf14:"Fıstıklı Waffle",
+        crp1:"Çikolatalı Krep",crp2:"Beyaz Çikolatalı Krep",crp3:"Meyveli Krep",crp4:"Muzlu Krep",
+        crp5:"Muzlu Kaymaklı Krep",crp6:"Çilekli Krep",crp7:"Kinder / Oreo / Kit Kat Krep",
+        crp8:"Çift Çikolatalı Krep",crp9:"Fottochini Krep",crp10:"Suşi Krep",crp11:"Belçika Çikolatalı Krep",
+        ice1:"Meyveli Dondurma",ice2:"Çikolatalı Dondurma",ice3:"Karışık Dondurma",
+        ice4:"Fıstıklı Ballı Dondurma",ice5:"Ice Boost",
+        jui1:"Portakal Suyu (M)",jui2:"Çilek Suyu (M)",jui3:"Ananas Suyu (M)",jui4:"Kivi Suyu (M)",
+        jui5:"Portakal Suyu (L)",jui6:"Çilek Suyu (L)",jui7:"Ananas Suyu (L)",jui8:"Kivi Suyu (L)",
+        ms1:"Çikolatalı Milkshake (M)",ms2:"Vanilyalı Milkshake (M)",ms3:"Oreo Milkshake (M)",
+        ms4:"Snickers Milkshake (M)",ms6:"Kit Kat Milkshake (M)",
+        ms7:"Çikolatalı Milkshake (L)",ms8:"Vanilyalı Milkshake (L)",ms9:"Oreo Milkshake (L)",
+        ms10:"Snickers Milkshake (L)",ms12:"Kit Kat Milkshake (L)",
+        ms13:"Çilekli Milkshake",ms15:"Lotuslu Milkshake",ms16:"Kinder Milkshake",
+        ckt1:"Meyveli Kokteyl (M)",ckt2:"Muzlu Süt (M)",ckt3:"Muzlu Çikolatalı (M)",
+        ckt4:"Muzlu Hurmalı (M)",ckt7:"Kalp Kıran (M)",
+        ckt8:"Meyveli Kokteyl (L)",ckt9:"Muzlu Süt (L)",ckt10:"Muzlu Çikolatalı (L)",
+        ckt11:"Muzlu Hurmalı (L)",ckt14:"Kalp Kıran (L)",
+        ckt15:"Çilekli Kokteyl (M)",ckt19:"Çilekli Kokteyl (L)",
+        spc1:"Meyveli İmparator (M)",spc2:"Muzlu İmparator (M)",spc5:"Muzlu Çikolatalı İmparator (M)",
+        spc6:"Meyveli İmparator (L)",spc7:"Muzlu İmparator (L)",spc10:"Muzlu Çikolatalı İmparator (L)",
+        frz1:"Meyveli Frozen",frz2:"Çikolatalı Frozen",frz3:"Muzlu Frozen",frz4:"Çilekli Frozen",frz5:"Karışık Frozen",
+        cak1:"Çikolatalı Pankek",cak2:"Beyaz Çikolatalı Pankek",cak3:"Meyveli Pankek",cak4:"Muzlu Pankek",
+        cak5:"Çilekli Pankek",cak6:"Kinder Pankek",cak7:"Oreo Pankek",cak8:"Kit Kat Pankek",
+        cak9:"Kaymaklı Muzlu Pankek",cak10:"Lotuslu Pankek",cak11:"Dubai Pankek",
+        sal1:"Meyve Salatası (M)",sal2:"Çikolatalı Meyve Salatası (M)",sal3:"Beyaz Çikolatalı Meyve Salatası (M)",
+        sal4:"Muzlu Meyve Salatası (M)",sal5:"Muzlu Çikolatalı Meyve Salatası (M)",
+        sal6:"Meyve Salatası (L)",sal7:"Çikolatalı Meyve Salatası (L)",sal8:"Beyaz Çikolatalı Meyve Salatası (L)",
+        sal9:"Muzlu Meyve Salatası (L)",sal10:"Muzlu Çikolatalı Meyve Salatası (L)",
+        sal11:"Belçika Çikolatalı Meyveli Salata",sal12:"Diyet Meyve Salatası",sal13:"Bisküvili Çikolatalı Meyve Salatası",
+        moj1:"Çilekli Mojito",moj2:"Karışık Mojito",moj3:"Naneli Mojito",moj4:"Limonlu Mojito",
+        drk1:"Limon Nane",drk2:"Mavi İçecek",drk3:"Kırmızı Sprite",
+        pop1:"Kaymaklı Ballı Salata",
+        eco1:"Çikolatalı Pankek & Vanilyalı Milkshake",eco2:"Çikolatalı Waffle & Vanilyalı Milkshake",
+        eco3:"Çikolatalı Pankek & Çikolatalı Milkshake",eco4:"Çikolatalı Krep & Çilekli Milkshake",
+        eco5:"Çikolatalı Waffle & Çilekli Milkshake",eco6:"Çikolatalı Krep & Vanilyalı Milkshake",
+        eco7:"Çikolatalı Pankek & Çilekli Milkshake",eco8:"Çikolatalı Krep & Çikolatalı Milkshake",
+        dst1:"Dho Fıstıklı Küşeri",dst2:"Dho Dubai Kek",dst3:"Dho Lotus Küşeri",dst4:"Dho Çikolatalı Küşeri"
+      },
+      ar: {
+        waf1:"وافل كت كات",waf2:"وافل كندر",waf3:"وافل أوريو",waf4:"وافل فواكه",
+        waf5:"وافل شوكولاتة بيضاء",waf6:"وافل شوكولاتة",waf7:"وافل موز بالقشطة",
+        waf8:"وافل موز",waf9:"وافل فراولة",waf10:"وافل شوكولاتة بلجيكية",
+        waf11:"وافل لوتس",waf12:"وافل دبي",waf13:"وافل مشكّل",waf14:"وافل فستق",
+        crp1:"كريب شوكولاتة",crp2:"كريب شوكولاتة بيضاء",crp3:"كريب فواكه",crp4:"كريب موز",
+        crp5:"كريب موز بالقشطة",crp6:"كريب فراولة",crp7:"كريب كندر / أوريو / كت كات",
+        crp8:"كريب شوكولاتة مزدوجة",crp9:"كريب فوتوشيني",crp10:"كريب سوشي",crp11:"كريب شوكولاتة بلجيكية",
+        ice1:"بوظة فواكه",ice2:"بوظة شوكولاتة",ice3:"بوظة مشكّلة",
+        ice4:"بوظة مكسرات وعسل",ice5:"آيس بوست",
+        jui1:"عصير برتقال (وسط)",jui2:"عصير فراولة (وسط)",jui3:"عصير أناناس (وسط)",jui4:"عصير كيوي (وسط)",
+        jui5:"عصير برتقال (كبير)",jui6:"عصير فراولة (كبير)",jui7:"عصير أناناس (كبير)",jui8:"عصير كيوي (كبير)",
+        ms1:"ميلك شيك شوكولاتة (وسط)",ms2:"ميلك شيك فانيليا (وسط)",ms3:"ميلك شيك أوريو (وسط)",
+        ms4:"ميلك شيك سنيكرز (وسط)",ms6:"ميلك شيك كت كات (وسط)",
+        ms7:"ميلك شيك شوكولاتة (كبير)",ms8:"ميلك شيك فانيليا (كبير)",ms9:"ميلك شيك أوريو (كبير)",
+        ms10:"ميلك شيك سنيكرز (كبير)",ms12:"ميلك شيك كت كات (كبير)",
+        ms13:"ميلك شيك فراولة",ms15:"ميلك شيك لوتس",ms16:"ميلك شيك كندر",
+        ckt1:"كوكتيل فواكه (وسط)",ckt2:"موز بالحليب (وسط)",ckt3:"موز وشوكولاتة (وسط)",
+        ckt4:"موز وتمر (وسط)",ckt7:"كاسر القلوب (وسط)",
+        ckt8:"كوكتيل فواكه (كبير)",ckt9:"موز بالحليب (كبير)",ckt10:"موز وشوكولاتة (كبير)",
+        ckt11:"موز وتمر (كبير)",ckt14:"كاسر القلوب (كبير)",
+        ckt15:"كوكتيل فراولة (وسط)",ckt19:"كوكتيل فراولة (كبير)",
+        spc1:"إمبراطور فواكه (وسط)",spc2:"إمبراطور موز (وسط)",spc5:"إمبراطور موز وشوكولاتة (وسط)",
+        spc6:"إمبراطور فواكه (كبير)",spc7:"إمبراطور موز (كبير)",spc10:"إمبراطور موز وشوكولاتة (كبير)",
+        frz1:"فروزن فواكه",frz2:"فروزن شوكولاتة",frz3:"فروزن موز",frz4:"فروزن فراولة",frz5:"فروزن مشكّل",
+        cak1:"بانكيك شوكولاتة",cak2:"بانكيك شوكولاتة بيضاء",cak3:"بانكيك فواكه",cak4:"بانكيك موز",
+        cak5:"بانكيك فراولة",cak6:"بانكيك كندر",cak7:"بانكيك أوريو",cak8:"بانكيك كت كات",
+        cak9:"بانكيك موز بالقشطة",cak10:"بانكيك لوتس",cak11:"بانكيك دبي",
+        sal1:"سلطة فواكه (وسط)",sal2:"سلطة فواكه بالشوكولاتة (وسط)",sal3:"سلطة فواكه بالشوكولاتة البيضاء (وسط)",
+        sal4:"سلطة فواكه بالموز (وسط)",sal5:"سلطة فواكه بالموز والشوكولاتة (وسط)",
+        sal6:"سلطة فواكه (كبير)",sal7:"سلطة فواكه بالشوكولاتة (كبير)",sal8:"سلطة فواكه بالشوكولاتة البيضاء (كبير)",
+        sal9:"سلطة فواكه بالموز (كبير)",sal10:"سلطة فواكه بالموز والشوكولاتة (كبير)",
+        sal11:"سلطة فواكه شوكولاتة بلجيكية",sal12:"سلطة فواكه دايت",sal13:"سلطة فواكه بسكويت وشوكولاتة",
+        moj1:"موهيتو فراولة",moj2:"موهيتو مشكّل",moj3:"موهيتو نعناع",moj4:"موهيتو ليمون",
+        drk1:"ليمون ونعناع",drk2:"المشروب الأزرق",drk3:"سبرايت أحمر",
+        pop1:"سلطة بالقشطة والعسل",
+        eco1:"بانكيك شوكولاتة & ميلك شيك فانيليا",eco2:"وافل شوكولاتة & ميلك شيك فانيليا",
+        eco3:"بانكيك شوكولاتة & ميلك شيك شوكولاتة",eco4:"كريب شوكولاتة & ميلك شيك فراولة",
+        eco5:"وافل شوكولاتة & ميلك شيك فراولة",eco6:"كريب شوكولاتة & ميلك شيك فانيليا",
+        eco7:"بانكيك شوكولاتة & ميلك شيك فراولة",eco8:"كريب شوكولاتة & ميلك شيك شوكولاتة",
+        dst1:"كنافة بالفستق DHO",dst2:"كيك دبي DHO",dst3:"كنافة لوتس DHO",dst4:"كنافة شوكولاتة DHO"
+      }
+    };
+
+    // Category header display names by language
+    const catNamesLoc = {
+      en: {
+        "⭐ Popular":"⭐ Popular","🍱 Economic Combos":"🍱 Economic Combos","🍮 Special Desserts":"🍮 Special Desserts",
+        "🧇 Waffles":"🧇 Waffles","🥞 Crepes":"🥞 Crepes","🍨 Ice Cream":"🍨 Ice Cream",
+        "🧃 Juices":"🧃 Juices","🥤 Milkshakes":"🥤 Milkshakes","🍹 Cocktails":"🍹 Cocktails",
+        "👑 Special Cocktails":"👑 Special Cocktails","🍧 Frozen":"🍧 Frozen","🍰 DHO Pancakes":"🍰 DHO Pancakes",
+        "🥗 Fruit Salads":"🥗 Fruit Salads"," Mojitos":"🍸 Mojitos","🥤 Drinks":"🥤 Drinks"
+      },
+      tr: {
+        "⭐ Popular":"⭐ Popüler","🍱 Economic Combos":"🍱 Ekonomik Menüler","🍮 Special Desserts":"🍮 DHO Özel Tatlılar",
+        "🧇 Waffles":"🧇 Waffle'lar","🥞 Crepes":"🥞 Krepler","🍨 Ice Cream":"🍨 Dondurmalar",
+        "🧃 Juices":"🧃 Meyve Suları","🥤 Milkshakes":"🥤 Milkshake'ler","🍹 Cocktails":"🍹 Kokteyller",
+        "👑 Special Cocktails":"👑 Özel Kokteyller","🍧 Frozen":"🍧 Frozen","🍰 DHO Pancakes":"🍰 DHO Pankekler",
+        "🥗 Fruit Salads":"🥗 Meyve Salataları"," Mojitos":"🍸 Mojitolar","🥤 Drinks":"🥤 İçecekler"
+      },
+      ar: {
+        "⭐ Popular":"⭐ الأكثر طلباً","🍱 Economic Combos":"🍱 وجبات اقتصادية","🍮 Special Desserts":"🍮 حلويات خاصة",
+        "🧇 Waffles":"🧇 وافل","🥞 Crepes":"🥞 كريب","🍨 Ice Cream":"🍨 بوظة",
+        "🧃 Juices":"🧃 عصائر","🥤 Milkshakes":"🥤 ميلك شيك","🍹 Cocktails":"🍹 كوكتيلات",
+        "👑 Special Cocktails":"👑 كوكتيلات خاصة","🍧 Frozen":"🍧 فروزن","🍰 DHO Pancakes":"🍰 بانكيك DHO",
+        "🥗 Fruit Salads":"🥗 سلطات فواكه"," Mojitos":"🍸 موهيتو","🥤 Drinks":"🥤 مشروبات"
+      }
+    };
+
+    function getItemName(key) {
+      return (itemNamesLoc[adminLang] || itemNamesLoc.en)[key] || (itemNamesLoc.en)[key] || key;
+    }
+    function getCatLabel(engName) {
+      return (catNamesLoc[adminLang] || catNamesLoc.en)[engName] || engName;
+    }
+    function t(key) {
+      return (adminI18n[adminLang] || adminI18n.en)[key] || (adminI18n.en)[key] || key;
+    }
+
+    function applyAdminLang() {
+      const isRTL = adminLang === 'ar';
+      document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+      document.documentElement.setAttribute('lang', adminLang);
+
+      // Update pill active state
+      document.querySelectorAll('.lang-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.lang === adminLang);
+      });
+
+      // Update static labels
+      const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+      const setPlaceholder = (id, txt) => { const el = document.getElementById(id); if (el) el.placeholder = txt; };
+
+      setTxt('adminPanelTitle', t('panelTitle'));
+      setTxt('adminPanelSubtitle', t('panelSubtitle'));
+      setTxt('backToMenuLink', t('backToMenu'));
+      setTxt('loginTitle', t('loginTitle'));
+      setTxt('labelUsername', t('labelUsername'));
+      setTxt('labelPassword', t('labelPassword'));
+      setTxt('loginBtn', t('loginBtn'));
+      setTxt('logoutBtn', t('logoutBtn'));
+      setTxt('updatePricesTitle', t('updatePricesTitle'));
+      setTxt('addItemSectionLabel', t('addItemSection'));
+      setTxt('labelNewItemName', t('labelNewItemName'));
+      setTxt('labelNewItemCategory', t('labelNewItemCategory'));
+      setTxt('labelNewItemPrice', t('labelNewItemPrice'));
+      setTxt('labelNewItemIngredients', t('labelNewItemIngredients'));
+      setTxt('labelNewItemImage', t('labelNewItemImage'));
+      setTxt('addItemSubmitBtn', t('addItemSubmitBtn'));
+      setTxt('imgHintText', t('imgHint'));
+      setTxt('hiddenOnlyLabel', t('hiddenOnlyLabel'));
+      setTxt('savePricesBtn', t('savePricesBtn'));
+      setPlaceholder('priceSearch', t('searchPlaceholder'));
+
+      setTxt('staffToolsLabel', t('staffTools'));
+      setTxt('cashierLabel', t('cashierLabel'));
+      setTxt('cashierDesc', t('cashierDesc'));
+      setTxt('kitchenLabel', t('kitchenLabel'));
+      setTxt('kitchenDesc', t('kitchenDesc'));
+
+      // Re-render item list with new language
+      if (typeof renderPriceForm === 'function' && document.getElementById('adminSection') && !document.getElementById('adminSection').classList.contains('hidden')) {
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      }
+    }
+
+    function setAdminLang(lang) {
+      adminLang = lang;
+      localStorage.setItem('dho_admin_lang', lang);
+      applyAdminLang();
+    }
   </script>
 
   <script>
@@ -549,6 +871,7 @@
       const container = document.getElementById('priceInputs');
       container.innerHTML = '';
       menuCategories.forEach(cat => {
+        const locCatName = getCatLabel(cat.name);
         const section = document.createElement('div');
         section.className = 'cat-section mt-2';
         section.dataset.cat = cat.name;
@@ -556,7 +879,7 @@
         const headerBtn = document.createElement('button');
         headerBtn.type = 'button';
         headerBtn.className = 'cat-header-btn';
-        headerBtn.innerHTML = `<span>${cat.name}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
+        headerBtn.innerHTML = `<span>${locCatName}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
 
         const rowsWrap = document.createElement('div');
         rowsWrap.className = `cat-rows ${collapsedCats[cat.name] ? 'hidden' : ''}`;
@@ -564,7 +887,7 @@
         headerBtn.addEventListener('click', () => {
           collapsedCats[cat.name] = !collapsedCats[cat.name];
           rowsWrap.classList.toggle('hidden', collapsedCats[cat.name]);
-          headerBtn.innerHTML = `<span>${cat.name}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
+          headerBtn.innerHTML = `<span>${locCatName}</span><span>${collapsedCats[cat.name] ? '▸' : '▾'}</span>`;
         });
 
         section.appendChild(headerBtn);
@@ -577,26 +900,27 @@
           const hasCustomImage = !!imageOverrides[key];
           const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key);
           const fallbackImgSrc = getDefaultImageForKey(key);
+          const displayName = getItemName(key);
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
-          div.dataset.name = itemNames[key].toLowerCase();
+          div.dataset.name = (itemNamesLoc.en[key] || key).toLowerCase();
           div.dataset.key = key;
           div.dataset.hidden = isHidden ? '1' : '0';
           div.innerHTML = `
             <div class="flex items-center gap-2 w-full sm:w-auto">
-              <img src="${imgSrc}" alt="${itemNames[key]}" class="img-preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallbackImgSrc}';" />
-              <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${itemNames[key]}</label>
+              <img src="${imgSrc}" alt="${displayName}" class="img-preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallbackImgSrc}';" />
+              <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${displayName}</label>
             </div>
             <div class="w-full sm:w-auto">
               <div class="flex w-full sm:w-auto items-center gap-2 flex-wrap">
               <input type="number" name="${key}" value="${prices[key]}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
-              <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
-              <button type="button" onclick="deleteStaticItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">Delete</button>
+              <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? t('btnShow') : t('btnHide')}</button>
+              <button type="button" onclick="deleteStaticItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">${t('btnDelete')}</button>
               </div>
               <div class="img-tools">
-                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">Upload</button>
-                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">URL</button>
-                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">Reset</button>
+                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
+                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
+                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
               </div>
             </div>
@@ -606,15 +930,14 @@
       });
 
       // ── Custom items ─────────────────────────────────────
-      const catDisplayNames = {
+      const catKeyToEngName = {
         waffles:"🧇 Waffles", crepes:"🥞 Crepes", icecream:"🍨 Ice Cream",
         juices:"🧃 Juices", milkshakes:"🥤 Milkshakes", cocktails:"🍹 Cocktails",
         specialcocktails:"👑 Special Cocktails", frozen:"🍧 Frozen", dhocakes:"🍰 DHO Pancakes",
-        salads:"🥗 Fruit Salads", mojitos:"🍸 Mojitos",
+        salads:"🥗 Fruit Salads", mojitos:" Mojitos",
         drinks:"🥤 Drinks", desserts:"🍮 Special Desserts", combos:"🍱 Economic Combos", popular:"⭐ Popular"
       };
 
-      // Group custom items by their assigned category
       const customByCat = {};
       for (const [key, item] of Object.entries(customItems)) {
         const cat = item.category || 'other';
@@ -623,27 +946,27 @@
       }
 
       for (const [catKey, keys] of Object.entries(customByCat)) {
-        const catLabel = catDisplayNames[catKey] || catKey;
+        const engName = catKeyToEngName[catKey] || catKey;
+        const catLabel = getCatLabel(engName);
 
-        // Find existing section or create one
         let section = Array.from(container.querySelectorAll('.cat-section'))
-          .find(s => s.dataset.cat === catLabel);
+          .find(s => s.dataset.cat === engName);
         let rowsWrap;
 
         if (!section) {
           section = document.createElement('div');
           section.className = 'cat-section mt-2';
-          section.dataset.cat = catLabel;
+          section.dataset.cat = engName;
           const headerBtn = document.createElement('button');
           headerBtn.type = 'button';
           headerBtn.className = 'cat-header-btn';
-          headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[catLabel] ? '▸' : '▾'}</span>`;
+          headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[engName] ? '▸' : '▾'}</span>`;
           rowsWrap = document.createElement('div');
-          rowsWrap.className = `cat-rows ${collapsedCats[catLabel] ? 'hidden' : ''}`;
+          rowsWrap.className = `cat-rows ${collapsedCats[engName] ? 'hidden' : ''}`;
           headerBtn.addEventListener('click', () => {
-            collapsedCats[catLabel] = !collapsedCats[catLabel];
-            rowsWrap.classList.toggle('hidden', collapsedCats[catLabel]);
-            headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[catLabel] ? '▸' : '▾'}</span>`;
+            collapsedCats[engName] = !collapsedCats[engName];
+            rowsWrap.classList.toggle('hidden', collapsedCats[engName]);
+            headerBtn.innerHTML = `<span>${catLabel}</span><span>${collapsedCats[engName] ? '▸' : '▾'}</span>`;
           });
           section.appendChild(headerBtn);
           section.appendChild(rowsWrap);
@@ -659,7 +982,6 @@
           const hasCustomImage = !!imageOverrides[key];
           const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || '';
           const currentPrice = prices[key] !== undefined ? prices[key] : (item.price || 0);
-          const safeName = (item.name || key).replace(/'/g, "\\'");
 
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
@@ -674,19 +996,19 @@
                 : `<div class="img-preview flex items-center justify-center" style="background:var(--surface-card); border:1px dashed var(--border-light); font-size:9px; color:var(--text-secondary);">No img</div>`}
               <div>
                 <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${item.name || key}</label>
-                <div style="font-size:10px; color:var(--text-secondary);">Custom · ${catLabel}</div>
+                <div style="font-size:10px; color:var(--text-secondary);">${t('customBadge')} · ${catLabel}</div>
               </div>
             </div>
             <div class="w-full sm:w-auto">
               <div class="flex w-full sm:w-auto items-center gap-2 flex-wrap">
                 <input type="number" name="${key}" value="${currentPrice}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
-                <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? 'Show' : 'Hide'}</button>
-                <button type="button" onclick="deleteCustomItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">Delete</button>
+                <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? t('btnShow') : t('btnHide')}</button>
+                <button type="button" onclick="deleteCustomItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">${t('btnDelete')}</button>
               </div>
               <div class="img-tools">
-                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">Upload</button>
-                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">URL</button>
-                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">Reset</button>
+                <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
+                <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
+                <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
               </div>
             </div>
@@ -867,7 +1189,7 @@
       prices = newPrices;
       db.collection("prices").doc("menu").set(newPrices)
         .then(() => {
-          document.getElementById('saveMessage').textContent = 'Prices updated successfully!';
+          document.getElementById('saveMessage').textContent = t('saveSuccess');
           document.getElementById('saveMessage').className = 'text-green-400 mt-2';
           setTimeout(() => document.getElementById('saveMessage').classList.add('hidden'), 3000);
         })
@@ -943,12 +1265,12 @@
       const ingredients = document.getElementById('newItemIngredients').value.trim();
 
       if (!name || !category || !priceStr) {
-        showAddItemMsg('Please fill in name, category and price.', 'red');
+        showAddItemMsg(t('errFillFields'), 'red');
         return;
       }
       const price = parseInt(priceStr);
       if (isNaN(price) || price < 0) {
-        showAddItemMsg('Please enter a valid price.', 'red');
+        showAddItemMsg(t('errInvalidPrice'), 'red');
         return;
       }
 
@@ -983,7 +1305,7 @@
         document.getElementById('newItemPrice').value = '';
         document.getElementById('newItemIngredients').value = '';
         clearNewItemImage();
-        showAddItemMsg('Item added successfully!', 'green');
+        showAddItemMsg(t('addSuccess'), 'green');
         renderPriceForm();
         filterPrices(document.getElementById('priceSearch').value || '');
         setTimeout(() => { document.getElementById('addItemMsg').style.display = 'none'; }, 3000);
@@ -996,38 +1318,8 @@
     }
 
     async function deleteStaticItem(key) {
-      const itemName = itemNames[key] || key;
-      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis will hide it from all customers. You can restore it by contacting your developer.')) return;
-      deletedItems[key] = true;
-      if (!hiddenItems[key]) hiddenItems[key] = true;
-      try {
-        await persistMenuSettings();
-        renderPriceForm();
-        filterPrices(document.getElementById('priceSearch').value || '');
-      } catch (err) {
-        delete deletedItems[key];
-        alert('Error deleting item: ' + err.message);
-      }
-    }
-
-    async function deleteStaticItem(key) {
-      const itemName = itemNames[key] || key;
-      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis will remove it from all customers. You can restore it by contacting your developer.')) return;
-      deletedItems[key] = true;
-      hiddenItems[key] = true;
-      try {
-        await persistMenuSettings();
-        renderPriceForm();
-        filterPrices(document.getElementById('priceSearch').value || '');
-      } catch (err) {
-        delete deletedItems[key];
-        alert('Error deleting item: ' + err.message);
-      }
-    }
-
-    async function deleteStaticItem(key) {
-      const itemName = itemNames[key] || key;
-      if (!confirm('Permanently delete "' + itemName + '" from the menu?\n\nThis removes it from all customers.')) return;
+      const itemName = getItemName(key);
+      if (!confirm(t('deleteConfirm')(itemName))) return;
       deletedItems[key] = true;
       hiddenItems[key] = true;
       try {
@@ -1042,7 +1334,7 @@
 
     async function deleteCustomItem(key) {
       const itemName = (customItems[key] && customItems[key].name) || key;
-      if (!confirm('Delete "' + itemName + '"? This cannot be undone.')) return;
+      if (!confirm(t('deleteCustomConfirm')(itemName))) return;
       const backup = customItems[key];
       const priceBackup = prices[key];
 
@@ -1072,6 +1364,11 @@
   </script>
 
   <script>
+    // Apply saved language on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      applyAdminLang();
+    });
+
     const backToTopBtn = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
       if (window.scrollY > 300) {
