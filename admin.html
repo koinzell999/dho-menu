@@ -574,6 +574,8 @@
     };
 
     function getItemName(key) {
+      if (nameOverrides[key] && nameOverrides[key][adminLang]) return nameOverrides[key][adminLang];
+      if (nameOverrides[key] && nameOverrides[key].en) return nameOverrides[key].en;
       return (itemNamesLoc[adminLang] || itemNamesLoc.en)[key] || (itemNamesLoc.en)[key] || key;
     }
     function getCatLabel(engName) {
@@ -724,6 +726,7 @@
     let imageOverrides = {};
     let customItems = {};
     let deletedItems = {};
+    let nameOverrides = {};
     let collapsedCats = {};
     let idleTimer = null;
     const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
@@ -818,6 +821,7 @@
           imageOverrides = settingsDoc.data().imageOverrides || {};
           customItems = settingsDoc.data().customItems || {};
           deletedItems = settingsDoc.data().deletedItems || {};
+          nameOverrides = settingsDoc.data().nameOverrides || {};
         }
       } catch (err) {
         console.error("Failed to load prices:", err);
@@ -837,7 +841,7 @@
     }
 
     async function persistMenuSettings() {
-      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems }, { merge: true });
+      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems, nameOverrides }, { merge: true });
     }
 
     function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
@@ -939,7 +943,19 @@
                 <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
                 <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
                 <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
+                <button type="button" class="img-btn" onclick="toggleRenamePanel('${key}')">✏ Name</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
+              </div>
+              <div id="nameEdit_${key}" style="display:none; margin-top:8px; padding:8px; border-radius:8px; background:var(--surface-card); border:1px solid var(--border-light);">
+                <div style="display:grid; grid-template-columns:28px 1fr; gap:5px 8px; align-items:center; font-size:12px;">
+                  <span style="font-weight:700; color:var(--text-secondary);">EN</span>
+                  <input id="nameEdit_en_${key}" type="text" value="${(nameOverrides[key]?.en || itemNamesLoc.en[key] || key).replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                  <span style="font-weight:700; color:var(--text-secondary);">TR</span>
+                  <input id="nameEdit_tr_${key}" type="text" value="${(nameOverrides[key]?.tr || itemNamesLoc.tr[key] || '').replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                  <span style="font-weight:700; color:var(--text-secondary);">AR</span>
+                  <input id="nameEdit_ar_${key}" type="text" dir="rtl" value="${(nameOverrides[key]?.ar || itemNamesLoc.ar[key] || '').replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                </div>
+                <button type="button" onclick="saveItemName('${key}')" style="margin-top:6px; padding:5px 12px; border-radius:6px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:11px; font-weight:700; cursor:pointer;">✓ Save Name</button>
               </div>
             </div>
           `;
@@ -1021,7 +1037,7 @@
                 ? `<img src="${imgSrc}" alt="${item.name}" class="img-preview" referrerpolicy="no-referrer" />`
                 : `<div class="img-preview flex items-center justify-center" style="background:var(--surface-card); border:1px dashed var(--border-light); font-size:9px; color:var(--text-secondary);">No img</div>`}
               <div>
-                <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${item.name || key}</label>
+                <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${nameOverrides[key]?.en || item.name || key}</label>
                 <div style="font-size:10px; color:var(--text-secondary);">${t('customBadge')} · ${catLabel}</div>
               </div>
             </div>
@@ -1035,7 +1051,19 @@
                 <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
                 <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
                 <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
+                <button type="button" class="img-btn" onclick="toggleRenamePanel('${key}')">✏ Name</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
+              </div>
+              <div id="nameEdit_${key}" style="display:none; margin-top:8px; padding:8px; border-radius:8px; background:var(--surface-card); border:1px solid var(--border-light);">
+                <div style="display:grid; grid-template-columns:28px 1fr; gap:5px 8px; align-items:center; font-size:12px;">
+                  <span style="font-weight:700; color:var(--text-secondary);">EN</span>
+                  <input id="nameEdit_en_${key}" type="text" value="${(nameOverrides[key]?.en || item.name || key).replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                  <span style="font-weight:700; color:var(--text-secondary);">TR</span>
+                  <input id="nameEdit_tr_${key}" type="text" value="${(nameOverrides[key]?.tr || '').replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                  <span style="font-weight:700; color:var(--text-secondary);">AR</span>
+                  <input id="nameEdit_ar_${key}" type="text" dir="rtl" value="${(nameOverrides[key]?.ar || '').replace(/"/g,'&quot;')}" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border-light); background:var(--surface); color:var(--text-primary); font-size:12px; width:100%; box-sizing:border-box;">
+                </div>
+                <button type="button" onclick="saveItemName('${key}')" style="margin-top:6px; padding:5px 12px; border-radius:6px; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.4); color:#4ade80; font-size:11px; font-weight:700; cursor:pointer;">✓ Save Name</button>
               </div>
             </div>
           `;
@@ -1403,6 +1431,31 @@
         delete prices[key];
         delete imageOverrides[key];
         showAddItemMsg('Error: ' + err.message, 'red');
+      }
+    }
+
+    function toggleRenamePanel(key) {
+      const panel = document.getElementById('nameEdit_' + key);
+      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function saveItemName(key) {
+      const en = document.getElementById('nameEdit_en_' + key).value.trim();
+      const tr = document.getElementById('nameEdit_tr_' + key).value.trim();
+      const ar = document.getElementById('nameEdit_ar_' + key).value.trim();
+      if (!en) { alert('English name cannot be empty.'); return; }
+      if (!nameOverrides[key]) nameOverrides[key] = {};
+      nameOverrides[key].en = en;
+      if (tr) nameOverrides[key].tr = tr; else delete nameOverrides[key].tr;
+      if (ar) nameOverrides[key].ar = ar; else delete nameOverrides[key].ar;
+      // Also update customItems name if it's a custom item
+      if (customItems[key]) customItems[key].name = en;
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+      } catch (err) {
+        alert('Error saving name: ' + err.message);
       }
     }
 

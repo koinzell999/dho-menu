@@ -1726,6 +1726,7 @@
     let imageOverrides = {};
     let customItems = {};
     let deletedItems = {};
+    let nameOverrides = {};
     let weeklyPopularItems = [];
 
     /* ====== Weekly click tracking ====== */
@@ -1801,6 +1802,7 @@
           imageOverrides = settingsDoc.data().imageOverrides || {};
           customItems = settingsDoc.data().customItems || {};
           deletedItems = settingsDoc.data().deletedItems || {};
+          nameOverrides = settingsDoc.data().nameOverrides || {};
           // Inject custom items into the menu
           for (const [key, item] of Object.entries(customItems)) {
             if (!item || !item.name || !item.category) continue;
@@ -1817,6 +1819,15 @@
             // Apply price: prefer remotePrices, fall back to what was stored in customItem
             if (remotePrices && remotePrices[key] !== undefined) prices[key] = remotePrices[key];
             else if (item.price !== undefined) prices[key] = item.price;
+          }
+          // Apply name overrides from admin to all languages
+          for (const [key, names] of Object.entries(nameOverrides)) {
+            for (const lang of [...supportedLangs, 'es']) {
+              if (translations[lang] && translations[lang].items && translations[lang].items[key]) {
+                const overrideName = names[lang] || names.en;
+                if (overrideName) translations[lang].items[key] = { ...translations[lang].items[key], name: overrideName };
+              }
+            }
           }
         }
       } catch (e) {
