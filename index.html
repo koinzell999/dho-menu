@@ -2209,9 +2209,16 @@
           if (!itemData && state.lang === 'es') itemData = translations.en.items[itemKey];
           if(!itemData) return;
           const hasSizes = !!sizePairs[itemKey];
-          const curSize = hasSizes ? (selectedSizes[itemKey] || 'm') : null;
+          const custSizes = !hasSizes && customItems[itemKey] && customItems[itemKey].sizes ? customItems[itemKey].sizes : null;
+          const hasAnySizes = hasSizes || !!custSizes;
+          const curSize = hasAnySizes ? (selectedSizes[itemKey] || 'm') : null;
           const activeKey = (hasSizes && curSize === 'l') ? sizePairs[itemKey] : itemKey;
-          const activePrice = prices[activeKey];
+          let activePrice;
+          if (custSizes) {
+            activePrice = curSize === 'l' ? (custSizes.L ?? custSizes.M ?? prices[itemKey]) : (custSizes.M ?? prices[itemKey]);
+          } else {
+            activePrice = prices[activeKey];
+          }
           const displayName = hasSizes ? stripSizeFromName(itemData.name) : itemData.name;
           const currentImage = resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
           const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
@@ -2248,7 +2255,7 @@
 
           // Size toggle HTML
           let sizeHTML = '';
-          if (hasSizes) {
+          if (hasAnySizes) {
             const sl = sizeLabels[state.lang];
             sizeHTML = `<span class="size-toggle" data-itemkey="${itemKey}">` +
               `<button type="button" class="size-btn ${curSize === 'm' ? 'active' : ''}" data-size="m">${sl.m}</button>` +
@@ -2284,7 +2291,7 @@
           `;
 
           // Handle size toggle clicks
-          if (hasSizes) {
+          if (hasAnySizes) {
             itemEl.querySelectorAll('.size-btn').forEach(btn => {
               btn.addEventListener('click', (e) => {
                 e.stopPropagation();

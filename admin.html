@@ -219,8 +219,26 @@
               </select>
             </div>
             <div>
-              <label id="labelNewItemPrice" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Price (₺) *</label>
-              <input id="newItemPrice" type="number" min="0" placeholder="350" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                <label id="labelNewItemPrice" style="font-size:11px; font-weight:700; color:var(--text-secondary);">Price (₺) *</label>
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:11px; font-weight:600; color:var(--text-secondary);">
+                  <input type="checkbox" id="newItemSizeToggle" onchange="toggleNewItemSizes(this.checked)" style="accent-color:var(--accent); cursor:pointer;">
+                  M / L sizes
+                </label>
+              </div>
+              <div id="newItemPriceSingle">
+                <input id="newItemPrice" type="number" min="0" placeholder="350" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
+              </div>
+              <div id="newItemPriceSizes" style="display:none; grid-template-columns:1fr 1fr; gap:8px;">
+                <div>
+                  <span style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:3px;">M – Medium</span>
+                  <input id="newItemPriceM" type="number" min="0" placeholder="300" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
+                </div>
+                <div>
+                  <span style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:3px;">L – Large</span>
+                  <input id="newItemPriceL" type="number" min="0" placeholder="350" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border-light); background:var(--surface-card); color:var(--text-primary); font-size:13px; box-sizing:border-box;" inputmode="numeric" />
+                </div>
+              </div>
             </div>
             <div>
               <label id="labelNewItemIngredients" style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Ingredients</label>
@@ -982,6 +1000,14 @@
           const hasCustomImage = !!imageOverrides[key];
           const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || '';
           const currentPrice = prices[key] !== undefined ? prices[key] : (item.price || 0);
+          const hasSizes = !!(item.sizes && (item.sizes.M !== undefined || item.sizes.L !== undefined));
+
+          const priceInputHTML = hasSizes
+            ? `<span style="font-size:10px;font-weight:700;color:var(--text-secondary);">M</span>
+               <input type="number" name="${key}_M" value="${item.sizes.M ?? 0}" class="w-16 p-1 rounded text-center text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric">
+               <span style="font-size:10px;font-weight:700;color:var(--text-secondary);">L</span>
+               <input type="number" name="${key}_L" value="${item.sizes.L ?? 0}" class="w-16 p-1 rounded text-center text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric">`
+            : `<input type="number" name="${key}" value="${currentPrice}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>`;
 
           const div = document.createElement('div');
           div.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 price-row py-1';
@@ -1001,7 +1027,7 @@
             </div>
             <div class="w-full sm:w-auto">
               <div class="flex w-full sm:w-auto items-center gap-2 flex-wrap">
-                <input type="number" name="${key}" value="${currentPrice}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>
+                ${priceInputHTML}
                 <button type="button" onclick="toggleItemVisibility('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid ${isHidden ? 'rgba(74,222,128,0.35)' : 'rgba(248,113,113,0.35)'}; color:${isHidden ? '#4ade80' : '#f87171'}; background:${isHidden ? 'rgba(74,222,128,0.10)' : 'rgba(248,113,113,0.10)'};">${isHidden ? t('btnShow') : t('btnHide')}</button>
                 <button type="button" onclick="deleteCustomItem('${key}')" class="py-1.5 px-2.5 rounded text-xs font-bold" style="border:1px solid rgba(248,113,113,0.35); color:#f87171; background:rgba(248,113,113,0.10);">${t('btnDelete')}</button>
               </div>
@@ -1183,11 +1209,37 @@
       e.preventDefault();
       const formData = new FormData(this);
       const newPrices = {};
+      let needsSettingsUpdate = false;
+
       for (let [key, value] of formData.entries()) {
-        newPrices[key] = parseInt(value);
+        if (key.endsWith('_M')) {
+          const baseKey = key.slice(0, -2);
+          const mPrice = parseInt(value);
+          if (!isNaN(mPrice) && customItems[baseKey]) {
+            if (!customItems[baseKey].sizes) customItems[baseKey].sizes = {};
+            customItems[baseKey].sizes.M = mPrice;
+            customItems[baseKey].price = mPrice;
+            newPrices[baseKey] = mPrice;
+            needsSettingsUpdate = true;
+          }
+        } else if (key.endsWith('_L')) {
+          const baseKey = key.slice(0, -2);
+          const lPrice = parseInt(value);
+          if (!isNaN(lPrice) && customItems[baseKey]) {
+            if (!customItems[baseKey].sizes) customItems[baseKey].sizes = {};
+            customItems[baseKey].sizes.L = lPrice;
+            needsSettingsUpdate = true;
+          }
+        } else {
+          newPrices[key] = parseInt(value);
+        }
       }
-      prices = newPrices;
-      db.collection("prices").doc("menu").set(newPrices)
+      prices = { ...prices, ...newPrices };
+
+      const saves = [db.collection("prices").doc("menu").set(newPrices)];
+      if (needsSettingsUpdate) saves.push(persistMenuSettings());
+
+      Promise.all(saves)
         .then(() => {
           document.getElementById('saveMessage').textContent = t('saveSuccess');
           document.getElementById('saveMessage').className = 'text-green-400 mt-2';
@@ -1251,6 +1303,11 @@
       icon.textContent = isHidden ? '▾' : '▸';
     }
 
+    function toggleNewItemSizes(enabled) {
+      document.getElementById('newItemPriceSingle').style.display = enabled ? 'none' : 'block';
+      document.getElementById('newItemPriceSizes').style.display  = enabled ? 'grid' : 'none';
+    }
+
     function showAddItemMsg(text, color) {
       const el = document.getElementById('addItemMsg');
       el.textContent = text;
@@ -1261,21 +1318,42 @@
     async function addNewCustomItem() {
       const name = document.getElementById('newItemName').value.trim();
       const category = document.getElementById('newItemCategory').value;
-      const priceStr = document.getElementById('newItemPrice').value;
       const ingredients = document.getElementById('newItemIngredients').value.trim();
+      const sizesEnabled = document.getElementById('newItemSizeToggle').checked;
 
-      if (!name || !category || !priceStr) {
-        showAddItemMsg(t('errFillFields'), 'red');
-        return;
-      }
-      const price = parseInt(priceStr);
-      if (isNaN(price) || price < 0) {
-        showAddItemMsg(t('errInvalidPrice'), 'red');
-        return;
+      let price, sizes;
+      if (sizesEnabled) {
+        const mStr = document.getElementById('newItemPriceM').value;
+        const lStr = document.getElementById('newItemPriceL').value;
+        if (!name || !category || !mStr || !lStr) {
+          showAddItemMsg(t('errFillFields'), 'red');
+          return;
+        }
+        const mPrice = parseInt(mStr);
+        const lPrice = parseInt(lStr);
+        if (isNaN(mPrice) || mPrice < 0 || isNaN(lPrice) || lPrice < 0) {
+          showAddItemMsg(t('errInvalidPrice'), 'red');
+          return;
+        }
+        price = mPrice;
+        sizes = { M: mPrice, L: lPrice };
+      } else {
+        const priceStr = document.getElementById('newItemPrice').value;
+        if (!name || !category || !priceStr) {
+          showAddItemMsg(t('errFillFields'), 'red');
+          return;
+        }
+        price = parseInt(priceStr);
+        if (isNaN(price) || price < 0) {
+          showAddItemMsg(t('errInvalidPrice'), 'red');
+          return;
+        }
       }
 
       const key = 'cust_' + Date.now();
-      customItems[key] = { name, category, price, ingredients, createdAt: Date.now() };
+      const itemData = { name, category, price, ingredients, createdAt: Date.now() };
+      if (sizes) itemData.sizes = sizes;
+      customItems[key] = itemData;
       prices[key] = price;
 
       // Upload image if one was selected
@@ -1303,6 +1381,10 @@
         document.getElementById('newItemName').value = '';
         document.getElementById('newItemCategory').value = '';
         document.getElementById('newItemPrice').value = '';
+        document.getElementById('newItemPriceM').value = '';
+        document.getElementById('newItemPriceL').value = '';
+        document.getElementById('newItemSizeToggle').checked = false;
+        toggleNewItemSizes(false);
         document.getElementById('newItemIngredients').value = '';
         clearNewItemImage();
         showAddItemMsg(t('addSuccess'), 'green');
