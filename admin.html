@@ -1006,7 +1006,7 @@
             ? `<span style="font-size:10px;font-weight:700;color:var(--text-secondary);">M</span>
                <input type="number" name="${key}_M" value="${item.sizes.M ?? 0}" class="w-16 p-1 rounded text-center text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric">
                <span style="font-size:10px;font-weight:700;color:var(--text-secondary);">L</span>
-               <input type="number" name="${key}_L" value="${item.sizes.L ?? 0}" class="w-16 p-1 rounded text-center text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric">`
+               <input type="number" name="${key}_L" value="${item.sizes.L ?? ''}" placeholder="—" class="w-16 p-1 rounded text-center text-sm" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric">`
             : `<input type="number" name="${key}" value="${currentPrice}" class="w-full sm:w-24 p-2 sm:p-1 rounded text-center text-base" style="background:var(--surface-card); border:1px solid var(--border-light); color:var(--text-primary);" min="0" inputmode="numeric" required>`;
 
           const div = document.createElement('div');
@@ -1225,9 +1225,13 @@
         } else if (key.endsWith('_L')) {
           const baseKey = key.slice(0, -2);
           const lPrice = parseInt(value);
-          if (!isNaN(lPrice) && customItems[baseKey]) {
+          if (customItems[baseKey]) {
             if (!customItems[baseKey].sizes) customItems[baseKey].sizes = {};
-            customItems[baseKey].sizes.L = lPrice;
+            if (!isNaN(lPrice) && lPrice >= 0 && value.trim() !== '') {
+              customItems[baseKey].sizes.L = lPrice;
+            } else {
+              delete customItems[baseKey].sizes.L;
+            }
             needsSettingsUpdate = true;
           }
         } else {
@@ -1325,18 +1329,21 @@
       if (sizesEnabled) {
         const mStr = document.getElementById('newItemPriceM').value;
         const lStr = document.getElementById('newItemPriceL').value;
-        if (!name || !category || !mStr || !lStr) {
+        if (!name || !category || !mStr) {
           showAddItemMsg(t('errFillFields'), 'red');
           return;
         }
         const mPrice = parseInt(mStr);
-        const lPrice = parseInt(lStr);
-        if (isNaN(mPrice) || mPrice < 0 || isNaN(lPrice) || lPrice < 0) {
+        if (isNaN(mPrice) || mPrice < 0) {
           showAddItemMsg(t('errInvalidPrice'), 'red');
           return;
         }
         price = mPrice;
-        sizes = { M: mPrice, L: lPrice };
+        sizes = { M: mPrice };
+        if (lStr) {
+          const lPrice = parseInt(lStr);
+          if (!isNaN(lPrice) && lPrice >= 0) sizes.L = lPrice;
+        }
       } else {
         const priceStr = document.getElementById('newItemPrice').value;
         if (!name || !category || !priceStr) {

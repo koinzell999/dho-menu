@@ -2210,12 +2210,13 @@
           if(!itemData) return;
           const hasSizes = !!sizePairs[itemKey];
           const custSizes = !hasSizes && customItems[itemKey] && customItems[itemKey].sizes ? customItems[itemKey].sizes : null;
-          const hasAnySizes = hasSizes || !!custSizes;
+          const custHasL = custSizes && custSizes.L !== undefined;
+          const hasAnySizes = hasSizes || (custSizes && custHasL);
           const curSize = hasAnySizes ? (selectedSizes[itemKey] || 'm') : null;
           const activeKey = (hasSizes && curSize === 'l') ? sizePairs[itemKey] : itemKey;
           let activePrice;
           if (custSizes) {
-            activePrice = curSize === 'l' ? (custSizes.L ?? custSizes.M ?? prices[itemKey]) : (custSizes.M ?? prices[itemKey]);
+            activePrice = (curSize === 'l' && custHasL) ? custSizes.L : (custSizes.M ?? prices[itemKey]);
           } else {
             activePrice = prices[activeKey];
           }
