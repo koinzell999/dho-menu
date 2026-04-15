@@ -1087,8 +1087,14 @@
 
     async function toggleItemVisibility(key) {
       const wasHidden = !!hiddenItems[key];
-      if (wasHidden) delete hiddenItems[key];
-      else hiddenItems[key] = true;
+      if (wasHidden) {
+        delete hiddenItems[key];
+        // Turn off "hidden only" filter so the user sees the newly shown item
+        const toggle = document.getElementById('hiddenOnlyToggle');
+        if (toggle) toggle.checked = false;
+      } else {
+        hiddenItems[key] = true;
+      }
 
       try {
         await persistMenuSettings();
@@ -1294,8 +1300,11 @@
       }
       prices = { ...prices, ...newPrices };
 
-      const saves = [db.collection("prices").doc("menu").set(newPrices)];
-      if (needsSettingsUpdate) saves.push(persistMenuSettings());
+      const saves = [
+        db.collection("prices").doc("menu").set(newPrices),
+        persistMenuSettings()  // always save hiddenItems, imageOverrides, etc.
+      ];
+      // (needsSettingsUpdate kept for clarity but settings always saved now)
 
       Promise.all(saves)
         .then(() => {
