@@ -1959,6 +1959,7 @@
 
     function resolveImageOverrideUrl(overrideValue) {
       if (!overrideValue) return '';
+      if (overrideValue === '__deleted__') return '';
       if (typeof overrideValue === 'string') return overrideValue;
       if (typeof overrideValue === 'object' && overrideValue.url) return overrideValue.url;
       return '';
@@ -2267,7 +2268,8 @@
             activePrice = prices[activeKey];
           }
           const displayName = hasSizes ? stripSizeFromName(itemData.name) : itemData.name;
-          const currentImage = resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '';
+          const isImgDeleted = imageOverrides[activeKey] === '__deleted__' || imageOverrides[itemKey] === '__deleted__';
+          const currentImage = isImgDeleted ? '' : (resolveImageOverrideUrl(imageOverrides[activeKey]) || itemImages[activeKey] || resolveImageOverrideUrl(imageOverrides[itemKey]) || itemImages[itemKey] || '');
           const ing = itemIngredients[activeKey] || itemIngredients[itemKey] || '';
           const itemEl = document.createElement('div');
           itemEl.className = 'menu-item flex justify-between gap-2 sm:gap-3 p-2 sm:p-[10px] rounded-[10px] items-center cursor-pointer';

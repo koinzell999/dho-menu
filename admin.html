@@ -362,7 +362,8 @@
         imgHint: 'Images: use Upload (device) or URL (internet) per item.',
         hiddenOnlyLabel: 'Hidden items only', savePricesBtn: 'Save Changes',
         saveSuccess: 'Prices updated successfully!', btnShow: 'Show', btnHide: 'Hide',
-        btnDelete: 'Delete', btnUpload: 'Upload', btnUrl: 'URL', btnReset: 'Reset',
+        btnDelete: 'Delete', btnUpload: 'Upload', btnUrl: 'URL', btnReset: 'Reset', btnDeleteImg: '🗑 Delete Image',
+        deleteImgConfirm: (name) => `Permanently remove the image for "${name}"? You can upload a new one afterwards.`,
         customBadge: 'Custom', staffTools: '⚡ Staff Tools',
         cashierLabel: 'Cashier', cashierDesc: 'Orders & status',
         kitchenLabel: 'Kitchen', kitchenDesc: 'Active orders only',
@@ -384,7 +385,8 @@
         imgHint: 'Görsel: cihazdan yükle veya URL kullan.',
         hiddenOnlyLabel: 'Sadece gizli ürünler', savePricesBtn: 'Değişiklikleri Kaydet',
         saveSuccess: 'Fiyatlar başarıyla güncellendi!', btnShow: 'Göster', btnHide: 'Gizle',
-        btnDelete: 'Sil', btnUpload: 'Yükle', btnUrl: 'URL', btnReset: 'Sıfırla',
+        btnDelete: 'Sil', btnUpload: 'Yükle', btnUrl: 'URL', btnReset: 'Sıfırla', btnDeleteImg: '🗑 Görseli Sil',
+        deleteImgConfirm: (name) => `"${name}" ürününün görseli kalıcı olarak silinsin mi? Sonradan yeni bir görsel yükleyebilirsiniz.`,
         customBadge: 'Özel', staffTools: '⚡ Personel Araçları',
         cashierLabel: 'Kasa', cashierDesc: 'Sipariş & durum',
         kitchenLabel: 'Mutfak', kitchenDesc: 'Aktif siparişler',
@@ -406,7 +408,8 @@
         imgHint: 'الصورة: رفع من الجهاز أو استخدام رابط URL.',
         hiddenOnlyLabel: 'المنتجات المخفية فقط', savePricesBtn: 'حفظ التغييرات',
         saveSuccess: 'تم تحديث الأسعار بنجاح!', btnShow: 'إظهار', btnHide: 'إخفاء',
-        btnDelete: 'حذف', btnUpload: 'رفع', btnUrl: 'رابط', btnReset: 'إعادة',
+        btnDelete: 'حذف', btnUpload: 'رفع', btnUrl: 'رابط', btnReset: 'إعادة', btnDeleteImg: '🗑 حذف الصورة',
+        deleteImgConfirm: (name) => `هل تريد حذف صورة "${name}" بشكل نهائي؟ يمكنك رفع صورة جديدة لاحقاً.`,
         customBadge: 'مخصص', staffTools: '⚡ أدوات الموظفين',
         cashierLabel: 'الكاشير', cashierDesc: 'الطلبات والحالة',
         kitchenLabel: 'المطبخ', kitchenDesc: 'الطلبات النشطة',
@@ -835,6 +838,7 @@
 
     function resolveImageOverrideUrl(overrideValue) {
       if (!overrideValue) return '';
+      if (overrideValue === '__deleted__') return '';
       if (typeof overrideValue === 'string') return overrideValue;
       if (typeof overrideValue === 'object' && overrideValue.url) return overrideValue.url;
       return '';
@@ -920,7 +924,8 @@
           if (deletedItems[key]) return;
           const isHidden = !!hiddenItems[key];
           const hasCustomImage = !!imageOverrides[key];
-          const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key);
+          const isImgDeleted = imageOverrides[key] === '__deleted__';
+          const imgSrc = isImgDeleted ? '' : (resolveImageOverrideUrl(imageOverrides[key]) || getDefaultImageForKey(key));
           const fallbackImgSrc = getDefaultImageForKey(key);
           const displayName = getItemName(key);
           const div = document.createElement('div');
@@ -930,7 +935,9 @@
           div.dataset.hidden = isHidden ? '1' : '0';
           div.innerHTML = `
             <div class="flex items-center gap-2 w-full sm:w-auto">
-              <img src="${imgSrc}" alt="${displayName}" class="img-preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallbackImgSrc}';" />
+              ${imgSrc
+                ? `<img src="${imgSrc}" alt="${displayName}" class="img-preview" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallbackImgSrc}';" />`
+                : `<div class="img-preview flex items-center justify-center" style="background:var(--surface-card); border:1px dashed var(--border-light); font-size:9px; color:var(--text-secondary);">No img</div>`}
               <label class="font-bold text-sm ${isHidden ? 'line-through opacity-60' : ''}">${displayName}</label>
             </div>
             <div class="w-full sm:w-auto">
@@ -943,6 +950,7 @@
                 <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
                 <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
                 <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
+                <button type="button" class="img-btn" onclick="deleteItemImage('${key}')" ${isImgDeleted ? 'disabled' : ''} style="${isImgDeleted ? 'opacity:0.4;cursor:not-allowed;' : 'border-color:rgba(248,113,113,0.5);color:#f87171;'}">${t('btnDeleteImg')}</button>
                 <button type="button" class="img-btn" onclick="toggleRenamePanel('${key}')">✏ Name</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
               </div>
@@ -1014,7 +1022,8 @@
           if (!item) continue;
           const isHidden = !!hiddenItems[key];
           const hasCustomImage = !!imageOverrides[key];
-          const imgSrc = resolveImageOverrideUrl(imageOverrides[key]) || '';
+          const isImgDeleted = imageOverrides[key] === '__deleted__';
+          const imgSrc = isImgDeleted ? '' : (resolveImageOverrideUrl(imageOverrides[key]) || '');
           const currentPrice = prices[key] !== undefined ? prices[key] : (item.price || 0);
           const hasSizes = !!(item.sizes && (item.sizes.M !== undefined || item.sizes.L !== undefined));
 
@@ -1051,6 +1060,7 @@
                 <button type="button" class="img-btn" onclick="document.getElementById('imgFile_${key}').click()">${t('btnUpload')}</button>
                 <button type="button" class="img-btn" onclick="setImageFromUrl('${key}')">${t('btnUrl')}</button>
                 <button type="button" class="img-btn" onclick="resetItemImage('${key}')" ${hasCustomImage ? '' : 'disabled'} style="${hasCustomImage ? '' : 'opacity:0.45;cursor:not-allowed;'}">${t('btnReset')}</button>
+                <button type="button" class="img-btn" onclick="deleteItemImage('${key}')" ${isImgDeleted ? 'disabled' : ''} style="${isImgDeleted ? 'opacity:0.4;cursor:not-allowed;' : 'border-color:rgba(248,113,113,0.5);color:#f87171;'}">${t('btnDeleteImg')}</button>
                 <button type="button" class="img-btn" onclick="toggleRenamePanel('${key}')">✏ Name</button>
                 <input id="imgFile_${key}" type="file" accept="image/*" style="display:none" onchange="setImageFromFile('${key}', this)" />
               </div>
@@ -1186,6 +1196,22 @@
         renderPriceForm();
       } catch (err) {
         alert('Failed to reset image: ' + err.message);
+      }
+    }
+
+    async function deleteItemImage(key) {
+      const displayName = getItemName(key);
+      if (!confirm(t('deleteImgConfirm')(displayName))) return;
+      const previous = imageOverrides[key];
+      if (previous && typeof previous === 'object' && previous.path) {
+        try { await storage.ref(previous.path).delete(); } catch (_) {}
+      }
+      imageOverrides[key] = '__deleted__';
+      try {
+        await persistMenuSettings();
+        renderPriceForm();
+      } catch (err) {
+        alert('Failed to delete image: ' + err.message);
       }
     }
 
