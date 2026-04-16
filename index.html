@@ -576,7 +576,7 @@
     <div id="cartDrawerFooter">
       <div class="flex justify-between items-center gap-3">
         <div style="color:var(--text-secondary);"><strong id="totalLabel" class="font-bold">Total</strong><div id="totalPrice">₺0</div></div>
-        <button class="border-none py-[10px] px-[14px] rounded-[10px] font-bold cursor-pointer" style="background:var(--accent); color:var(--accent-dark);" id="checkoutBtn">Checkout <span id="cartCountBadge" style="display:none"></span></button>
+        <button class="border-none py-[10px] px-[14px] rounded-[10px] font-bold cursor-pointer" style="background:var(--accent); color:var(--accent-dark);" id="checkoutBtn"><span id="checkoutBtnText">Checkout</span> <span id="cartCountBadge" style="display:none"></span></button>
       </div>
     </div>
   </div>
@@ -1847,7 +1847,6 @@
                 translations[lang].items[key] = itemEntry;
               }
             }
-            if (translations.es && translations.es.items) translations.es.items[key] = itemEntry;
             if (item.ingredients) itemIngredients[key] = item.ingredients;
             const cat = menuStructure.find(c => c.key === item.category);
             if (cat && !cat.items.includes(key)) cat.items.push(key);
@@ -1857,7 +1856,7 @@
           }
           // Apply name overrides from admin to all languages
           for (const [key, names] of Object.entries(nameOverrides)) {
-            for (const lang of [...supportedLangs, 'es']) {
+            for (const lang of supportedLangs) {
               if (translations[lang] && translations[lang].items && translations[lang].items[key]) {
                 const overrideName = names[lang] || names.en;
                 if (overrideName) translations[lang].items[key] = { ...translations[lang].items[key], name: overrideName };
@@ -2159,11 +2158,6 @@
     };
 
     function render(){
-            // Debug: log translation object and menu items in Spanish mode
-            if (state.lang === 'es') {
-              console.log('Spanish translation object:', translations.es);
-              console.log('Menu structure:', menuStructure);
-            }
       // Robust fallback: always use English if translation object or key is missing
       const t = Object.assign({}, translations.en, translations[state.lang] || {});
       document.documentElement.lang = state.lang;
@@ -2179,7 +2173,7 @@
       document.getElementById('orderTitle').textContent = t.orderTitle;
       document.getElementById('orderNote').textContent = t.orderNote;
       document.getElementById('totalLabel').textContent = t.totalLabel;
-      document.getElementById('checkoutBtn').textContent = t.checkout;
+      const _cbtn = document.getElementById('checkoutBtnText'); if (_cbtn) _cbtn.textContent = t.checkout;
 
       // Update social button labels
       const _waLabels = { en:'Message Us', tr:'Bize Yazın', ar:'راسلنا', es:'Escríbenos', de:'Schreib uns', fr:'Écrivez-nous', ru:'Напишите нам' };
@@ -2202,10 +2196,7 @@
       menuEl.innerHTML = '';
       let anyItems = false;
       menuStructure.forEach(cat=>{
-        // In Spanish mode, ignore hiddenItems (show all items)
-        const visibleItems = (state.lang === 'es')
-          ? cat.items.filter(itemKey => !deletedItems[itemKey])
-          : cat.items.filter(itemKey => !hiddenItems[itemKey] && !deletedItems[itemKey]);
+        const visibleItems = cat.items.filter(itemKey => !hiddenItems[itemKey] && !deletedItems[itemKey]);
         if (visibleItems.length === 0) return;
         anyItems = true;
 
@@ -2252,8 +2243,6 @@
 
         visibleItems.forEach(itemKey=>{
           let itemData = t.items[itemKey];
-          // Fallback to English if missing in Spanish
-          if (!itemData && state.lang === 'es') itemData = translations.en.items[itemKey];
           if(!itemData) return;
           const hasSizes = !!sizePairs[itemKey];
           const custSizes = !hasSizes && customItems[itemKey] && customItems[itemKey].sizes ? customItems[itemKey].sizes : null;
@@ -2368,10 +2357,6 @@
       });
 
 
-      // If no items are shown in Spanish mode, show a visible error message
-      if (state.lang === 'es' && !anyItems) {
-        menuEl.innerHTML = '<div style="color:red;font-weight:bold;padding:2em;text-align:center">Error: No menu items found in Spanish mode.<br>Check translation keys and menu logic.</div>';
-      }
       renderOrder();
 
       /* Build category nav buttons */
@@ -2422,14 +2407,25 @@
       const mKey = lToM[itemKey];
       const isLarge = !!mKey;
       const isMedium = !!sizePairs[itemKey];
+      // Custom M/L item sizing (items not in sizePairs but with admin-configured sizes)
+      const custSizes = (!isLarge && !isMedium && customItems[itemKey] && customItems[itemKey].sizes) ? customItems[itemKey].sizes : null;
+      const custHasL = custSizes && custSizes.L !== undefined;
+      const custCurSize = custHasL ? (selectedSizes[itemKey] || 'm') : null;
       let orderName = item.name;
       if (isLarge || isMedium) {
         const sl = sizeLabels[state.lang];
         const sizeTag = isLarge ? sl.l : sl.m;
         orderName = stripSizeFromName(item.name) + ' (' + sizeTag + ')';
+      } else if (custHasL && custCurSize) {
+        const sl = sizeLabels[state.lang];
+        const sizeTag = custCurSize === 'l' ? sl.l : sl.m;
+        orderName = stripSizeFromName(item.name) + ' (' + sizeTag + ')';
       }
+      const itemPrice = custSizes
+        ? ((custCurSize === 'l' && custHasL) ? custSizes.L : (custSizes.M ?? prices[itemKey]))
+        : prices[itemKey];
       const existing = state.order.find(o => o.key === itemKey);
-      if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:orderName, price:prices[itemKey], qty:1 }); }
+      if(existing){ existing.qty++; } else { state.order.push({ key:itemKey, name:orderName, price:itemPrice, qty:1 }); }
       recordClick(itemKey);
       renderOrder();
       _showAddedFeedback(itemKey, orderName);
@@ -2476,7 +2472,7 @@
       }
       // Toast
       const L = state.lang;
-      const addedMsg = { en: `✓ ${name} added`, tr: `✓ ${name} eklendi`, ar: `✓ تم	إضافة ${name}`, es: `✓ ${name} agregado`, de: `✓ ${name} hinzugefügt`, fr: `✓ ${name} ajouté`, ru: `✓ ${name} добавлено` };
+      const addedMsg = { en: `✓ ${name} added`, tr: `✓ ${name} eklendi`, ar: `✓ تم إضافة ${name}`, es: `✓ ${name} agregado`, de: `✓ ${name} hinzugefügt`, fr: `✓ ${name} ajouté`, ru: `✓ ${name} добавлено` };
       const toast = document.getElementById('dho-toast');
       if (!toast) return;
       if (_toastTimer) clearTimeout(_toastTimer);
@@ -2515,7 +2511,7 @@
       if (_fabBadge) { _fabBadge.textContent = _total > 0 ? _total : ''; }
       const list = document.getElementById('orderList');
       list.innerHTML = '';
-      const noItems = { en:'No items yet', tr:'Henüz öğe yok', ar:'لا توجد عناصر' };
+      const noItems = { en:'No items yet', tr:'Henüz öğe yok', ar:'لا توجد عناصر', es:'Sin artículos aún', de:'Noch keine Artikel', fr:'Aucun article', ru:'Нет позиций' };
       const clearLabel = { en:'Clear all', tr:'Temizle', ar:'مسح الكل', es:'Borrar todo', de:'Alles löschen', fr:'Tout effacer', ru:'Очистить' };
       if(state.order.length === 0){
         list.innerHTML = `<div style="color:var(--text-secondary);font-size:0.85rem">${noItems[state.lang]}</div>`;
