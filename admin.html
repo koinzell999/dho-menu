@@ -855,9 +855,10 @@
     async function debugFirestoreState() {
       const panel = document.getElementById('debugPanel');
       panel.style.display = 'block';
-      panel.textContent = 'Loading from Firestore...';
+      panel.textContent = 'Loading from Firestore (server)...';
       try {
-        const snap = await db.collection("settings").doc("menu").get();
+        // Force fetch from server (bypass cache) so we see the real Firestore state
+        const snap = await db.collection("settings").doc("menu").get({ source: 'server' });
         if (!snap.exists) { panel.textContent = 'No settings document found in Firestore.'; return; }
         const data = snap.data();
         const out = {
@@ -1112,9 +1113,7 @@
       const wasHidden = !!hiddenItems[key];
       if (wasHidden) {
         delete hiddenItems[key];
-        // Also un-delete the item if it was accidentally marked as deleted
         delete deletedItems[key];
-        // Turn off "hidden only" filter so the user sees the newly shown item
         const toggle = document.getElementById('hiddenOnlyToggle');
         if (toggle) toggle.checked = false;
       } else {
@@ -1122,14 +1121,27 @@
       }
 
       try {
-        await persistMenuSettings();
+        if (wasHidden) {
+          // Surgical removal: directly delete only this key from the Firestore map
+          // This is more reliable than replacing the full document
+          await db.collection("settings").doc("menu").update({
+            [`hiddenItems.${key}`]: firebase.firestore.FieldValue.delete(),
+            [`deletedItems.${key}`]: firebase.firestore.FieldValue.delete()
+          });
+        } else {
+          // Hiding: set just this key in the map
+          await db.collection("settings").doc("menu").update({
+            [`hiddenItems.${key}`]: true
+          });
+        }
         renderPriceForm();
         filterPrices(document.getElementById('priceSearch').value || '');
       } catch (err) {
         if (wasHidden) hiddenItems[key] = true;
         else delete hiddenItems[key];
-        document.getElementById('saveMessage').textContent = 'Error: ' + err.message;
-        document.getElementById('saveMessage').className = 'text-red-400 mt-2';
+        renderPriceForm();
+        filterPrices(document.getElementById('priceSearch').value || '');
+        alert('Visibility update failed: ' + err.message);
       }
     }
 
