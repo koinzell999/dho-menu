@@ -1816,64 +1816,80 @@
     }
 
     /* ====== Load Prices from Firestore ====== */
+    let _remotePrices = null; // shared with onSnapshot callback
+
+    function _applySettings(data) {
+      hiddenItems = data.hiddenItems || {};
+      imageOverrides = data.imageOverrides || {};
+      deletedItems = data.deletedItems || {};
+      nameOverrides = data.nameOverrides || {};
+
+      // Strip previously-injected custom items from all categories
+      menuStructure.forEach(cat => {
+        cat.items = cat.items.filter(k => !k.startsWith('cust_'));
+      });
+      customItems = data.customItems || {};
+
+      // Re-inject custom items
+      for (const [key, item] of Object.entries(customItems)) {
+        if (!item || !item.name || !item.category) continue;
+        const itemEntry = { name: item.name, desc: '' };
+        for (const lang of supportedLangs) {
+          if (translations[lang] && translations[lang].items) {
+            translations[lang].items[key] = itemEntry;
+          }
+        }
+        if (item.ingredients) itemIngredients[key] = item.ingredients;
+        const cat = menuStructure.find(c => c.key === item.category);
+        if (cat && !cat.items.includes(key)) cat.items.push(key);
+        if (_remotePrices && _remotePrices[key] !== undefined) prices[key] = _remotePrices[key];
+        else if (item.price !== undefined) prices[key] = item.price;
+      }
+
+      // Apply name overrides from admin to all languages
+      for (const [key, names] of Object.entries(nameOverrides)) {
+        for (const lang of supportedLangs) {
+          if (translations[lang] && translations[lang].items && translations[lang].items[key]) {
+            const overrideName = names[lang] || names.en;
+            if (overrideName) translations[lang].items[key] = { ...translations[lang].items[key], name: overrideName };
+          }
+        }
+      }
+    }
+
     async function loadPrices() {
       try {
-        const [priceDoc, settingsDoc] = await Promise.all([
-          db.collection("prices").doc("menu").get(),
-          db.collection("settings").doc("menu").get()
-        ]);
-        let remotePrices = null;
+        const priceDoc = await db.collection("prices").doc("menu").get();
         if (priceDoc.exists) {
-          remotePrices = priceDoc.data();
+          _remotePrices = priceDoc.data();
           // Only apply remote prices for keys that exist in the current menu
           const merged = { ...defaultPrices };
           for (const key of Object.keys(defaultPrices)) {
-            if (remotePrices[key] !== undefined) merged[key] = remotePrices[key];
+            if (_remotePrices[key] !== undefined) merged[key] = _remotePrices[key];
           }
           prices = merged;
-        }
-        if (settingsDoc.exists) {
-          hiddenItems = settingsDoc.data().hiddenItems || {};
-          imageOverrides = settingsDoc.data().imageOverrides || {};
-          customItems = settingsDoc.data().customItems || {};
-          deletedItems = settingsDoc.data().deletedItems || {};
-          nameOverrides = settingsDoc.data().nameOverrides || {};
-          // Inject custom items into the menu
-          for (const [key, item] of Object.entries(customItems)) {
-            if (!item || !item.name || !item.category) continue;
-            const itemEntry = { name: item.name, desc: '' };
-            for (const lang of supportedLangs) {
-              if (translations[lang] && translations[lang].items) {
-                translations[lang].items[key] = itemEntry;
-              }
-            }
-            if (item.ingredients) itemIngredients[key] = item.ingredients;
-            const cat = menuStructure.find(c => c.key === item.category);
-            if (cat && !cat.items.includes(key)) cat.items.push(key);
-            // Apply price: prefer remotePrices, fall back to what was stored in customItem
-            if (remotePrices && remotePrices[key] !== undefined) prices[key] = remotePrices[key];
-            else if (item.price !== undefined) prices[key] = item.price;
-          }
-          // Apply name overrides from admin to all languages
-          for (const [key, names] of Object.entries(nameOverrides)) {
-            for (const lang of supportedLangs) {
-              if (translations[lang] && translations[lang].items && translations[lang].items[key]) {
-                const overrideName = names[lang] || names.en;
-                if (overrideName) translations[lang].items[key] = { ...translations[lang].items[key], name: overrideName };
-              }
-            }
-          }
         }
       } catch (e) {
         console.error("Error loading prices:", e);
       }
+
       await loadWeeklyPopular();
       // Update popular category with this week's top items (fallback to pop1)
       const popCat = menuStructure.find(c => c.key === 'popular');
       if (popCat) {
         popCat.items = weeklyPopularItems.length > 0 ? weeklyPopularItems : ['pop1'];
       }
-      render();
+
+      // Real-time listener for settings — fires immediately on load and on every admin change
+      db.collection("settings").doc("menu").onSnapshot((settingsDoc) => {
+        if (settingsDoc.exists) {
+          _applySettings(settingsDoc.data());
+        }
+        render();
+      }, (err) => {
+        console.warn("Settings listener error:", err);
+        render();
+      });
     }
 
     /* ====== Menu structure ====== */
@@ -1946,7 +1962,7 @@
     };
 
     /* ====== Helpers ====== */
-    function formatPrice(n){ return '\u20BA' + n.toFixed(0); }
+    function formatPrice(n){ return '\u20BA' + (n != null ? Number(n).toFixed(0) : '0'); }
     // Strip size suffixes like (M), (L), (وسط), (كبير) from item names
     function stripSizeFromName(name) {
       return name.replace(/\s*\((M|L|وسط|كبير)\)\s*$/i, '').trim();
@@ -2242,6 +2258,7 @@
         });
 
         visibleItems.forEach(itemKey=>{
+          try {
           let itemData = t.items[itemKey];
           if(!itemData) return;
           const hasSizes = !!sizePairs[itemKey];
@@ -2350,6 +2367,7 @@
           }
 
           itemsContainer.appendChild(itemEl);
+          } catch(err) { console.error('Error rendering item', itemKey, ':', err); }
         });
 
         catDiv.appendChild(itemsContainer);
