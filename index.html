@@ -1819,6 +1819,7 @@
     let _remotePrices = null; // shared with onSnapshot callback
 
     function _applySettings(data) {
+      console.log('[DHO] settings snapshot — hiddenItems:', JSON.stringify(data.hiddenItems || {}), '| deletedItems:', JSON.stringify(data.deletedItems || {}));
       hiddenItems = data.hiddenItems || {};
       imageOverrides = data.imageOverrides || {};
       deletedItems = data.deletedItems || {};

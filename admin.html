@@ -845,7 +845,9 @@
     }
 
     async function persistMenuSettings() {
-      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems, nameOverrides }, { merge: true });
+      // Full replace (no merge) so that removing a key from hiddenItems/deletedItems
+      // is immediately reflected in Firestore — merge:true would leave stale keys behind.
+      await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems, nameOverrides });
     }
 
     function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
