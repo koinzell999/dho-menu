@@ -1089,6 +1089,8 @@
       const wasHidden = !!hiddenItems[key];
       if (wasHidden) {
         delete hiddenItems[key];
+        // Also un-delete the item if it was accidentally marked as deleted
+        delete deletedItems[key];
         // Turn off "hidden only" filter so the user sees the newly shown item
         const toggle = document.getElementById('hiddenOnlyToggle');
         if (toggle) toggle.checked = false;
@@ -1301,7 +1303,7 @@
       prices = { ...prices, ...newPrices };
 
       const saves = [
-        db.collection("prices").doc("menu").set(newPrices),
+        db.collection("prices").doc("menu").set(newPrices, { merge: true }),
         persistMenuSettings()  // always save hiddenItems, imageOverrides, etc.
       ];
       // (needsSettingsUpdate kept for clarity but settings always saved now)
