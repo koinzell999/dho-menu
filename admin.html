@@ -278,7 +278,9 @@
       <form id="priceForm">
         <div id="priceInputs" class="space-y-4"></div>
         <button type="submit" id="savePricesBtn" class="py-3 px-6 rounded font-bold cursor-pointer mt-4 w-full sm:w-auto text-base" style="background:var(--accent); color:var(--accent-dark);">Save Changes</button>
+        <button type="button" onclick="debugFirestoreState()" class="py-3 px-4 rounded font-bold cursor-pointer mt-4 text-sm" style="background:rgba(255,255,255,0.08); color:var(--text-secondary); border:1px solid var(--border);">🔍 Debug State</button>
       </form>
+      <div id="debugPanel" style="display:none; margin-top:12px; padding:12px; background:rgba(0,0,0,0.4); border-radius:8px; border:1px solid var(--border); font-size:11px; font-family:monospace; white-space:pre-wrap; word-break:break-all; color:#a3e635;"></div>
       <p id="saveMessage" class="text-green-400 mt-2 hidden">Prices updated successfully!</p>
     </div>
   </div>
@@ -848,6 +850,25 @@
       // Full replace (no merge) so that removing a key from hiddenItems/deletedItems
       // is immediately reflected in Firestore — merge:true would leave stale keys behind.
       await db.collection("settings").doc("menu").set({ hiddenItems, imageOverrides, customItems, deletedItems, nameOverrides });
+    }
+
+    async function debugFirestoreState() {
+      const panel = document.getElementById('debugPanel');
+      panel.style.display = 'block';
+      panel.textContent = 'Loading from Firestore...';
+      try {
+        const snap = await db.collection("settings").doc("menu").get();
+        if (!snap.exists) { panel.textContent = 'No settings document found in Firestore.'; return; }
+        const data = snap.data();
+        const out = {
+          hiddenItems: data.hiddenItems || {},
+          deletedItems: data.deletedItems || {},
+          customItemKeys: Object.keys(data.customItems || {}),
+        };
+        panel.textContent = JSON.stringify(out, null, 2);
+      } catch (e) {
+        panel.textContent = 'Error: ' + e.message;
+      }
     }
 
     function resizeImageSourceToBlob(source, maxWidth = 720, quality = 0.82) {
