@@ -87,6 +87,42 @@
 
     /* Scrollable content area height calc */
     .main-scroll { min-height: calc(100vh - 56px); }
+
+    /* Receipt print styling */
+    @page { size: 80mm auto; margin: 4mm; }
+    @media print {
+      body * { visibility: hidden !important; }
+      #receiptPaper, #receiptPaper * { visibility: visible !important; }
+      #receiptPaper {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        width: 76mm !important;
+        max-width: 76mm !important;
+        padding: 12px !important;
+        margin: 0 auto !important;
+        background: white;
+        color: black;
+        z-index: 9999 !important;
+        box-sizing: border-box !important;
+      }
+      #receiptPaper { font-family: Arial, Helvetica, sans-serif; }
+      #receiptPaper .receipt-header { text-align: center; margin-bottom: 14px; }
+      #receiptPaper .receipt-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+      #receiptPaper .receipt-meta, #receiptPaper .receipt-summary { font-size: 10px; color: #333; line-height: 1.4; }
+      #receiptPaper .receipt-meta div { margin-bottom: 3px; }
+      #receiptPaper .receipt-items { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10px; }
+      #receiptPaper .receipt-items th, #receiptPaper .receipt-items td {
+        padding: 5px 4px;
+        border-bottom: 1px solid #ddd;
+      }
+      #receiptPaper .receipt-items th { font-weight: 700; }
+      #receiptPaper .receipt-items td:last-child { text-align: right; }
+      #receiptPaper .receipt-total { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; font-weight: 700; }
+      #receiptPaper .receipt-notes { font-size: 10px; margin-top: 10px; color: #555; }
+      #receiptPaper .receipt-footer { margin-top: 14px; text-align: center; font-size: 10px; color: #555; }
+      #receiptPaper .receipt-meta strong { font-weight: 700; }
+    }
   </style>
 </head>
 <body>
@@ -164,6 +200,41 @@
       <!-- New-order banner -->
       <div id="newBanner" class="hidden mb-4 px-4 py-3 rounded-xl bg-[#ffd24a]/12 border border-[#ffd24a]/28 text-[#ffd24a] text-sm font-semibold flex items-center gap-2">
         🔔 New order received!
+      </div>
+
+      <!-- Custom cashier order -->
+      <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 mb-5">
+        <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div>
+            <h2 class="text-white font-bold text-sm">Quick Cashier Order</h2>
+            <p class="text-[#94a3b8] text-xs mt-1">Create a receipt for a customer who ordered without the menu.</p>
+          </div>
+          <button onclick="addCustomOrderLine()" class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] px-3 py-1.5 rounded-lg transition-colors">+ Add item</button>
+        </div>
+        <div id="customOrderLines" class="space-y-3"></div>
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3 mt-4">
+          <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="text-[#94a3b8] text-xs flex flex-col gap-2">
+              Payment method
+              <div class="flex gap-2">
+                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="cash" checked /> Cash</label>
+                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="card" /> Card</label>
+              </div>
+            </label>
+            <label class="text-[#94a3b8] text-xs flex flex-col gap-2 sm:col-span-2">
+              Customer note (optional)
+              <input id="customOrderNote" type="text" placeholder="E.g. Extra sauce, no onions" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
+            </label>
+          </div>
+          <div class="flex-1 min-w-[140px]">
+            <div class="text-[#94a3b8] text-xs mb-2">Order total</div>
+            <div id="customOrderTotal" class="text-white font-bold text-2xl">₺0</div>
+          </div>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button onclick="submitCustomOrder()" class="text-xs font-semibold text-[#072033] bg-[#4ade80] hover:bg-[#5eead4] px-4 py-2 rounded-lg transition-colors">Save & print receipt</button>
+          <button onclick="resetCustomOrderForm()" class="text-xs font-semibold text-[#64748b] border border-white/[0.12] bg-transparent px-4 py-2 rounded-lg transition-colors">Reset form</button>
+        </div>
       </div>
 
       <!-- Table grid -->
@@ -292,6 +363,8 @@
 
   </div><!-- #app -->
 
+  <div id="receiptPaper" style="position:absolute; left:-9999px; top:-9999px; width:1px; height:1px; overflow:hidden;"></div>
+
   <script>
     /* ── Firebase setup ─────────────────────────────────── */
     const firebaseConfig = {
@@ -308,6 +381,9 @@
 
     const TABLE_COUNT  = 6;
     let tableOrders    = {};
+    let customOrderItems = [{ name: '', qty: 1, price: 0 }];
+    let lastReceiptData = null;
+    let currentUser = null;
     let unsubOrders    = null;
     let unsubAnalytics = null;
     let prevOrderCount = -1;
@@ -324,11 +400,199 @@
     }
     function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
 
+    function renderCustomOrderLines() {
+      const container = document.getElementById('customOrderLines');
+      container.innerHTML = customOrderItems.map((item, idx) => `
+        <div class="grid grid-cols-12 gap-3 items-end rounded-2xl bg-white/[0.04] border border-white/[0.08] p-3">
+          <div class="col-span-6">
+            <label class="text-[#94a3b8] text-xs">Item name</label>
+            <input type="text" value="${item.name}" oninput="updateCustomOrderLine(${idx}, 'name', this.value)" placeholder="E.g. Double burger" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-[#94a3b8] text-xs">Qty</label>
+            <input type="number" min="1" value="${item.qty}" oninput="updateCustomOrderLine(${idx}, 'qty', this.value)" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
+          </div>
+          <div class="col-span-3">
+            <label class="text-[#94a3b8] text-xs">Price</label>
+            <input type="number" min="0" step="1" value="${item.price}" oninput="updateCustomOrderLine(${idx}, 'price', this.value)" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
+          </div>
+          <div class="col-span-1 flex justify-end">
+            <button type="button" onclick="removeCustomOrderLine(${idx})" class="text-xs font-semibold text-[#f87171] bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2">✕</button>
+          </div>
+        </div>
+      `).join('');
+      updateCustomOrderTotal();
+    }
+
+    function addCustomOrderLine() {
+      customOrderItems.push({ name: '', qty: 1, price: 0 });
+      renderCustomOrderLines();
+    }
+
+    function updateCustomOrderLine(index, field, value) {
+      if (!customOrderItems[index]) return;
+      if (field === 'name') customOrderItems[index].name = value;
+      if (field === 'qty')  customOrderItems[index].qty  = Math.max(1, Number(value) || 1);
+      if (field === 'price') customOrderItems[index].price = Math.max(0, Number(value) || 0);
+      updateCustomOrderTotal();
+    }
+
+    function removeCustomOrderLine(index) {
+      if (customOrderItems.length === 1) return;
+      customOrderItems.splice(index, 1);
+      renderCustomOrderLines();
+    }
+
+    function updateCustomOrderTotal() {
+      const total = customOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      document.getElementById('customOrderTotal').textContent = '₺' + total.toFixed(0);
+    }
+
+    function resetCustomOrderForm() {
+      customOrderItems = [{ name: '', qty: 1, price: 0 }];
+      document.getElementById('customOrderNote').value = '';
+      document.querySelectorAll('input[name="customPayment"]').forEach(r => r.checked = r.value === 'cash');
+      renderCustomOrderLines();
+    }
+
+    function buildReceiptReference() {
+      const ts = new Date();
+      const datePart = ts.toISOString().slice(0,10).replace(/-/g,'');
+      const randomPart = Math.floor(1000 + Math.random() * 9000);
+      return `DHO-${datePart}-${randomPart}`;
+    }
+
+    function renderReceipt(order) {
+      lastReceiptData = order;
+      const receipt = document.getElementById('receiptPaper');
+      if (!receipt) return;
+      const date = new Date();
+      const cashierName = currentUser?.email || 'Cashier';
+      receipt.innerHTML = `
+        <div class="receipt-header">
+          <div class="receipt-title">DHO Restaurant</div>
+          <div class="receipt-meta">Order Receipt</div>
+          <div class="receipt-meta">dho-menu | www.dho-menu.web.app</div>
+        </div>
+        <div class="receipt-meta">
+          <div><strong>Receipt No:</strong> ${order.reference || order.tableKey}</div>
+          <div><strong>Date:</strong> ${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</div>
+          <div><strong>Cashier:</strong> ${cashierName}</div>
+          <div><strong>Payment:</strong> ${order.payment?.method || 'cash'}</div>
+          ${order.note ? `<div><strong>Note:</strong> ${order.note}</div>` : ''}
+        </div>
+        <table class="receipt-items">
+          <thead>
+            <tr><th>Item</th><th>Qty</th><th class="text-right">Price</th></tr>
+          </thead>
+          <tbody>
+            ${order.items.map(item => `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.qty}</td>
+                <td>₺${(item.price * item.qty).toFixed(0)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="receipt-total">
+          <span>Total</span><span>₺${(order.total || 0).toFixed(0)}</span>
+        </div>
+        <div class="receipt-footer">
+          Thank you for your order!
+        </div>
+      `;
+    }
+
+    async function printCustomReceipt(order) {
+      renderReceipt(order);
+      window.print();
+    }
+
+    async function submitCustomOrder() {
+      const items = customOrderItems.map(item => ({ name: item.name.trim(), qty: item.qty, price: item.price }));
+      const validItems = items.filter(item => item.name && item.qty > 0 && item.price >= 0);
+      if (validItems.length === 0) {
+        alert('Please add at least one valid item.');
+        return;
+      }
+      const paymentMethod = document.querySelector('input[name="customPayment"]:checked')?.value;
+      if (!paymentMethod) {
+        alert('Please select a payment method.');
+        return;
+      }
+      const note = document.getElementById('customOrderNote').value.trim();
+      const total = validItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const orderId = `cashier-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const reference = buildReceiptReference();
+
+      try {
+        const histRef = db.collection('orderHistory').doc(orderId);
+        const orderRecord = {
+          tableId   : 'Cashier',
+          tableKey  : orderId,
+          reference : reference,
+          items     : validItems,
+          total     : total,
+          payment   : { method: paymentMethod, status: 'paid', amount: total },
+          note      : note || '',
+          cashier   : currentUser?.email || 'Cashier',
+          completedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await histRef.set(orderRecord);
+
+        await writeCustomAnalytics(validItems, total, paymentMethod);
+
+        alert('Custom order recorded successfully. Printing receipt now.');
+        resetCustomOrderForm();
+        if (!document.getElementById('tabSummary').classList.contains('hidden')) {
+          loadTodaySummary();
+        }
+        printCustomReceipt(orderRecord);
+      } catch (err) {
+        console.error('Custom order save failed:', err);
+        alert('Could not save the custom order. Please try again.');
+      }
+    }
+
+    async function writeCustomAnalytics(items, total, method) {
+      const dateKey = todayKey();
+      const FV      = firebase.firestore.FieldValue;
+      const analyticsRef = db.collection('analytics').doc(dateKey);
+      const analyticsUpdate = {
+        totalSales : FV.increment(total),
+        orderCount : FV.increment(1),
+        [`${method}Sales`] : FV.increment(total),
+        [`${method}Count`] : FV.increment(1),
+        [`tables.Cashier.orders`] : FV.increment(1),
+        [`tables.Cashier.sales`]  : FV.increment(total),
+      };
+      items.forEach(i => {
+        analyticsUpdate[`itemsSold.${sanitizeKey(i.name)}`] = FV.increment(i.qty);
+        analyticsUpdate[`itemNames.${sanitizeKey(i.name)}`] = i.name;
+      });
+      await analyticsRef.set(analyticsUpdate, { merge: true });
+
+      const minuteKey = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const minuteRef = analyticsRef.collection('minutes').doc(minuteKey);
+      const minuteUpdate = {
+        totalSales : FV.increment(total),
+        orderCount : FV.increment(1),
+        [`${method}Sales`] : FV.increment(total),
+      };
+      items.forEach(i => {
+        minuteUpdate[`itemsSold.${sanitizeKey(i.name)}`] = FV.increment(i.qty);
+      });
+      await minuteRef.set(minuteUpdate, { merge: true });
+    }
+
     /* ── Auth guard ─────────────────────────────────────── */
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.replace('cashier-login.html'); return; }
+      currentUser = user;
       document.getElementById('authLoader').classList.add('hidden');
       document.getElementById('app').classList.remove('hidden');
+      renderCustomOrderLines();
       startListening();
       loadTodaySummary();
     });
