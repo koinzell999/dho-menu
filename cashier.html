@@ -145,28 +145,48 @@
         <!-- Logo + title -->
         <div class="flex items-center gap-2.5 flex-shrink-0">
           <div class="w-8 h-8 rounded-xl bg-[#ffd24a] text-[#072033] font-black flex items-center justify-center text-sm select-none">D</div>
-          <span class="font-bold text-white text-sm hidden sm:block">DHO Cashier</span>
+          <span class="font-bold text-white text-sm hidden sm:block" id="brandTitle">DHO Cashier</span>
         </div>
 
         <!-- Live indicator -->
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse"></span>
-          <span class="text-[#4ade80] text-xs font-semibold">Live</span>
+          <span class="text-[#4ade80] text-xs font-semibold" id="liveIndicator">Live</span>
+        </div>
+
+        <!-- Language dropdown -->
+        <div class="relative" id="langDropdownWrap">
+          <button id="langDropdownBtn"
+            class="flex items-center gap-1.5 backdrop-blur rounded-lg px-2.5 py-1.5 font-semibold text-[12px] cursor-pointer border-none"
+            style="background:var(--toolbar-bg); border:1px solid var(--border-light); color:var(--text-secondary);"
+            aria-haspopup="listbox" aria-expanded="false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="langDropdownLabel">EN</span>
+            <svg id="langChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="langDropdownMenu"
+            class="absolute top-full left-0 mt-1 rounded-xl overflow-hidden backdrop-blur z-10"
+            style="display:none; min-width:110px; background:var(--toolbar-bg); border:1px solid var(--border-light); box-shadow:0 8px 24px var(--shadow);"
+            role="listbox">
+            <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="en">🇬🇧 English</button>
+            <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="tr">🇹🇷 Türkçe</button>
+            <button class="lang-opt w-full text-left px-3 py-2 text-[12px] font-semibold border-none cursor-pointer flex items-center gap-2" style="background:transparent; color:var(--text-secondary);" data-lang="ar">🇸🇦 العربية</button>
+          </div>
         </div>
 
         <!-- Tabs -->
         <nav class="flex gap-1 bg-white/[0.05] rounded-xl p-1 mx-auto">
-          <button class="tab-btn active" data-tab="orders"   onclick="switchTab(this)">Orders</button>
-          <button class="tab-btn"        data-tab="summary"  onclick="switchTab(this)">Summary</button>
-          <button class="tab-btn"        data-tab="insights" onclick="switchTab(this)">✨ Insights</button>
+          <button class="tab-btn active" data-tab="orders"   onclick="switchTab(this)" id="tabOrdersBtn">Orders</button>
+          <button class="tab-btn"        data-tab="summary"  onclick="switchTab(this)" id="tabSummaryBtn">Summary</button>
+          <button class="tab-btn"        data-tab="insights" onclick="switchTab(this)" id="tabInsightsBtn">✨ Insights</button>
         </nav>
 
         <!-- Kitchen link + sign out -->
         <div class="flex items-center gap-2 flex-shrink-0">
-          <a href="kitchen.html" class="hidden sm:inline-flex text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors">
+          <a href="kitchen.html" class="hidden sm:inline-flex text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors" id="kitchenLink">
             🍳 Kitchen
           </a>
-          <button id="signOutBtn" class="text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors cursor-pointer border-none bg-transparent">
+          <button id="signOutBtn" class="text-xs font-semibold text-[#64748b] hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors cursor-pointer border-none bg-transparent" id="signOutBtnText">
             Sign Out
           </button>
         </div>
@@ -181,19 +201,19 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
           <div id="statNew"      class="text-2xl font-bold text-[#ffd24a]">0</div>
-          <div class="text-[#64748b] text-xs mt-0.5">New</div>
+          <div class="text-[#64748b] text-xs mt-0.5" id="statNewLabel">New</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
           <div id="statPreparing" class="text-2xl font-bold text-[#fb923c]">0</div>
-          <div class="text-[#64748b] text-xs mt-0.5">Preparing</div>
+          <div class="text-[#64748b] text-xs mt-0.5" id="statPreparingLabel">Preparing</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
           <div id="statServed"   class="text-2xl font-bold text-[#4ade80]">0</div>
-          <div class="text-[#64748b] text-xs mt-0.5">Served</div>
+          <div class="text-[#64748b] text-xs mt-0.5" id="statServedLabel">Served</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 text-center">
           <div id="statRevenue"  class="text-2xl font-bold text-white">₺0</div>
-          <div class="text-[#64748b] text-xs mt-0.5">Today</div>
+          <div class="text-[#64748b] text-xs mt-0.5" id="statRevenueLabel">Today</div>
         </div>
       </div>
 
@@ -206,35 +226,35 @@
       <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5 mb-5">
         <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div>
-            <h2 class="text-white font-bold text-sm">Quick Cashier Order</h2>
-            <p class="text-[#94a3b8] text-xs mt-1">Create a receipt for a customer who ordered without the menu.</p>
+            <h2 class="text-white font-bold text-sm" id="quickOrderTitle">Quick Cashier Order</h2>
+            <p class="text-[#94a3b8] text-xs mt-1" id="quickOrderDesc">Create a receipt for a customer who ordered without the menu.</p>
           </div>
-          <button onclick="addCustomOrderLine()" class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] px-3 py-1.5 rounded-lg transition-colors">+ Add item</button>
+          <button onclick="addCustomOrderLine()" class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] px-3 py-1.5 rounded-lg transition-colors" id="addItemBtn">+ Add item</button>
         </div>
         <div id="customOrderLines" class="space-y-3"></div>
         <datalist id="menuItemList"></datalist>
         <div class="flex flex-col sm:flex-row sm:items-end gap-3 mt-4">
           <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <label class="text-[#94a3b8] text-xs flex flex-col gap-2">
-              Payment method
+            <label class="text-[#94a3b8] text-xs flex flex-col gap-2" id="paymentMethodLabel">
+              <span id="paymentMethodText">Payment method</span>
               <div class="flex gap-2">
-                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="cash" checked /> Cash</label>
-                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="card" /> Card</label>
+                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="cash" checked /> <span class="cashLabel">Cash</span></label>
+                <label class="flex items-center gap-2 text-sm"><input type="radio" name="customPayment" value="card" /> <span class="cardLabel">Card</span></label>
               </div>
             </label>
-            <label class="text-[#94a3b8] text-xs flex flex-col gap-2 sm:col-span-2">
-              Customer note (optional)
+            <label class="text-[#94a3b8] text-xs flex flex-col gap-2 sm:col-span-2" id="noteLabelWrap">
+              <span id="noteLabel">Customer note (optional)</span>
               <input id="customOrderNote" type="text" placeholder="E.g. Extra sauce, no onions" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
             </label>
           </div>
           <div class="flex-1 min-w-[140px]">
-            <div class="text-[#94a3b8] text-xs mb-2">Order total</div>
+            <div class="text-[#94a3b8] text-xs mb-2" id="orderTotalLabel">Order total</div>
             <div id="customOrderTotal" class="text-white font-bold text-2xl">₺0</div>
           </div>
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
-          <button onclick="submitCustomOrder()" class="text-xs font-semibold text-[#072033] bg-[#4ade80] hover:bg-[#5eead4] px-4 py-2 rounded-lg transition-colors">Save & print receipt</button>
-          <button onclick="resetCustomOrderForm()" class="text-xs font-semibold text-[#64748b] border border-white/[0.12] bg-transparent px-4 py-2 rounded-lg transition-colors">Reset form</button>
+          <button onclick="submitCustomOrder()" class="text-xs font-semibold text-[#072033] bg-[#4ade80] hover:bg-[#5eead4] px-4 py-2 rounded-lg transition-colors" id="saveReceiptBtn">Save & print receipt</button>
+          <button onclick="resetCustomOrderForm()" class="text-xs font-semibold text-[#64748b] border border-white/[0.12] bg-transparent px-4 py-2 rounded-lg transition-colors" id="resetFormBtn">Reset form</button>
         </div>
       </div>
 
@@ -247,38 +267,38 @@
 
       <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
         <h2 class="text-lg font-bold text-white">
-          Daily Summary —
+          <span id="dailySummaryText">Daily Summary</span> —
           <span id="todayDate" class="text-[#ffd24a] font-semibold"></span>
         </h2>
         <div class="flex gap-2">
           <button onclick="loadTodaySummary()" class="text-xs font-semibold text-[#64748b] hover:text-[#ffd24a] cursor-pointer border border-white/[0.08] bg-transparent px-3 py-1.5 rounded-lg transition-colors">↻ Refresh</button>
-          <button onclick="exportCSV()" class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] cursor-pointer border-none px-3 py-1.5 rounded-lg transition-colors">⬇ Export CSV</button>
+          <button onclick="exportCSV()" class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] cursor-pointer border-none px-3 py-1.5 rounded-lg transition-colors" id="exportBtn">⬇ Export CSV</button>
         </div>
       </div>
 
       <!-- KPI cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
-          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Revenue</div>
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1" id="revenueCardLabel">Revenue</div>
           <div id="sumRevenue" class="text-2xl font-bold text-[#ffd24a]">₺0</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
-          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Orders</div>
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1" id="ordersCardLabel">Orders</div>
           <div id="sumOrders" class="text-2xl font-bold text-white">0</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
-          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Avg. Order</div>
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1" id="avgCardLabel">Avg. Order</div>
           <div id="sumAvg" class="text-2xl font-bold text-white">₺0</div>
         </div>
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
-          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1">Items Sold</div>
+          <div class="text-xs text-[#64748b] font-semibold uppercase tracking-widest mb-1" id="itemsCardLabel">Items Sold</div>
           <div id="sumItems" class="text-2xl font-bold text-white">0</div>
         </div>
       </div>
 
       <!-- Payment split -->
       <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5 mb-4">
-        <h3 class="text-sm font-bold text-white mb-4">Payment Methods</h3>
+        <h3 class="text-sm font-bold text-white mb-4" id="paymentSplitTitle">Payment Methods</h3>
         <div class="split-track mb-3" id="splitBar">
           <div class="split-cash" id="splitCash" style="width:50%"></div>
           <div class="split-card" id="splitCard" style="width:50%"></div>
@@ -286,11 +306,11 @@
         <div class="flex justify-between text-xs">
           <div class="flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full bg-[#4ade80] flex-shrink-0"></span>
-            <span class="text-[#94a3b8]">Cash — <span id="splitCashLbl" class="text-[#4ade80] font-bold">₺0</span></span>
+            <span class="text-[#94a3b8]"><span id="cashLabelSplit">Cash</span> — <span id="splitCashLbl" class="text-[#4ade80] font-bold">₺0</span></span>
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full bg-[#60a5fa] flex-shrink-0"></span>
-            <span class="text-[#94a3b8]">Card — <span id="splitCardLbl" class="text-[#60a5fa] font-bold">₺0</span></span>
+            <span class="text-[#94a3b8]"><span id="cardLabelSplit">Card</span> — <span id="splitCardLbl" class="text-[#60a5fa] font-bold">₺0</span></span>
           </div>
         </div>
       </div>
@@ -298,14 +318,14 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <!-- Top items -->
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
-          <h3 class="text-sm font-bold text-white mb-4">Top Items Today</h3>
+          <h3 class="text-sm font-bold text-white mb-4" id="topItemsTitle">Top Items Today</h3>
           <div id="topItemsList" class="space-y-3"></div>
           <p id="noTopItems" class="hidden text-[#475569] text-sm">No paid orders yet.</p>
         </div>
 
         <!-- Table activity -->
         <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
-          <h3 class="text-sm font-bold text-white mb-4">Table Activity</h3>
+          <h3 class="text-sm font-bold text-white mb-4" id="tableActivityTitle">Table Activity</h3>
           <div id="tableActivity" class="space-y-2"></div>
           <p id="noTableActivity" class="hidden text-[#475569] text-sm">No activity yet.</p>
         </div>
@@ -313,7 +333,7 @@
 
       <!-- Order history list -->
       <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
-        <h3 class="text-sm font-bold text-white mb-4">Order History</h3>
+        <h3 class="text-sm font-bold text-white mb-4" id="orderHistoryTitle">Order History</h3>
         <div id="historyList" class="space-y-2"></div>
         <p id="noHistoryList" class="hidden text-[#475569] text-sm">No history yet.</p>
       </div>
@@ -325,10 +345,10 @@
 
       <!-- Date picker + Run button -->
       <div class="flex items-center justify-between flex-wrap gap-3">
-        <h2 class="text-lg font-bold text-white">AI Insights</h2>
+        <h2 class="text-lg font-bold text-white" id="aiInsightsTitle">AI Insights</h2>
         <div class="flex items-center gap-2">
           <input id="insightDate" type="date" class="bg-white/[0.06] border border-white/[0.12] text-white text-xs rounded-lg px-3 py-1.5 outline-none" />
-          <button id="runAnalysisBtn" onclick="runAIAnalysis()" class="text-xs font-bold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-4 py-1.5 rounded-lg cursor-pointer transition-colors">✨ Analyze</button>
+          <button id="runAnalysisBtn" onclick="runAIAnalysis()" class="text-xs font-bold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-4 py-1.5 rounded-lg cursor-pointer transition-colors" id="analyzeBtn">✨ Analyze</button>
         </div>
       </div>
 
@@ -341,7 +361,7 @@
       <!-- AI Summary card -->
       <div id="insightSummaryCard" class="hidden bg-white/[0.04] border border-[#ffd24a]/20 rounded-2xl p-6">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-bold text-[#ffd24a] uppercase tracking-widest">AI Analysis</h3>
+          <h3 class="text-sm font-bold text-[#ffd24a] uppercase tracking-widest" id="aiAnalysisLabel">AI Analysis</h3>
           <span id="insightDateLabel" class="text-[#475569] text-xs"></span>
         </div>
         <pre id="insightText" class="whitespace-pre-wrap text-[#cbd5e1] text-sm leading-relaxed font-sans"></pre>
@@ -349,13 +369,13 @@
 
       <!-- CSV download row -->
       <div id="insightCSVRow" class="hidden flex gap-2">
-        <button id="dlDailyCSV"  class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-3 py-1.5 rounded-lg cursor-pointer">⬇ Daily CSV</button>
-        <button id="dlMinuteCSV" class="text-xs font-semibold text-[#64748b] hover:text-white border border-white/[0.12] bg-transparent px-3 py-1.5 rounded-lg cursor-pointer">⬇ Minute CSV</button>
+        <button id="dlDailyCSV"  class="text-xs font-semibold text-[#072033] bg-[#ffd24a] hover:bg-[#f5c832] border-none px-3 py-1.5 rounded-lg cursor-pointer" id="dlDailyCSVBtn">⬇ Daily CSV</button>
+        <button id="dlMinuteCSV" class="text-xs font-semibold text-[#64748b] hover:text-white border border-white/[0.12] bg-transparent px-3 py-1.5 rounded-lg cursor-pointer" id="dlMinuteCSVBtn">⬇ Minute CSV</button>
       </div>
 
       <!-- Historical analyses -->
       <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-5">
-        <h3 class="text-sm font-bold text-white mb-4">Analysis History</h3>
+        <h3 class="text-sm font-bold text-white mb-4" id="analysisHistoryTitle">Analysis History</h3>
         <div id="insightHistory" class="space-y-3"></div>
         <p id="noInsightHistory" class="hidden text-[#475569] text-sm">No analyses saved yet.</p>
       </div>
@@ -392,6 +412,268 @@
     let bannerTimer    = null;
     let processingPay  = new Set(); // prevent double-click on pay buttons
 
+    /* ── Language Support ───────────────────────────────── */
+    let currentLang = localStorage.getItem('cashierLang') || 'en';
+
+    const cashierTranslations = {
+      en: {
+        brand: "DHO Cashier",
+        live: "Live",
+        orders: "Orders",
+        summary: "Summary",
+        insights: "✨ Insights",
+        kitchen: "🍳 Kitchen",
+        signOut: "Sign Out",
+        newOrders: "New Orders",
+        preparing: "Preparing",
+        served: "Served",
+        revenue: "Revenue",
+        empty: "Empty",
+        noActiveOrder: "No active order",
+        total: "Total",
+        preparingBtn: "⏳ Preparing",
+        servedBtn: "🍽 Served",
+        collectPayment: "Collect Payment",
+        cash: "💵 Cash",
+        card: "💳 Card",
+        cancelOrder: "✕ Cancel Order",
+        quickCashierOrder: "Quick Cashier Order",
+        itemName: "Item name",
+        qty: "Qty",
+        price: "Price",
+        addItem: "Add Item",
+        paymentMethod: "Payment Method",
+        note: "Note (optional)",
+        savePrint: "Save & print receipt",
+        receiptTitle: "DHO Restaurant",
+        receiptSubtitle: "Order Receipt",
+        receiptNo: "Receipt No:",
+        date: "Date:",
+        cashier: "Cashier:",
+        payment: "Payment:",
+        thankYou: "Thank you for your order!",
+        cancelConfirm: "Cancel order for Table {table}? This cannot be undone.",
+        paymentFailed: "Could not record payment. Please try again.",
+        statusUpdateFailed: "Could not update status. Please try again.",
+        cancelFailed: "Could not cancel the order. Please try again.",
+        customOrderSaved: "Custom order recorded successfully. Printing receipt now.",
+        customOrderFailed: "Could not save the custom order. Please try again.",
+        addValidItem: "Please add at least one valid item.",
+        selectPayment: "Please select a payment method.",
+        todayDate: "Today's Summary",
+        totalRevenue: "Total Revenue",
+        totalOrders: "Total Orders",
+        avgOrder: "Avg Order",
+        itemsSold: "Items Sold",
+        paymentSplit: "Payment Split",
+        topItems: "Top Items",
+        noTopItems: "No items sold yet today",
+        tableActivity: "Table Activity",
+        noTableActivity: "No table activity yet today",
+        orderHistory: "Order History",
+        noOrderHistory: "No orders completed yet today",
+        aiInsights: "AI Insights",
+        analyzeDate: "Analyze Date",
+        runAnalysis: "Run AI Analysis",
+        requestingAnalysis: "Requesting AI analysis… this may take 30–60 seconds.",
+        analysisComplete: "Analysis complete.",
+        analysisError: "Error: {error}",
+        noResponse: "(No response from AI)",
+        downloadDaily: "Download Daily CSV",
+        downloadMinute: "Download Minute CSV",
+        exportCSV: "Export Today's CSV",
+        noPaidOrders: "No paid orders today to export.",
+        exportFailed: "Export failed. Please try again.",
+        justNow: "just now",
+        minAgo: "{min} min ago"
+      },
+      tr: {
+        brand: "DHO Kasiyer",
+        live: "Canlı",
+        orders: "Siparişler",
+        summary: "Özet",
+        insights: "✨ Analizler",
+        kitchen: "🍳 Mutfak",
+        signOut: "Çıkış",
+        newOrders: "Yeni Siparişler",
+        preparing: "Hazırlanıyor",
+        served: "Servis Edildi",
+        revenue: "Gelir",
+        empty: "Boş",
+        noActiveOrder: "Aktif sipariş yok",
+        total: "Toplam",
+        preparingBtn: "⏳ Hazırlanıyor",
+        servedBtn: "🍽 Servis Edildi",
+        collectPayment: "Ödeme Al",
+        cash: "💵 Nakit",
+        card: "💳 Kart",
+        cancelOrder: "✕ Siparişi İptal Et",
+        quickCashierOrder: "Hızlı Kasiyer Siparişi",
+        itemName: "Ürün adı",
+        qty: "Adet",
+        price: "Fiyat",
+        addItem: "Ürün Ekle",
+        paymentMethod: "Ödeme Yöntemi",
+        note: "Not (isteğe bağlı)",
+        savePrint: "Kaydet & fiş yazdır",
+        receiptTitle: "DHO Restoran",
+        receiptSubtitle: "Sipariş Fişi",
+        receiptNo: "Fiş No:",
+        date: "Tarih:",
+        cashier: "Kasiyer:",
+        payment: "Ödeme:",
+        thankYou: "Siparişiniz için teşekkür ederiz!",
+        cancelConfirm: "Masa {table} siparişini iptal et? Bu geri alınamaz.",
+        paymentFailed: "Ödeme kaydedilemedi. Lütfen tekrar deneyin.",
+        statusUpdateFailed: "Durum güncellenemedi. Lütfen tekrar deneyin.",
+        cancelFailed: "Sipariş iptal edilemedi. Lütfen tekrar deneyin.",
+        customOrderSaved: "Özel sipariş başarıyla kaydedildi. Fiş yazdırılıyor.",
+        customOrderFailed: "Özel sipariş kaydedilemedi. Lütfen tekrar deneyin.",
+        addValidItem: "Lütfen en az bir geçerli ürün ekleyin.",
+        selectPayment: "Lütfen bir ödeme yöntemi seçin.",
+        todayDate: "Bugünün Özeti",
+        totalRevenue: "Toplam Gelir",
+        totalOrders: "Toplam Sipariş",
+        avgOrder: "Ort. Sipariş",
+        itemsSold: "Satılan Ürün",
+        paymentSplit: "Ödeme Dağılımı",
+        topItems: "En Çok Satanlar",
+        noTopItems: "Bugün henüz ürün satışı yok",
+        tableActivity: "Masa Aktivitesi",
+        noTableActivity: "Bugün henüz masa aktivitesi yok",
+        orderHistory: "Sipariş Geçmişi",
+        noOrderHistory: "Bugün henüz tamamlanan sipariş yok",
+        aiInsights: "AI Analizleri",
+        analyzeDate: "Analiz Tarihi",
+        runAnalysis: "AI Analizi Çalıştır",
+        requestingAnalysis: "AI analizi isteniyor… bu 30–60 saniye sürebilir.",
+        analysisComplete: "Analiz tamamlandı.",
+        analysisError: "Hata: {error}",
+        noResponse: "(AI'den yanıt alınamadı)",
+        downloadDaily: "Günlük CSV İndir",
+        downloadMinute: "Dakika CSV İndir",
+        exportCSV: "Bugünün CSV'sini Dışa Aktar",
+        noPaidOrders: "Bugün ödenmiş sipariş yok.",
+        exportFailed: "Dışa aktarma başarısız. Lütfen tekrar deneyin.",
+        justNow: "az önce",
+        minAgo: "{min} dk önce"
+      },
+      ar: {
+        brand: "كاشير DHO",
+        live: "مباشر",
+        orders: "الطلبات",
+        summary: "الملخص",
+        insights: "✨ التحليلات",
+        kitchen: "🍳 المطبخ",
+        signOut: "تسجيل الخروج",
+        newOrders: "طلبات جديدة",
+        preparing: "قيد التحضير",
+        served: "تم التقديم",
+        revenue: "الإيرادات",
+        empty: "فارغ",
+        noActiveOrder: "لا يوجد طلب نشط",
+        total: "المجموع",
+        preparingBtn: "⏳ قيد التحضير",
+        servedBtn: "🍽 تم التقديم",
+        collectPayment: "تحصيل الدفع",
+        cash: "💵 نقدي",
+        card: "💳 بطاقة",
+        cancelOrder: "✕ إلغاء الطلب",
+        quickCashierOrder: "طلب كاشير سريع",
+        itemName: "اسم الصنف",
+        qty: "الكمية",
+        price: "السعر",
+        addItem: "إضافة صنف",
+        paymentMethod: "طريقة الدفع",
+        note: "ملاحظة (اختياري)",
+        savePrint: "حفظ وطباعة الفاتورة",
+        receiptTitle: "مطعم DHO",
+        receiptSubtitle: "فاتورة الطلب",
+        receiptNo: "رقم الفاتورة:",
+        date: "التاريخ:",
+        cashier: "الكاشير:",
+        payment: "الدفع:",
+        thankYou: "شكراً لطلبكم!",
+        cancelConfirm: "إلغاء طلب الطاولة {table}؟ هذا لا يمكن التراجع عنه.",
+        paymentFailed: "لا يمكن تسجيل الدفع. يرجى المحاولة مرة أخرى.",
+        statusUpdateFailed: "لا يمكن تحديث الحالة. يرجى المحاولة مرة أخرى.",
+        cancelFailed: "لا يمكن إلغاء الطلب. يرجى المحاولة مرة أخرى.",
+        customOrderSaved: "تم تسجيل الطلب المخصص بنجاح. جاري طباعة الفاتورة.",
+        customOrderFailed: "لا يمكن حفظ الطلب المخصص. يرجى المحاولة مرة أخرى.",
+        addValidItem: "يرجى إضافة صنف واحد صالح على الأقل.",
+        selectPayment: "يرجى اختيار طريقة دفع.",
+        todayDate: "ملخص اليوم",
+        totalRevenue: "إجمالي الإيرادات",
+        totalOrders: "إجمالي الطلبات",
+        avgOrder: "متوسط الطلب",
+        itemsSold: "الأصناف المباعة",
+        paymentSplit: "توزيع الدفع",
+        topItems: "الأكثر مبيعاً",
+        noTopItems: "لم يتم بيع أي أصناف بعد اليوم",
+        tableActivity: "نشاط الطاولات",
+        noTableActivity: "لا يوجد نشاط طاولات بعد اليوم",
+        orderHistory: "تاريخ الطلبات",
+        noOrderHistory: "لم يتم إكمال أي طلبات بعد اليوم",
+        aiInsights: "تحليلات الذكاء الاصطناعي",
+        analyzeDate: "تاريخ التحليل",
+        runAnalysis: "تشغيل تحليل الذكاء الاصطناعي",
+        requestingAnalysis: "طلب تحليل الذكاء الاصطناعي… قد يستغرق 30–60 ثانية.",
+        analysisComplete: "تم التحليل.",
+        analysisError: "خطأ: {error}",
+        noResponse: "(لا يوجد رد من الذكاء الاصطناعي)",
+        downloadDaily: "تحميل CSV اليومي",
+        downloadMinute: "تحميل CSV الدقائق",
+        exportCSV: "تصدير CSV اليوم",
+        noPaidOrders: "لا توجد طلبات مدفوعة اليوم.",
+        exportFailed: "فشل التصدير. يرجى المحاولة مرة أخرى.",
+        justNow: "الآن",
+        minAgo: "منذ {min} دقيقة"
+      }
+    };
+
+    function t(key, params = {}) {
+      const lang = cashierTranslations[currentLang] || cashierTranslations.en;
+      let text = lang[key] || key;
+      Object.keys(params).forEach(p => {
+        text = text.replace(new RegExp(`\\{${p}\\}`, 'g'), params[p]);
+      });
+      return text;
+    }
+
+    function setLang(lang) {
+      if (!cashierTranslations[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('cashierLang', lang);
+      
+      // Update HTML lang attribute
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+      
+      // Update language dropdown label
+      const langLabels = { en: 'EN', tr: 'TR', ar: 'ع' };
+      document.getElementById('langDropdownLabel').textContent = langLabels[lang] || 'EN';
+      
+      // Update active state in dropdown
+      document.querySelectorAll('.lang-opt').forEach(btn => {
+        btn.classList.toggle('text-white', btn.dataset.lang === lang);
+        btn.classList.toggle('text-[#64748b]', btn.dataset.lang !== lang);
+      });
+      
+      // Update all UI labels with new language
+      updateUILabels();
+      
+      // Re-render UI elements that use translations
+      renderCustomOrderLines();
+      renderTableGrid();
+      updateStatCounts();
+      if (!document.getElementById('tabSummary').classList.contains('hidden')) {
+        loadTodaySummary();
+      }
+      if (!document.getElementById('tabInsights').classList.contains('hidden')) {
+        loadInsights();
+      }
+    }
+
     /* ── Helpers ────────────────────────────────────────── */
     function todayKey() {
       return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
@@ -418,15 +700,15 @@
       container.innerHTML = customOrderItems.map((item, idx) => `
         <div class="grid grid-cols-12 gap-3 items-end rounded-2xl bg-white/[0.04] border border-white/[0.08] p-3">
           <div class="col-span-6">
-            <label class="text-[#94a3b8] text-xs">Item name</label>
+            <label class="text-[#94a3b8] text-xs">${t('itemName')}</label>
             <input type="text" value="${item.name}" list="menuItemList" oninput="updatePriceFromName(this, ${idx})" placeholder="E.g. Double burger" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
           </div>
           <div class="col-span-2">
-            <label class="text-[#94a3b8] text-xs">Qty</label>
+            <label class="text-[#94a3b8] text-xs">${t('qty')}</label>
             <input type="number" min="1" value="${item.qty}" oninput="updateCustomOrderLine(${idx}, 'qty', this.value)" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
           </div>
           <div class="col-span-3">
-            <label class="text-[#94a3b8] text-xs">Price</label>
+            <label class="text-[#94a3b8] text-xs">${t('price')}</label>
             <input type="number" min="0" step="1" value="${item.price}" oninput="updateCustomOrderLine(${idx}, 'price', this.value)" class="w-full rounded-xl border border-white/[0.08] bg-[#0f172a]/80 text-white text-sm px-3 py-2 outline-none" />
           </div>
           <div class="col-span-1 flex justify-end">
@@ -478,6 +760,66 @@
       renderCustomOrderLines();
     }
 
+    function updateCustomOrderTotal() {
+      const total = customOrderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+      document.getElementById('customOrderTotal').textContent = '₺' + total.toFixed(0);
+    }
+
+    // Update UI text on language change
+    function updateUILabels() {
+      document.getElementById('brandTitle').textContent = t('brand');
+      document.getElementById('liveIndicator').textContent = t('live');
+      
+      // Update tab button text (tab buttons have emoji, so need careful update)
+      const tabOrdersBtn = document.getElementById('tabOrdersBtn');
+      const tabSummaryBtn = document.getElementById('tabSummaryBtn');
+      const tabInsightsBtn = document.getElementById('tabInsightsBtn');  
+      if (tabOrdersBtn) tabOrdersBtn.textContent = t('orders');
+      if (tabSummaryBtn) tabSummaryBtn.textContent = t('summary');
+      if (tabInsightsBtn) tabInsightsBtn.innerHTML = t('insights');
+      
+      document.getElementById('kitchenLink').textContent = t('kitchen');
+      document.getElementById('signOutBtnText').textContent = t('signOut');
+      
+      // Quick order form labels
+      document.getElementById('quickOrderTitle').textContent = t('quickCashierOrder');
+      document.getElementById('quickOrderDesc').textContent = 'Create receipts for orders placed outside the menu system.';
+      document.getElementById('addItemBtn').textContent = '+ ' + t('addItem');
+      
+      document.getElementById('paymentMethodText').textContent = t('paymentMethod');
+      document.querySelectorAll('.cashLabel').forEach(el => el.textContent = t('cash'));
+      document.querySelectorAll('.cardLabel').forEach(el => el.textContent = t('card'));
+      document.getElementById('noteLabel').textContent = t('note');
+      document.getElementById('orderTotalLabel').textContent = t('total');
+      document.getElementById('saveReceiptBtn').textContent = t('savePrint');
+      document.getElementById('resetFormBtn').textContent = 'Reset form';
+      
+      // Summary tab labels
+      document.getElementById('dailySummaryText').textContent = t('todayDate');
+      document.getElementById('exportBtn').textContent = '⬇ ' + t('exportCSV');
+      
+      document.getElementById('revenueCardLabel').textContent = t('totalRevenue');
+      document.getElementById('ordersCardLabel').textContent = t('totalOrders');
+      document.getElementById('avgCardLabel').textContent = t('avgOrder');
+      document.getElementById('itemsCardLabel').textContent = t('itemsSold');
+      
+      document.getElementById('paymentSplitTitle').textContent = t('paymentSplit');
+      document.getElementById('cashLabelSplit').textContent = t('cash');
+      document.getElementById('cardLabelSplit').textContent = t('card');
+      
+      document.getElementById('topItemsTitle').textContent = t('topItems');
+      document.getElementById('tableActivityTitle').textContent = t('tableActivity');
+      document.getElementById('orderHistoryTitle').textContent = t('orderHistory');
+      
+      // Insights tab labels
+      document.getElementById('aiInsightsTitle').textContent = t('aiInsights');
+      document.getElementById('analyzeBtn').textContent = '✨ ' + t('insights').replace('✨ ', '').split(' ')[0];
+      document.getElementById('aiAnalysisLabel').textContent = t('aiInsights');
+      document.getElementById('dlDailyCSVBtn').textContent = '⬇ ' + t('downloadDaily');
+      document.getElementById('dlMinuteCSVBtn').textContent = '⬇ ' + t('downloadMinute');
+      document.getElementById('analysisHistoryTitle').textContent = t('orderHistory');
+    }
+
     function buildReceiptReference() {
       const ts = new Date();
       const datePart = ts.toISOString().slice(0,10).replace(/-/g,'');
@@ -490,18 +832,18 @@
       const receipt = document.getElementById('receiptPaper');
       if (!receipt) return;
       const date = new Date();
-      const cashierName = currentUser?.email || 'Cashier';
+      const cashierName = currentUser?.email || t('cashier');
       receipt.innerHTML = `
         <div class="receipt-header">
-          <div class="receipt-title">DHO Restaurant</div>
-          <div class="receipt-meta">Order Receipt</div>
+          <div class="receipt-title">${t('receiptTitle')}</div>
+          <div class="receipt-meta">${t('receiptSubtitle')}</div>
           <div class="receipt-meta">dho-menu | www.dho-menu.web.app</div>
         </div>
         <div class="receipt-meta">
-          <div><strong>Receipt No:</strong> ${order.reference || order.tableKey}</div>
-          <div><strong>Date:</strong> ${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</div>
-          <div><strong>Cashier:</strong> ${cashierName}</div>
-          <div><strong>Payment:</strong> ${order.payment?.method || 'cash'}</div>
+          <div><strong>${t('receiptNo')}</strong> ${order.reference || order.tableKey}</div>
+          <div><strong>${t('date')}:</strong> ${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</div>
+          <div><strong>${t('cashier')}:</strong> ${cashierName}</div>
+          <div><strong>${t('payment')}:</strong> ${order.payment?.method || 'cash'}</div>
           ${order.note ? `<div><strong>Note:</strong> ${order.note}</div>` : ''}
         </div>
         <table class="receipt-items">
@@ -519,10 +861,10 @@
           </tbody>
         </table>
         <div class="receipt-total">
-          <span>Total</span><span>₺${(order.total || 0).toFixed(0)}</span>
+          <span>${t('total')}</span><span>₺${(order.total || 0).toFixed(0)}</span>
         </div>
         <div class="receipt-footer">
-          Thank you for your order!
+          ${t('thankYou')}
         </div>
       `;
     }
@@ -536,12 +878,12 @@
       const items = customOrderItems.map(item => ({ name: item.name.trim(), qty: item.qty, price: item.price }));
       const validItems = items.filter(item => item.name && item.qty > 0 && item.price >= 0);
       if (validItems.length === 0) {
-        alert('Please add at least one valid item.');
+        alert(t('addValidItem'));
         return;
       }
       const paymentMethod = document.querySelector('input[name="customPayment"]:checked')?.value;
       if (!paymentMethod) {
-        alert('Please select a payment method.');
+        alert(t('selectPayment'));
         return;
       }
       const note = document.getElementById('customOrderNote').value.trim();
@@ -566,7 +908,7 @@
 
         await writeCustomAnalytics(validItems, total, paymentMethod);
 
-        alert('Custom order recorded successfully. Printing receipt now.');
+        alert(t('customOrderSaved'));
         resetCustomOrderForm();
         if (!document.getElementById('tabSummary').classList.contains('hidden')) {
           loadTodaySummary();
@@ -574,7 +916,7 @@
         printCustomReceipt(orderRecord);
       } catch (err) {
         console.error('Custom order save failed:', err);
-        alert('Could not save the custom order. Please try again.');
+        alert(t('customOrderFailed'));
       }
     }
 
@@ -627,6 +969,45 @@
       auth.signOut().then(() => window.location.replace('cashier-login.html'));
     });
 
+    // Language dropdown functionality
+    const langDropdownBtn = document.getElementById('langDropdownBtn');
+    const langDropdownMenu = document.getElementById('langDropdownMenu');
+    const langChevron = document.getElementById('langChevron');
+
+    function openLangMenu() {
+      langDropdownMenu.style.display = 'block';
+      langChevron.style.transform = 'rotate(180deg)';
+      langDropdownBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeLangMenu() {
+      langDropdownMenu.style.display = 'none';
+      langChevron.style.transform = 'rotate(0deg)';
+      langDropdownBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    langDropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (langDropdownMenu.style.display === 'none') {
+        openLangMenu();
+      } else {
+        closeLangMenu();
+      }
+    });
+
+    document.addEventListener('click', () => closeLangMenu());
+    langDropdownMenu.addEventListener('click', (e) => e.stopPropagation());
+
+    document.querySelectorAll('.lang-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        setLang(opt.dataset.lang);
+        closeLangMenu();
+      });
+    });
+
+    // Initialize language on load
+    setLang(currentLang);
+
     /* ── Real-time orders listener ──────────────────────── */
     function startListening() {
       unsubOrders = db.collection('orders').onSnapshot(snapshot => {
@@ -671,6 +1052,12 @@
       document.getElementById('statNew').textContent       = all.filter(o => o.status === 'new').length;
       document.getElementById('statPreparing').textContent = all.filter(o => o.status === 'preparing').length;
       document.getElementById('statServed').textContent    = all.filter(o => o.status === 'served').length;
+      
+      // Update stat labels
+      document.getElementById('statNewLabel').textContent = t('newOrders');
+      document.getElementById('statPreparingLabel').textContent = t('preparing');
+      document.getElementById('statServedLabel').textContent = t('served');
+      document.getElementById('statRevenueLabel').textContent = t('revenue');
     }
 
     /* ── Table grid ─────────────────────────────────────── */
@@ -689,9 +1076,9 @@
           card.innerHTML = `
             <div class="flex items-center justify-between">
               <span class="font-bold text-white text-sm">Table ${t}</span>
-              <span class="s-badge s-empty">Empty</span>
+              <span class="s-badge s-empty">${t('empty')}</span>
             </div>
-            <p class="text-[#334155] text-xs flex-1">No active order</p>`;
+            <p class="text-[#334155] text-xs flex-1">${t('noActiveOrder')}</p>`;
         } else {
           const total   = (order.items || []).reduce((s, i) => s + i.price * i.qty, 0);
           const ts      = order.timestamp ? new Date(order.timestamp.seconds * 1000) : null;
@@ -710,24 +1097,24 @@
               <span class="font-bold text-white text-sm">Table ${t}</span>
               <span class="s-badge s-${order.status}">${capitalize(order.status)}</span>
             </div>
-            ${timeStr ? `<div class="text-[#475569] text-xs">${timeStr}${elapsed !== null ? ` &nbsp;·&nbsp; ${elapsed === 0 ? 'just now' : elapsed + ' min ago'}` : ''}</div>` : ''}
+            ${timeStr ? `<div class="text-[#475569] text-xs">${timeStr}${elapsed !== null ? ` &nbsp;·&nbsp; ${elapsed === 0 ? t('justNow') : t('minAgo', {min: elapsed})}` : ''}</div>` : ''}
             <div class="border-t border-white/[0.07] pt-2 space-y-0">${itemsHtml}</div>
             <div class="flex items-center justify-between font-bold pt-1.5 border-t border-white/[0.07]">
-              <span class="text-[#64748b] text-xs">Total</span>
+              <span class="text-[#64748b] text-xs">${t('total')}</span>
               <span class="text-[#ffd24a]">₺${total.toFixed(0)}</span>
             </div>
             <!-- Status buttons -->
             <div class="flex gap-2 flex-wrap">${buildStatusButtons(key, order.status)}</div>
             <!-- Divider + payment buttons -->
             <div class="border-t border-white/[0.07] pt-2">
-              <div class="text-[#475569] text-xs mb-2 font-semibold uppercase tracking-widest">Collect Payment</div>
+              <div class="text-[#475569] text-xs mb-2 font-semibold uppercase tracking-widest">${t('collectPayment')}</div>
               <div class="flex gap-2">
-                <button id="pay-cash-${key}" class="pay-btn pay-btn-cash" onclick="markPaid('${key}','cash')">💵 Cash</button>
-                <button id="pay-card-${key}" class="pay-btn pay-btn-card" onclick="markPaid('${key}','card')">💳 Card</button>
+                <button id="pay-cash-${key}" class="pay-btn pay-btn-cash" onclick="markPaid('${key}','cash')">${t('cash')}</button>
+                <button id="pay-card-${key}" class="pay-btn pay-btn-card" onclick="markPaid('${key}','card')">${t('card')}</button>
               </div>
             </div>
             <!-- Cancel order -->
-            <button class="act-btn act-btn-cancel w-full mt-1" onclick="cancelOrder('${key}')">✕ Cancel Order</button>`;
+            <button class="act-btn act-btn-cancel w-full mt-1" onclick="cancelOrder('${key}')">${t('cancelOrder')}</button>`;
         }
 
         grid.appendChild(card);
@@ -736,8 +1123,8 @@
 
     function buildStatusButtons(tableKey, status) {
       const transitions = [
-        { next: 'preparing', label: '⏳ Preparing', from: ['new'] },
-        { next: 'served',    label: '🍽 Served',    from: ['new', 'preparing'] },
+        { next: 'preparing', label: t('preparingBtn'), from: ['new'] },
+        { next: 'served',    label: t('servedBtn'),    from: ['new', 'preparing'] },
       ];
       return transitions.map(({ next, label, from }) => {
         const enabled = from.includes(status);
@@ -751,7 +1138,7 @@
         await db.collection('orders').doc(tableKey).update({ status: newStatus });
       } catch (err) {
         console.error('Status update failed:', err);
-        alert('Could not update status. Please try again.');
+        alert(t('statusUpdateFailed'));
       }
     }
 
@@ -760,12 +1147,12 @@
       const order = tableOrders[tableKey];
       if (!order) return;
       const tNum = tableKey.replace('table', '');
-      if (!confirm(`Cancel order for Table ${tNum}? This cannot be undone.`)) return;
+      if (!confirm(t('cancelConfirm', {table: tNum}))) return;
       try {
         await db.collection('orders').doc(tableKey).delete();
       } catch (err) {
         console.error('Cancel failed:', err);
-        alert('Could not cancel the order. Please try again.');
+        alert(t('cancelFailed'));
       }
     }
 
@@ -847,7 +1234,7 @@
 
       } catch (err) {
         console.error('Payment failed:', err);
-        alert('Could not record payment. Please try again.');
+        alert(t('paymentFailed'));
         // Re-enable buttons
         ['cash', 'card'].forEach(m => {
           const btn = document.getElementById(`pay-${m}-${tableKey}`);
@@ -1048,7 +1435,7 @@
       // Show spinner
       btn.disabled = true;
       statusEl.classList.remove('hidden');
-      statusTx.textContent = 'Requesting AI analysis… this may take 30–60 seconds.';
+      statusTx.textContent = t('requestingAnalysis');
       document.getElementById('insightSummaryCard').classList.add('hidden');
       document.getElementById('insightCSVRow').classList.add('hidden');
 
@@ -1058,7 +1445,7 @@
         const { aiSummary, csvDaily, csvMinutes } = result.data;
 
         // Display summary
-        document.getElementById('insightText').textContent = aiSummary || '(No response from AI)';
+        document.getElementById('insightText').textContent = aiSummary || t('noResponse');
         document.getElementById('insightDateLabel').textContent = dateKey;
         document.getElementById('insightSummaryCard').classList.remove('hidden');
 
@@ -1068,7 +1455,7 @@
         document.getElementById('dlDailyCSV').onclick  = () => triggerCSVDownload(csvDaily,  `DHO-Daily-${dateKey}.csv`);
         document.getElementById('dlMinuteCSV').onclick = () => triggerCSVDownload(csvMinutes, `DHO-Minutes-${dateKey}.csv`);
 
-        statusTx.textContent = 'Analysis complete.';
+        statusTx.textContent = t('analysisComplete');
         setTimeout(() => statusEl.classList.add('hidden'), 3000);
 
         // Refresh history list
@@ -1076,7 +1463,7 @@
 
       } catch (err) {
         console.error('Analysis error:', err);
-        statusTx.textContent = `Error: ${err.message || 'Analysis failed.'}`;
+        statusTx.textContent = t('analysisError', {error: err.message || 'Analysis failed.'});
       } finally {
         btn.disabled = false;
       }
@@ -1101,7 +1488,7 @@
         const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (a.completedAt?.seconds || 0) - (b.completedAt?.seconds || 0));
 
-        if (orders.length === 0) { alert('No paid orders today to export.'); return; }
+        if (orders.length === 0) { alert(t('noPaidOrders')); return; }
 
         const rows = [['Time', 'Table', 'Items', 'Total (₺)', 'Payment']];
         orders.forEach(o => {
@@ -1120,7 +1507,7 @@
         URL.revokeObjectURL(url);
       } catch (err) {
         console.error('CSV export failed:', err);
-        alert('Export failed. Please try again.');
+        alert(t('exportFailed'));
       }
     }
   </script>
